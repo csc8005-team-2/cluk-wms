@@ -14,16 +14,17 @@ public class ServerMain
             Class.forName ("com.mysql.cj.jdbc.Driver").newInstance ();
             connection = DriverManager.getConnection (url, userName, password);
             System.out.println ("Database connection established");
+
+         /* Here we put all our back end functionality.
+          */
+
         }
         catch (Exception e)
         {
             System.err.println ("Cannot connect to database server");
             System.err.println (e.getMessage ());
         }
-       
-         /* Here we put all our back end functionality.
-          */
-        
+
         finally
         {
            if (connection != null)
