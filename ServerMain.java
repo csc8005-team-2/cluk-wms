@@ -1,5 +1,5 @@
 import java.sql.*;
-public class Server
+public class ServerMain
 {
 
    public static void main (String[] args)
