@@ -14,7 +14,7 @@ import java.sql.*;
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
                        "FROM Inside" +            
-                       "WHERE warehouseAddress ="+Address+")";
+                       "WHERE warehouseAddress ="+Address;
                        
         try {
         statement = connection.createStatement();
@@ -36,7 +36,7 @@ import java.sql.*;
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
                        "FROM Inside" +            
-                       "WHERE stockItem="+stockItem+"AND warehouseAddress ="+Address+")";
+                       "WHERE stockItem="+stockItem+"AND warehouseAddress ="+Address;
         try {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -48,7 +48,7 @@ import java.sql.*;
             Statement statement2 = null;
             String query2 = "UPDATE Inside " +
                             "SET quantity ="+newQuantity+            
-                            "WHERE stockItem="+stockItem+"AND warehouseAddress ="+Address+")";
+                            "WHERE stockItem="+stockItem+"AND warehouseAddress ="+Address;
             try {
                 statement2 = connection.createStatement();
                 ResultSet rs2 = statement.executeQuery(query2);
