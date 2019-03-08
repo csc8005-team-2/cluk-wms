@@ -1,0 +1,12 @@
+.main-screen{
+    position: relative;
+    height: 80%;
+}
+
+mat-sidenav {
+    width: 25%;
+}
+
+footer {
+    text-align: right;
+}
