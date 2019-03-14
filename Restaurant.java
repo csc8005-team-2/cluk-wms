@@ -3,23 +3,20 @@ import java.sql.*;
 public class Restaurant {
 
     private String restaurantAddress;
-    private int stock;
 
     public Restaurant() {
         restaurantAddress = "";
-        stock = 0;
     }
 
-    public Restaurant(String name, int stock) {
+    public Restaurant(String name) {
         this.restaurantAddress = name;
-        this.stock = stock;
     }
 
     public void GetTotalStock(Connection connection) throws SQLException {
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
-                "FROM Within" +
-                "WHERE restaurantAddress =" + restaurantAddress;
+                "FROM Within " +
+                "WHERE restaurantAddress ='" + restaurantAddress+"'";
 
         try {
             statement = connection.createStatement();
@@ -41,23 +38,24 @@ public class Restaurant {
     public void UpdateStock(Connection connection, String stockItem, int quantity) throws SQLException {
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
-                "FROM Inside" +
-                "WHERE stockItem=" + stockItem + "AND restaurantAddress =" + restaurantAddress;
+                "FROM Within " +
+                "WHERE stockItem='" + stockItem + "' AND restaurantAddress ='" + restaurantAddress+"'";
         try {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
-
+            
+            rs.next();
             int Quantity = rs.getInt("quantity");
             System.out.println("Previous stock of " + stockItem + "\t" + Quantity + "\n");
             int newQuantity = Quantity + quantity;
 
             Statement statement2 = null;
-            String query2 = "UPDATE Inside " +
-                    "SET quantity =" + newQuantity +
-                    "WHERE stockItem=" + stockItem + "AND restaurantAddress =" + restaurantAddress;
+            String query2 = "UPDATE Within " +
+                    "SET quantity ='" + newQuantity +
+                    "' WHERE stockItem='" + stockItem + "' AND restaurantAddress ='" + restaurantAddress+"'";
             try {
                 statement2 = connection.createStatement();
-                ResultSet rs2 = statement.executeQuery(query2);
+                statement.executeUpdate(query2);
                 System.out.println("Updated stock of " + stockItem + "\t" + newQuantity + "\n");
             } catch (SQLException e) {
                 e.printStackTrace();
