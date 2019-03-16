@@ -12,16 +12,7 @@
   </mat-toolbar>
   <div class="container">
   <mat-card id="main-card">
-      <button mat-raised-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item>New Order</button>
-        <button mat-menu-item>Employee</button>
-        <button mat-menu-item>Reports</button>
-        <button mat-menu-item>Exports</button>
-        <button mat-menu-item>Location</button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item>Log Out</button>
-      </mat-menu>
+    <app-main-menu></app-main-menu>
   <div class="content">
     <router-outlet></router-outlet>
   </div>

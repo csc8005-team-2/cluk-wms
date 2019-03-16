@@ -1,0 +1,10 @@
+<button mat-raised-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
+<mat-menu #menu="matMenu">
+  <a mat-menu-item routerLink="/new-order">New Order</a>
+  <button mat-menu-item>Employee</button>
+  <button mat-menu-item>Reports</button>
+  <button mat-menu-item>Exports</button>
+  <button mat-menu-item>Location</button>
+  <mat-divider></mat-divider>
+  <a mat-menu-item routerLink="/login">Log Out</a>
+</mat-menu>
