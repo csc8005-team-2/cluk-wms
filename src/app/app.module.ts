@@ -8,6 +8,8 @@ import {MatCardModule} from '@angular/material/card';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatButtonModule} from '@angular/material/button'; 
 import {MatInputModule} from '@angular/material/input'; 
+import {MatDividerModule} from '@angular/material/divider'; 
+import {MatIconModule} from '@angular/material/icon'; 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -29,6 +31,8 @@ import { LoginComponent } from './login/login.component';
     MatMenuModule,
     MatButtonModule,
     MatInputModule,
+    MatDividerModule,
+    MatIconModule,
     BrowserAnimationsModule
   ],
   providers: [],
