@@ -13,6 +13,14 @@
   </mat-toolbar>
   <div class="container">
   <mat-card id="main-card">
+      <button mat-raised-button [matMenuTriggerFor]="menu">Menu</button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item>New Order</button>
+        <button mat-menu-item>Employee</button>
+        <button mat-menu-item>Reports</button>
+        <button mat-menu-item>Exports</button>
+        <button mat-menu-item>Location</button>
+      </mat-menu>
   <div class="content">
     <router-outlet></router-outlet>
   </div>
