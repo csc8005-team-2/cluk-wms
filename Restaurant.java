@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.ArrayList;
 
 public class Restaurant {
 
@@ -152,8 +153,54 @@ public class Restaurant {
             }
         }
     }
+    
+    public void minStockCheck(Connection connection) throws SQLException
+    {
+        Statement statement = null;
+        String query = "SELECT stockItem, quantity " +
+                       "FROM Within " +            
+                       "WHERE restaurantAddress='"+restaurantAddress+"'";
+                       
+        try {
+        statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery(query);
+        while (rs.next()) {
+            String StockItem = rs.getString("StockItem");
+            int Quantity = rs.getInt("quantity");
+            
+            ArrayList<String> belowStock = new ArrayList<String>();
+            int min=0;
+            if(StockItem.equals("Cheese Slices")){min = 100;}
+            else if(StockItem.equals("Chicken Breast Fillets")){min = 100;}
+            else if(StockItem.equals("Chicken Pieces")){min = 100;}
+            else if(StockItem.equals("Chicken strips")){min = 100;}
+            else if(StockItem.equals("Cola syrup")){min = 100;}
+            else if(StockItem.equals("Hash Browns")){min = 100;}
+            else if(StockItem.equals("Mayonnaise")){min = 100;}
+            else if(StockItem.equals("Mycoprotein based meat substitute Southern fried burger")){min = 100;}
+            else if(StockItem.equals("Mycoprotein based meat substitute Southern fried Strips")){min = 100;}
+            else if(StockItem.equals("Sesame Seed Buns")){min = 100;}
+            else if(StockItem.equals("Shredded iceberg lettuce")){min = 100;}
+            else if(StockItem.equals("Uncooked French Fries")){min = 100;}
+             
+            if(Quantity < min){
+            	int deficit = min - Quantity;
+            	System.out.println("Current stock of "+ StockItem +" is below minimum stock levels by "+deficit+".");
+            	belowStock.add(StockItem);
+            } 
+            
+            // for (int i =0; i<belowStock.size();i++){
+            //	this.createCustomOrder(connection, belowStock.get(i), 100);
+            //}
+            
+            
+            
+        }
+        } catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {statement.close();}
+        }                 
 
-
-
-
+    }
 }
