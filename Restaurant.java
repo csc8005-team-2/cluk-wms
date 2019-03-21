@@ -75,84 +75,66 @@ public class Restaurant {
     }
 
 
-    public void requestStandardOrder(Connection connection) throws SQLException {
-        Statement statement = null;
-        String query = "SELECT O.orderId, C.typicalUnitsOrdered" + "FROM Orders O, Contains C, Within W"
-                + "WHERE O.restaurantAddress=" + restaurantAddress + "AND O.restaurantAddress = W.RestaurantAddress"
-                + "AND W.quantity = C.quantity" + "AND C.typicalUnitsOrdered = W.typicalUnitsOrdered";
+    public void requestCustomOrder(Connection connection, int quantity, int orderId, String stockItem) throws SQLException {
+    	
+    	//assign it an order id, quantity etc (fill out Contains (Contains has: (quantity,orderId,stockItem)) )
+    	boolean orderCreated = false;
+    	while (orderCreated == false){
+    		
+    		Statement statement3 = null;
+	    	String query3 = "INSERT INTO Contains (quantity, stockItem) VALUES (?,?)";
 
-        try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery(query);
-
-            while (rs.next()) {
-
-                String OrderId = rs.getString("orderId");
-                String TypicalUnitsOrdered = rs.getString("typicalUnitsOrdered");
-                System.out.println(OrderId + "\t" + TypicalUnitsOrdered + "\n");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
-        }
+	    	try{
+				statement3 = connection.createStatement();
+				ResultSet rs = statement3.executeQuery(query3);
+			
+		            rs.next();
+		            rs.getInt(quantity);
+		            rs.getString(stockItem); 
+				//	rs.getInt(orderId);
+					if(orderCreated = true){ 
+						System.out.println("Order has already been created.");
+					}
+					} catch (SQLException e ) {
+						e.printStackTrace();
+					} finally {
+						if (statement3 != null) {statement3.close();
+						}
+					}
+    	}
     }
+    
+    	
+    	
+    	//add stock order to StockOrders table - set status to pending etc. (orderId, orderdatetime, order status)
+    	public void createStockOrder(Connection connection, int orderId, String orderDateTime, String orderStatus) throws SQLException {
+    		boolean orderCreated = false;
+    		while (orderCreated == true) { 
+    			
+    			Statement statement4 = null;
+    	    	String query4 = "INSERT INTO StockOrders (orderDateTime, orderStatus) VALUES (?,?)";
 
-
-    public void requestCustomOrder(Connection connection) throws SQLException {
-        Statement statement = null;
-        String query = "SELECT C.stockItem, O.orderId, W.quantity" + "FROM Contains C, Orders O, Within W"
-                + "WHERE O.restaurantAddress=" + restaurantAddress + "AND O.restaurantAddress = W.restaurantAddress"
-                + "AND C.stockItem = W.stockItem" + "AND O.orderId = C.orderId" + "AND C.quantity = W.quantity";
-
-        try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery(query);
-
-            while (rs.next()) {
-
-                String OrderId = rs.getString("orderId");
-                String StockItem = rs.getString("stockItem");
-                int Quantity = rs.getInt("quantity");
-                System.out.println(OrderId + "\t" + StockItem + "\n" + Quantity + "\n");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
+    	    	try{
+    				statement4 = connection.createStatement();
+    				ResultSet rs = statement4.executeQuery(query4);
+    			
+    			
+    		        rs.next();
+    		    //    rs.getInt(orderId); 
+    		        rs.getString(orderDateTime); 
+    				rs.getString(orderStatus);
+    				
+    				if(orderStatus == "complete"){ 
+    					System.out.println("Order has already been completed.");
+    				}
+    				} catch (SQLException e ) {
+    					e.printStackTrace();
+    				} finally {
+    					if (statement4 != null) {statement4.close();
+    					}
+    				}
+        	}
         }
-    }
-
-
-
-    public void stockCreatesMeals(Connection connection) throws SQLException {
-        Statement statement = null;
-        String query = "SELECT T.mealId, W.stockItem, WW.amount" + "FROM ToMake T, Works_With WW, Within W"
-                + "WHERE WW.restaurantAddress=" + restaurantAddress + "AND WW.restaurantAddress = W.restaurantAddress"
-                + "AND W.stockItem = T.name" + "AND WW.amount = W.quantity";
-        try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery(query);
-
-            while (rs.next()) {
-
-                String MealId = rs.getString("mealId");
-                String StockItem = rs.getString("stockItem");
-                int Amount = rs.getInt("amount");
-                System.out.println(MealId + "\t" + StockItem + "\n" + Amount + "\n");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
-        }
-    }
     
     public void minStockCheck(Connection connection) throws SQLException
     {
