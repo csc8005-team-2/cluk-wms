@@ -75,9 +75,8 @@ public class Restaurant {
     }
 
 
-    public void requestCustomOrder(Connection connection, int quantity, int orderId, String stockItem) throws SQLException {
+        public void requestCustomOrder(Connection connection, int quantity, int orderId, String stockItem, String orderDateTime, String orderStatus) throws SQLException {
     	
-    	//assign it an order id, quantity etc (fill out Contains (Contains has: (quantity,orderId,stockItem)) )
     	boolean orderCreated = false;
     	while (orderCreated == false){
     		
@@ -86,12 +85,12 @@ public class Restaurant {
 
 	    	try{
 				statement3 = connection.createStatement();
-				ResultSet rs = statement3.executeQuery(query3);
+				ResultSet rs1 = statement3.executeQuery(query3);
 			
-		            rs.next();
-		            rs.getInt(quantity);
-		            rs.getString(stockItem); 
-				//	rs.getInt(orderId);
+		            rs1.next();
+		            rs1.getInt(quantity);
+		            rs1.getString(stockItem); 
+
 					if(orderCreated = true){ 
 						System.out.println("Order has already been created.");
 					}
@@ -102,13 +101,7 @@ public class Restaurant {
 						}
 					}
     	}
-    }
-    
-    	
-    	
-    	//add stock order to StockOrders table - set status to pending etc. (orderId, orderdatetime, order status)
-    	public void createStockOrder(Connection connection, int orderId, String orderDateTime, String orderStatus) throws SQLException {
-    		boolean orderCreated = false;
+
     		while (orderCreated == true) { 
     			
     			Statement statement4 = null;
@@ -116,13 +109,13 @@ public class Restaurant {
 
     	    	try{
     				statement4 = connection.createStatement();
-    				ResultSet rs = statement4.executeQuery(query4);
+    				ResultSet rs2 = statement4.executeQuery(query4);
     			
     			
-    		        rs.next();
+    		        rs2.next();
     		    //    rs.getInt(orderId); 
-    		        rs.getString(orderDateTime); 
-    				rs.getString(orderStatus);
+    		        rs2.getString(orderDateTime); 
+    				rs2.getString(orderStatus);
     				
     				if(orderStatus == "complete"){ 
     					System.out.println("Order has already been completed.");
@@ -131,6 +124,65 @@ public class Restaurant {
     					e.printStackTrace();
     				} finally {
     					if (statement4 != null) {statement4.close();
+    					}
+    				}
+        	}
+        }
+    
+    	//QUESTIONS: 
+        //how do we make it so that the standard order's quantity = typical units ordered (in Stock) ? 
+        //also code has lots of repetition, is there a way to minimise?
+    
+	//this method needs fixed *
+    	public void requestStandardOrder(Connection connection, int quantity, int orderId, String stockItem, String orderDateTime, String orderStatus) throws SQLException {
+
+        	boolean orderCreated = false;
+        	while (orderCreated == false){
+        		
+        		Statement statement5 = null;
+    	    	String query5 = "INSERT INTO Contains (quantity, stockItem) VALUES (?,?)";
+
+    	    	try{
+    				statement5 = connection.createStatement();
+    				ResultSet rs3 = statement5.executeQuery(query5);
+    			
+    		            rs3.next();
+    		            rs3.getInt(quantity); 
+    		            rs3.getString(stockItem); 
+
+    					if(orderCreated = true){ 
+    						System.out.println("Order has already been created.");
+    					}
+    					} catch (SQLException e ) {
+    						e.printStackTrace();
+    					} finally {
+    						if (statement5 != null) {statement5.close();
+    						}
+    					}
+        	}
+        	
+    		while (orderCreated == true) { 
+    			
+    			Statement statement6 = null;
+    	    	String query6 = "INSERT INTO StockOrders (orderDateTime, orderStatus) VALUES (?,?)";
+
+    	    	try{
+    				statement6 = connection.createStatement();
+    				ResultSet rs4 = statement6.executeQuery(query6);
+    			
+    			
+    		        rs4.next();
+    		    //    rs.getInt(orderId); 
+    		        rs4.getString(orderDateTime); 
+    				rs4.getString(orderStatus);
+    				
+    				if(orderStatus == "complete"){ 
+    					System.out.println("Order has already been completed.");
+    				}
+    				} catch (SQLException e ) {
+    					e.printStackTrace();
+    				} finally {
+    					if (statement6 != null) {statement6.close();
     					}
     				}
         	}
