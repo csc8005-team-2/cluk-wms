@@ -20,36 +20,7 @@ public class ServerMain
            
            
            
-           //restaurant methods 
-           //restaurant requestCustomOrder method 
-                String query = "INSERT INTO Contains (quantity, stockItem)"
-                  + "values (?, ?)";
-                
-                PreparedStatement preparedStmt = connection.prepareStatement(query);
-                preparedStmt.setInt (1, 10);
-                preparedStmt.setString (2, "Shredded iceberg lettuce");
-         
-                // execute
-                preparedStmt.execute();
-               // connection.close();
-
            
-                //restaurant createStockOrder method 
-                String query2 = "INSERT INTO StockOrders (orderDateTime, orderStatus) VALUES (?,?)";
-                PreparedStatement preparedStmt2 = connection.prepareStatement(query2, Statement.RETURN_GENERATED_KEYS);
-
-                	ResultSet rs = preparedStmt2.getGeneratedKeys();
-                	if (rs.next()) {	
-                	int orderId = rs.getInt(1);
-                	System.out.println(orderId);
-                	}
-
-                    preparedStmt2.setString (1, "2019-02-14 10:50:34");
-                    preparedStmt2.setString (2, "Pending");
-
-                // execute
-                preparedStmt2.execute();
-               // connection.close();
 
         }
         catch (Exception e)
