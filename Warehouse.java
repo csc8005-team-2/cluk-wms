@@ -226,18 +226,4 @@ import java.util.ArrayList;
             if (statement != null) {statement.close();}
         }                 
     }
-    
-    public void assignOrderToDriver(Connection connection, int orderId, String driverId) throws SQLException{
-    	try {
-
-		String query = "INSERT INTO SentBy(orderId,driverId)VALUES (?,?)";
-    	PreparedStatement statement= connection.prepareStatement(query);
-		statement.setInt(1,orderId);
-		statement.setString(2, driverId);
-		statement.execute();
-		
-    	}catch (SQLException e ) {
-    		e.printStackTrace();
-    	}           
-    }
 }
