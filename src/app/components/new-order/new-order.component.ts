@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { TableDataSource } from '../classes/table-data-source';
+import { TableDataSource } from '../../classes/table-data-source';
 
 export interface Ingredient {
   sku: string;

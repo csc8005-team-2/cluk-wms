@@ -6,9 +6,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { LoginComponent } from './login/login.component';
-import { NewOrderComponent } from './new-order/new-order.component';
-import { MainMenuComponent } from './main-menu/main-menu.component';
+import { LoginComponent } from './components/login/login.component';
+import { NewOrderComponent } from './components/new-order/new-order.component';
+import { MainMenuComponent } from './components/main-menu/main-menu.component';
 
 @NgModule({
   declarations: [
