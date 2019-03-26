@@ -42,7 +42,6 @@ public class Restaurant {
     }
 
  
-//	**IGNORE - working on atm **
 	//this method updates the stock for each restaurant when it has received an order 
   //  public void receiveOrder(Connection connection, String stockItem, int quantity, String restaurantAddress) throws SQLException {
     	
@@ -52,11 +51,12 @@ public class Restaurant {
     	//see whats in the contains table for that order id
     	//add that stock to the within table for the restaurant
     	  
+    	  boolean restaurantRecievesOrder = false;
     	  
+    	  if (restaurantRecievesOrder == true ) {
     	  Statement statement1 = null;
     	  
-    	  String query1 = "SELECT orderId, restaurantAddress FROM Orders WHERE restaurantAddress = '"+restaurantAddress+"'" 
-    	  + "AND orderId = '" +orderId+"'";
+    	  String query1 = "SELECT orderId, restaurantAddress FROM Orders WHERE restaurantAddress = '"+restaurantAddress+"'";
     	  
     	  try {
     		  statement1 = connection.createStatement();
@@ -65,17 +65,13 @@ public class Restaurant {
                   int OrderId = rs.getInt("OrderId");
                   String RestaurantAddress = rs.getString("RestaurantAddress");
                   System.out.println(OrderId + "\t" + RestaurantAddress + "\n");
-                  
-                //  if (restaurantAddress == RestaurantAddress ) {
-                	    
-                  	boolean stockAvailable = false;
-                  	
-                  	if (stockAvailable == true ) {
+              
   
                   	Statement statement2 = null; 
  
-                	//String query2 = "SELECT orderId, stockItem, quantity FROM Contains WHERE orderId ='" +orderId+"'"; 
-                	String query2 = "SELECT stockItem, quantity FROM Contains WHERE stockItem ='" +; 
+                	String query2 = "SELECT stockItem, quantity FROM Contains WHERE orderId ='" +orderId+"'"; //this is the same restaurant order
+
+
                 	
                 	   try {
                 	      	statement2 = connection.createStatement();
@@ -83,114 +79,76 @@ public class Restaurant {
                 	        ResultSet rs2 = statement2.executeQuery(query2);
                 	              
                 	        rs2.next();
-                	      //  OrderId = rs2.getInt("OrderId");
-                	        int Quantity = rs2.getInt("quantity");
+                	        int quantityToAdd = rs2.getInt("quantity");
                 	        String StockItem = rs2.getString("stock");
-                	        System.out.println("Previous stock of "+ StockItem + ": " + Quantity);
-                	        int newQuantity = Quantity+quantity;
-//                	          
-//                	              Statement statement3 = null;
-//                	              
-//                	              String query3 = "UPDATE Contains " +
-//                	                      "SET quantity ='"+newQuantity+            
-//                	                      "' WHERE stockItem='"+stockItem+"'";
-//                	              try {
-//                	                  statement2 = connection.createStatement();
-//                	                  statement2.executeUpdate(query2);
-//                	                  System.out.println("Updated stock of "+stockItem + ": " + newQuantity);
-                	              } catch (SQLException e ) {
-                	                  e.printStackTrace();
-                	              } finally {
-                	                  if (statement2 != null) {statement2.close();}
-                	              }                     
-//                	          } catch (SQLException e ) {
-//                	              e.printStackTrace();
-//                	          } finally {
-//                	              if (statement1 != null) {statement1.close();}
-//                	         }
-                	        
-                     	} else {
-                      		System.out.println("No stock available to recieve order");                                                  
-                          }
-                	  
-//                  } else {
-//                	  System.out.println("This is not the correct restaurant");
-//                  }
+                	        System.out.println("New order of "+ StockItem + ": " + quantityToAdd);
 
+                	   
+    	  //then update with Within to add this new Quantity to our original full quantity of stock 
+                	   
+                	   Statement statement3 = null;
+                	   String query3 = "SELECT stockItem, quantity FROM Within WHERE restaurantAddress ='" +restaurantAddress+"'"; //amount of stock before this next order is added in
+                	
+                	   try {
+                	      	statement3 = connection.createStatement();
+                	      	
+                	        ResultSet rs3 = statement3.executeQuery(query3);
+                	              
+                	        rs3.next();
+                	        
+                	        int previousQuantity = rs3.getInt("quantity");
+                	        StockItem = rs3.getString("stock");
+                	        System.out.println("Previous stock quantity: " + previousQuantity + " for stock: " + StockItem);
+
+                	   
+                	   
+                	   Statement statement4 = null;
+                	   int newQuantity = quantityToAdd + previousQuantity;
+                	   
+                	   String query4 = "UPDATE Within SET quantity ='" +newQuantity+"' WHERE stockItem = " + StockItem;
+                	   
+                     try {
+                     statement4 = connection.createStatement();
+                     statement4.executeUpdate(query4);
+                     System.out.println("Updated stock of " + StockItem + ": " + newQuantity + " at restaurant: " + restaurantAddress);
+                	   
+                	   
+                       } catch (SQLException e) {
+                          	
+                           e.printStackTrace();
+                       } finally {
+                           if (statement4 != null) {
+                               statement4.close();
+                           }
+                       }
+                       } catch (SQLException e) {
+                          	
+                           e.printStackTrace();
+                       } finally {
+                           if (statement3 != null) {
+                               statement3.close();
+                           }
+                       }
+              } catch (SQLException e) {
+                 	
+                  e.printStackTrace();
+              } finally {
+                  if (statement2 != null) {
+                      statement2.close();
+                  }
+              }
               }
           } catch (SQLException e) {
-          	
+             	
               e.printStackTrace();
           } finally {
               if (statement1 != null) {
                   statement1.close();
               }
           }
-
-    		  
-    	  }
-    	  
-      
-  
-    
- //    **IGNORE**
-//    	boolean stockAvailable = false;
-//    	
-//    	if (stockAvailable == true ) {
-//    	Statement statement1 = null; 
-//
-//    	String query1 = "SELECT stockItem, quantity FROM Contains WHERE stockItem ='" +stockItem+"'";     	
-//    	try {
-//            statement1 = connection.createStatement();
-//            ResultSet rs1 = statement1.executeQuery(query1);
-//            
-//            rs1.next();
-//            int Quantity = rs1.getInt("quantity");
-//            System.out.println("Previous stock of "+stockItem + ": " + Quantity);
-//            int newQuantity = Quantity+quantity;
-//        
-//            Statement statement2 = null;
-//            
-//            String query2 = "UPDATE Contains " +
-//                    "SET quantity ='"+newQuantity+            
-//                    "' WHERE stockItem='"+stockItem+"'";
-//            try {
-//                statement2 = connection.createStatement();
-//                statement2.executeUpdate(query2);
-//                System.out.println("Updated stock of "+stockItem + ": " + newQuantity);
-//            } catch (SQLException e ) {
-//                e.printStackTrace();
-//            } finally {
-//                if (statement2 != null) {statement2.close();}
-//            }                     
-//        } catch (SQLException e ) {
-//            e.printStackTrace();
-//        } finally {
-//            if (statement1 != null) {statement1.close();}
-//       }
-//    	
-//    	Statement statement3 = null;
-//    	String query3 = "INSERT INTO Within (restaurantAddress, stockItem, quantity) VALUES (?, ?, ?)";
-//    	try {
-//    		statement3 = connection.createStatement();
-//			
-//		    PreparedStatement pstmt3 = connection.prepareStatement(query3);
-//		    pstmt3.setString(1, restaurantAddress);
-//		    pstmt3.setString(2,  stockItem);
-//		    pstmt3.setInt(3,  quantity);
-//		    pstmt3.executeUpdate();
-//			
-//			} catch (SQLException e ) {
-//				e.printStackTrace();
-//			} finally {
-//				if (statement3 != null) {statement3.close();
-//				}
-//			}
-//    	} else {
-//    		System.out.println("No stock available to recieve order");
-//    	}
-//    	
-//    }
+          } else {
+        	  System.out.println("Restaurant has not recieved an order");
+          }
        
     //START OF ORDER METHODS:
 	
