@@ -16,7 +16,7 @@ public class Restaurant {
     }
 
     
-    Get address
+    //Get address
     public String getRestaurantAddress() {
         return this.restaurantAddress;
     }
@@ -31,7 +31,7 @@ public class Restaurant {
     	int orderId=0;
     	
     	
-    	 Creating Order in StockOrders Table.
+    	//Creating Order in StockOrders Table.
     	String query = INSERT INTO StockOrders (orderDateTime, orderStatus) VALUES (, );
     	
     	try{
@@ -44,7 +44,7 @@ public class Restaurant {
     		e.printStackTrace();
     	} 
 
-    	 Getting back the orderId of the order we just created.
+    	//Getting back the orderId of the order we just created.
     	Statement statement = null;
     	query = SELECT orderId FROM StockOrders WHERE orderDateTime='+currentTime+';
     	
@@ -59,7 +59,7 @@ public class Restaurant {
                 if (statement != null) {statement.close();}
             } 
     	
-         Add Order ID and restaurant address to orders table.
+        //Add Order ID and restaurant address to orders table.
     	query = INSERT into Orders (restaurantAddress, orderId) VALUES (,);
     	
     	try {
@@ -72,7 +72,7 @@ public class Restaurant {
     		e.printStackTrace();
     	}
     	
-    	 Getting Standard quantities from Stock Table.
+    	//Getting Standard quantities from Stock Table.
     	statement = null;
     	query = SELECT stockItem, typicalUnitsOrdered FROM Stock;
                        
@@ -83,7 +83,7 @@ public class Restaurant {
         	String StockItem = rs.getString(StockItem);
             int typicalUnits = rs.getInt(typicalUnitsOrdered);
             
-             Add standard quantities to Contains table.
+            //Add standard quantities to Contains table.
             String innerquery = INSERT into Contains (orderId,quantity,stockItem) VALUES (+orderId+,+typicalUnits+,+StockItem+);
             try {
             	PreparedStatement ptsmt= connection.prepareStatement(innerquery);
