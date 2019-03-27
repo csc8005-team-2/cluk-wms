@@ -581,7 +581,7 @@ public class Restaurant {
                 	
                 	
                 	Statement innerstatement = null;
-                    String innerquery = "UPDATE within set quantity =quantity-"+quantity+" WHERE stockItem='"+stockItem+"'";
+                    String innerquery = "UPDATE within set quantity =quantity-"+quantity+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'";
                     try {
                     	innerstatement = connection.createStatement();
                     	innerstatement.executeUpdate(innerquery);
