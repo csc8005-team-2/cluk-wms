@@ -57,7 +57,7 @@ public class Restaurant {
                   while (rs.next()) {
                   int OrderId = rs.getInt("OrderId");
                   String RestaurantAddress = rs.getString("RestaurantAddress");
-                  System.out.println(OrderId + "\t" + RestaurantAddress + "\n");
+                   System.out.println(OrderId + "\t" + RestaurantAddress + "\n");
               
   
                   	Statement statement2 = null; 
@@ -74,23 +74,26 @@ public class Restaurant {
                 	        String StockItem = rs2.getString("stockItem");
                 	        System.out.println("New order of "+ StockItem + ": " + quantityToAdd);
 
-                	   
+               	   
     	               //then update Within table to add this new Quantity to our original full quantity of stock 
-                	   //Within must not be empty before doing this method aka have an address, stock item and quantity of decimal entered into it beforehand
+                	   //Within must not be empty before doing this method
                 	   
                 	   Statement statement3 = null;
-                	   String query3 = "SELECT stockItem, quantity FROM Within WHERE restaurantAddress ='" +restaurantAddress+"'"; //amount of stock before this next order is added in
+                	   //original amount of stock
+                	   String query3 = "SELECT stockItem, quantity FROM Within WHERE restaurantAddress ='" +restaurantAddress+"'" + 
+                	   "AND stockItem ='" +StockItem+"'";
                 	
                 	   try {
                 	      	statement3 = connection.createStatement();
                 	      	
                 	        ResultSet rs3 = statement3.executeQuery(query3);
                 	              
-                	        rs3.next();
+                	        while (rs3.next()) {
                 	        
                 	        int previousQuantity = rs3.getInt("quantity");
                 	        StockItem = rs3.getString("stockItem");
                 	        System.out.println("Previous stock quantity: " + previousQuantity + " for stock: " + StockItem);
+                	        
                 	   
                 	   Statement statement4 = null;
                 	   int newQuantity = quantityToAdd + previousQuantity;
@@ -101,6 +104,7 @@ public class Restaurant {
                        statement4 = connection.createStatement();
                        statement4.executeUpdate(query4);
                        System.out.println("Updated stock of " + StockItem + ": " + newQuantity + " at restaurant: " + restaurantAddress);
+                       
                 	    
                        } catch (SQLException e) {
                           	
@@ -110,6 +114,7 @@ public class Restaurant {
                                statement4.close();
                            }
                        }
+                	        }
                        } catch (SQLException e) {
                           	
                            e.printStackTrace();
@@ -117,7 +122,7 @@ public class Restaurant {
                            if (statement3 != null) {
                                statement3.close();
                            }
-                       }
+               	        }
                 	        }
               } catch (SQLException e) {
                  	
@@ -135,7 +140,7 @@ public class Restaurant {
               if (statement1 != null) {
                   statement1.close();
               }
-          }
+          } 
     	  }
 
     
