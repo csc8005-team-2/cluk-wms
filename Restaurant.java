@@ -565,6 +565,36 @@ public class Restaurant {
                 if (statement != null) {statement.close();}                 
             }
         }
+    	
+    	
+    	public void createMeal(Connection connection, String meal) throws SQLException {
+			
+    		Statement statement = null;
+        	String query = "SELECT stockItem, quantity FROM MadeWith WHERE mealId ='"+meal+"'";
+        	
+        	try {
+                statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(query);
+                while(rs.next()){
+                	String stockItem = rs.getString("stockItem");
+                	float quantity = rs.getFloat("quantity");
+                	
+                	
+                	Statement innerstatement = null;
+                    String innerquery = "UPDATE within set quantity =quantity-"+quantity+" WHERE stockItem='"+stockItem+"'";
+                    try {
+                    	innerstatement = connection.createStatement();
+                    	innerstatement.executeUpdate(innerquery);
+    				} catch (SQLException e ) {
+    					e.printStackTrace();
+    				} finally {
+    					if (innerstatement != null) {innerstatement.close();}
+    				}                     
+                }
+        	} catch (SQLException e ) {
+        		e.printStackTrace();
+        	} finally {
+        		if (statement != null) {statement.close();}
+        	} 
+    	}
 }    
- 
-
