@@ -54,7 +54,7 @@ public class Restaurant {
     	  try {
     		  statement1 = connection.createStatement();
     		  ResultSet rs = statement1.executeQuery(query1);
-              while (rs.next()) {
+                  while (rs.next()) {
                   int OrderId = rs.getInt("OrderId");
                   String RestaurantAddress = rs.getString("RestaurantAddress");
                   System.out.println(OrderId + "\t" + RestaurantAddress + "\n");
@@ -63,21 +63,20 @@ public class Restaurant {
                   	Statement statement2 = null; 
  
                 	String query2 = "SELECT stockItem, quantity FROM Contains WHERE orderId ='" +orderId+"'";
-                	//this is only picking up one ingredient in my order number 15 (this should include all of the ingredients) 
 
                 	   try {
                 	      	statement2 = connection.createStatement();
                 	      	
                 	        ResultSet rs2 = statement2.executeQuery(query2);
                 	              
-                	        rs2.next();
+                	        while (rs2.next()) {
                 	        int quantityToAdd = rs2.getInt("quantity");
                 	        String StockItem = rs2.getString("stockItem");
                 	        System.out.println("New order of "+ StockItem + ": " + quantityToAdd);
 
                 	   
     	               //then update Within table to add this new Quantity to our original full quantity of stock 
-                	   //Within must not be empty before doing this method aka have an address, stock item and quantity 0 entered into it beforehand
+                	   //Within must not be empty before doing this method aka have an address, stock item and quantity of decimal entered into it beforehand
                 	   
                 	   Statement statement3 = null;
                 	   String query3 = "SELECT stockItem, quantity FROM Within WHERE restaurantAddress ='" +restaurantAddress+"'"; //amount of stock before this next order is added in
@@ -119,6 +118,7 @@ public class Restaurant {
                                statement3.close();
                            }
                        }
+                	        }
               } catch (SQLException e) {
                  	
                   e.printStackTrace();
@@ -407,7 +407,7 @@ public class Restaurant {
 		    		    		    		    		    		    		    		    		    	    			    			e.printStackTrace();
 		    		    		    		    		    		    		    		    		    	    			    		} finally {
 		    		    		    		    		    		    		    		    		    	    			    			if (statement01 != null) {statement01.close();
-		//sorry that the code is placed extremely to the right- ellie will fix    		    		    		    		    		    		    		    		    	    			    			}
+		    		    		    		    		    		    		    		    		    	    			    			}
 		    		    		    		    		    		    		    		    		    	    			    		}
 		    		    		    		    		    		    		    		    		    	  }
 
@@ -566,4 +566,5 @@ public class Restaurant {
             }
         }
 }    
+ 
 
