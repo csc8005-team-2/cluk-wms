@@ -571,35 +571,75 @@ public class Restaurant {
             }
         }
     	
-    	
-    	public void createMeal(Connection connection, String meal) throws SQLException {
+	public void createMeal(Connection connection, String meal) throws SQLException {
+		boolean enoughStock=true;
+		
+		Statement statement = null;
+		String query = "SELECT stockItem, quantity FROM MadeWith WHERE mealId ='"+meal+"'";
+		try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while(rs.next()){
+            	String stockItem = rs.getString("stockItem");
+            	Double quantity = rs.getDouble("quantity");
+            	
+            	
+            	Statement innerstatement = null;
+                String innerquery = "SELECT quantity FROM Within WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'" ;
+                try {
+                	innerstatement = connection.createStatement();
+                	ResultSet rs2 = innerstatement.executeQuery(innerquery);
+                	rs2.next();
+                	Double oldQuantity = rs2.getDouble("quantity");
+                	
+                	if(oldQuantity<quantity){
+                		System.out.print("Meal cannot be made. Restaurant stock too low. \n");
+                		enoughStock=false;
+                	}
+                	
+				} catch (SQLException e ) {
+					e.printStackTrace();
+				} finally {
+					if (innerstatement != null) {innerstatement.close();}
+				}                     
+            } 
+		}catch (SQLException e ) {
+			e.printStackTrace();
+		} finally {
+			if (statement != null) {statement.close();}
+		} 
+		
 			
-    		Statement statement = null;
-        	String query = "SELECT stockItem, quantity FROM MadeWith WHERE mealId ='"+meal+"'";
-        	
-        	try {
-                statement = connection.createStatement();
-                ResultSet rs = statement.executeQuery(query);
-                while(rs.next()){
-                	String stockItem = rs.getString("stockItem");
-                	float quantity = rs.getFloat("quantity");
-                	
-                	
-                	Statement innerstatement = null;
-                    String innerquery = "UPDATE within set quantity =quantity-"+quantity+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'";
-                    try {
-                    	innerstatement = connection.createStatement();
-                    	innerstatement.executeUpdate(innerquery);
-    				} catch (SQLException e ) {
-    					e.printStackTrace();
-    				} finally {
-    					if (innerstatement != null) {innerstatement.close();}
-    				}                     
-                }
-        	} catch (SQLException e ) {
-        		e.printStackTrace();
-        	} finally {
-        		if (statement != null) {statement.close();}
-        	} 
-    	}
+		if(enoughStock == true){
+		
+		statement = null;
+    	query = "SELECT stockItem, quantity FROM MadeWith WHERE mealId ='"+meal+"'";
+    	
+    	try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while(rs.next()){
+            	String stockItem = rs.getString("stockItem");
+            	float quantity = rs.getFloat("quantity");
+            	
+            	
+            	Statement innerstatement = null;
+                String innerquery = "UPDATE Within set quantity =quantity-"+quantity+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'";
+                try {
+                	innerstatement = connection.createStatement();
+                	innerstatement.executeUpdate(innerquery);
+				} catch (SQLException e ) {
+					e.printStackTrace();
+				} finally {
+					if (innerstatement != null) {innerstatement.close();}
+				}                     
+            }
+    	} catch (SQLException e ) {
+    		e.printStackTrace();
+    	} finally {
+    		if (statement != null) {statement.close();}
+    	} 
+		}
+	}   	
+    	
 }    
