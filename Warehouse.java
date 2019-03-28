@@ -9,6 +9,7 @@ import java.sql.*;
         Address = address;
     }
 
+    //Outputs total stock held at the warehouse(units).
     public void GetTotalStock(Connection connection) throws SQLException
     {
         Statement statement = null;
@@ -31,6 +32,7 @@ import java.sql.*;
         }                 
     }
     
+    //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
     public void UpdateStock(Connection connection, String stockItem, int quantity) throws SQLException
     {
         Statement statement = null;
@@ -66,8 +68,10 @@ import java.sql.*;
        }                                              
     }
     
+    //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
     public void SendOrder(Connection connection, int orderId) throws SQLException
     {
+    	//Check if order has already been delivered.
     	boolean orderFulfilled = false;
     	Statement statement = null;
     	String query = "SELECT orderStatus FROM StockOrders WHERE orderId ='"+orderId+"'";
@@ -87,6 +91,7 @@ import java.sql.*;
     		if (statement != null) {statement.close();}
     	}
     		
+    	//Check if warehouse has enough stock to fulfil order.
     	boolean stockAvaliable = true;
     	int cQuantity=0; int iQuantity=0;
     	statement = null;
@@ -125,6 +130,7 @@ import java.sql.*;
 			if (statement != null) {statement.close();}
 		}
     	
+    	//If passed previous checks update stock levels.
     	if(stockAvaliable==true && orderFulfilled==false) {
     		statement = null;
     		query = "SELECT stockItem, quantity " +
@@ -156,6 +162,7 @@ import java.sql.*;
 				if (statement != null) {statement.close();}
 			}   
     		
+    		//Update database to mark order as out for delivery.
     		statement = null;
 			query = "UPDATE StockOrders "+
 					"SET orderStatus = 'Out for delivery' "+
@@ -171,6 +178,7 @@ import java.sql.*;
     	}
     }
     
+    //Checks the warehouse stock is above the minimum level.
     public void minStockCheck(Connection connection) throws SQLException
     {
         Statement statement = null;
@@ -199,7 +207,7 @@ import java.sql.*;
         }                 
     }
     
-    
+    //Allows the warehouse stock minimums to be set.
     public void updateMinStock(Connection connection, String stockItem, int min) throws SQLException
     {
         Statement statement = null;
@@ -217,7 +225,7 @@ import java.sql.*;
         }                 
     }
 
-    
+    //Assigns an order to a driver(basic) may require expanding based on driver class.
     public void assignOrderToDriver(Connection connection, int orderId, String driverId) throws SQLException{
     	try {
 
