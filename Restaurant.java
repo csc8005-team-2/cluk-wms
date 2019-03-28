@@ -593,7 +593,7 @@ public class Restaurant {
                 	Double oldQuantity = rs2.getDouble("quantity");
                 	
                 	if(oldQuantity<quantity){
-                		System.out.print("Meal cannot be made. Restaurant stock too low. \n");
+                		System.out.print(meal + " cannot be made. Restaurant stock too low. \n");
                 		enoughStock=false;
                 	}
                 	
@@ -628,6 +628,7 @@ public class Restaurant {
                 try {
                 	innerstatement = connection.createStatement();
                 	innerstatement.executeUpdate(innerquery);
+                	System.out.print("Item: "+meal+"created.\n");
 				} catch (SQLException e ) {
 					e.printStackTrace();
 				} finally {
