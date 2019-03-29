@@ -75,7 +75,24 @@ public class Restaurant {
     				int quantityToAdd = rs.getInt("quantity");
     				String stockItem = rs.getString("stockItem");
     				System.out.println("New order contains "+ stockItem + ": " + quantityToAdd);
-
+    				
+    				Statement statement2 = null;
+    				String query2 = "SELECT unitSize from Stock WHERE stockItem ='" +stockItem+"'";
+    				
+    				try{
+    					statement2 = connection.createStatement();      	
+    					ResultSet rs2 = statement2.executeQuery(query2);
+    					rs2.next();
+    	    			int conversion = rs2.getInt("unitSize");
+    	    			
+    	    			quantityToAdd=quantityToAdd*conversion;
+    	    			
+    				} catch (SQLException e) {
+    					e.printStackTrace();
+    				}finally {
+						if (statement2 != null) {statement2.close();}
+					}
+    	    			
     				//then update Within table to add this new Quantity to our original full quantity of stock 
     				//Within must not be empty before doing this method
                 	   
@@ -343,7 +360,7 @@ public class Restaurant {
             ResultSet rs = statement.executeQuery(query);
             while(rs.next()){
             	String stockItem = rs.getString("stockItem");
-            	Double quantity = rs.getDouble("quantity");
+            	int quantity = rs.getInt("quantity");
             	
             	Statement innerstatement = null;
                 String innerquery = "SELECT quantity FROM Within WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'" ;
@@ -351,7 +368,7 @@ public class Restaurant {
                 	innerstatement = connection.createStatement();
                 	ResultSet rs2 = innerstatement.executeQuery(innerquery);
                 	rs2.next();
-                	Double oldQuantity = rs2.getDouble("quantity");
+                	int oldQuantity = rs2.getInt("quantity");
                 	
                 	if(oldQuantity<quantity){
                 		System.out.print(meal + " cannot be made. Restaurant stock too low. \n");
@@ -381,7 +398,7 @@ public class Restaurant {
             ResultSet rs = statement.executeQuery(query);
             while(rs.next()){
             	String stockItem = rs.getString("stockItem");
-            	float quantity = rs.getFloat("quantity");
+            	int quantity = rs.getInt("quantity");
             	
             	
             	Statement innerstatement = null;
