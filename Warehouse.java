@@ -1,6 +1,6 @@
 import java.sql.*;
 
- class Warehouse
+ public class Warehouse
 {
     private String Address;
     
@@ -106,7 +106,7 @@ import java.sql.*;
     			String cStock= rs.getString("stockItem");
     			
     			Statement innerStatement =null;
-    			String innerQuery = "SELECT quantity FROM Inside WHERE stockItem ='"+cStock+"' AND warehouseAddress ='"+Address;
+    			String innerQuery = "SELECT quantity FROM Inside WHERE stockItem ='"+cStock+"' AND warehouseAddress ='"+Address+"'";
     			try{
     				innerStatement = connection.createStatement();
     				ResultSet innerRs = innerStatement.executeQuery(innerQuery);

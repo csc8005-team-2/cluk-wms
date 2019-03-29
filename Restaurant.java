@@ -48,7 +48,7 @@ public class Restaurant {
     		ResultSet rs = statement.executeQuery(query);
     		rs.next();
     		String restaurant = rs.getString("restaurantAddress");
-    		if(restaurant!=this.restaurantAddress) {
+    		if(!restaurant.equals(restaurantAddress)) {
     			System.out.println( "The order submitted is not for this restaurant. The correct "+
     								"delivery location is "+ restaurant+".");
     			correctRestaurant=false;
@@ -180,8 +180,8 @@ public class Restaurant {
     	try {
     		statement = connection.createStatement();
     		ResultSet rs = statement.executeQuery(query);
+    		int i =0;
     		while (rs.next()) {
-    			int i =0;
     			String stockItem = rs.getString("stockItem");
     			
     			// Add specified quantities to Contains table.
@@ -203,6 +203,8 @@ public class Restaurant {
     		if (statement != null) {statement.close();}
     	}  
     }
+    
+    
     
     public void requestStandardOrder(Connection connection) throws SQLException {
     	
@@ -314,7 +316,7 @@ public class Restaurant {
     public void updateMinStock(Connection connection, String stockItem, int min) throws SQLException
         {
             Statement statement = null;
-            String query = "UPDATE Within SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+restaurantAddress+"'";
+            String query = "UPDATE Within SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
                            
             try {
             	statement = connection.createStatement();
@@ -387,13 +389,13 @@ public class Restaurant {
                 try {
                 	innerstatement = connection.createStatement();
                 	innerstatement.executeUpdate(innerquery);
-                	System.out.print("Item: "+meal+"created.\n");
 				} catch (SQLException e ) {
 					e.printStackTrace();
 				} finally {
 					if (innerstatement != null) {innerstatement.close();}
 				}                     
             }
+            System.out.print("Item: "+meal+" created.\n");
     	} catch (SQLException e ) {
     		e.printStackTrace();
     	} finally {
