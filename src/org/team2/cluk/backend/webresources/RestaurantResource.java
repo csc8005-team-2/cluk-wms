@@ -1,22 +1,39 @@
 package org.team2.cluk.backend.webresources;
 
+import org.team2.cluk.backend.DbConnection;
+import org.team2.cluk.backend.ServerLog;
+
+import javax.json.*;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 import java.sql.*;
 import java.util.*;
 
+@Path("/restaurant")
 public class RestaurantResource {
 
-    private String restaurantAddress;
-
-    public RestaurantResource() {
-        restaurantAddress = "";
-    }
-
-    public RestaurantResource(String name) {
-        this.restaurantAddress = name;
-    }
-
+    /**
+     * Handles request for total stock of a given restaurant given as "restaurant" in the request header
+     * @param restaurantAddress address of the restaurant provided in the request header as "restaurant"
+     * @return  JSON array with all stock stored in that restaurant
+     */
+    @GET
+    @Path("/get-total-stock")
+	@Produces("application/json")
     //Method returns total stock(units) held at this restaurant.
-    public void GetTotalStock(Connection connection) throws SQLException {
+    public Response getTotalStock(@HeaderParam("restaurant") @DefaultValue("Alnwick Town Centre, 19 Lagny Street, Alnwick, NE66 1LA") String restaurantAddress) {
+
+		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
+
+    	if (restaurantAddress.isBlank()) {
+    		ServerLog.writeLog("Rejected request as restaurant address not specified");
+    		return Response.status(Response.Status.BAD_REQUEST).entity("ADDRESS_BLANK_OR_NOT_PROVIDED").build();
+		}
+
+		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+    	// fetch current database connection
+		Connection connection = DbConnection.getConnection();
+
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
                 "FROM Within " +
@@ -25,19 +42,36 @@ public class RestaurantResource {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
             while (rs.next()) {
-                String StockItem = rs.getString("StockItem");
-                int Quantity = rs.getInt("Quantity");
-                System.out.println(StockItem + "\t" + Quantity + "\n");
+				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+
+                String stockItem = rs.getString("StockItem");
+                int quantity = rs.getInt("Quantity");
+
+                arrayEntryBuilder.add("stockItem", stockItem);
+                arrayEntryBuilder.add("quantity", quantity);
+
+				JsonObject arrayEntry = arrayEntryBuilder.build();
+				responseBuilder.add(arrayEntry);
             }
         } catch (SQLException e) {
-        	
+        	ServerLog.writeLog("SQL exception occurred when executing query");
             e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
         } finally {
-            if (statement != null) {statement.close();}
+            if (statement != null) {
+            	try {
+            		statement.close();
+				} catch (SQLException e) {
+            		// test
+				}
+            }
         }
+		JsonArray response = responseBuilder.build();
+
+        return Response.status(Response.Status.ACCEPTED).entity(response.toString()).build();
     }
 
-
+/*
 	//this method updates the stock for a restaurant when it has received an order.
     public void receiveOrder(Connection connection, int orderId) throws SQLException {
     	
@@ -421,5 +455,7 @@ public class RestaurantResource {
     		if (statement != null) {statement.close();}
     	} 
 		}
-	}   	   	
+	}
+
+ */
 }    
