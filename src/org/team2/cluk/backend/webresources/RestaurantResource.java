@@ -13,15 +13,14 @@ import java.util.*;
 public class RestaurantResource {
 
     /**
-     * Handles request for total stock of a given restaurant given as "restaurant" in the request header
-     * @param restaurantAddress address of the restaurant provided in the request header as "restaurant"
+     * Handles request for total stock units at a given restaurant given as "address" in the request header
+     * @param restaurantAddress address of the restaurant provided in the request header as "address"
      * @return  JSON array with all stock stored in that restaurant
      */
     @GET
     @Path("/get-total-stock")
 	@Produces("application/json")
-    //Method returns total stock(units) held at this restaurant.
-    public Response getTotalStock(@HeaderParam("restaurant") @DefaultValue("Alnwick Town Centre, 19 Lagny Street, Alnwick, NE66 1LA") String restaurantAddress) {
+    public Response getTotalStock(@HeaderParam("address") @DefaultValue("Alnwick Town Centre, 19 Lagny Street, Alnwick, NE66 1LA") String restaurantAddress) {
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
 
