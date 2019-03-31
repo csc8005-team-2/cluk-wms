@@ -1,6 +1,6 @@
 package org.team2.cluk.backend.webresources;
 
-import org.team2.cluk.backend.DbConnection;
+import org.team2.cluk.backend.tools.DbConnection;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;

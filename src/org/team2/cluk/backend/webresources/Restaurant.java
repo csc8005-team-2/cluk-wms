@@ -1,13 +1,12 @@
 package org.team2.cluk.backend.webresources;
 
-import org.team2.cluk.backend.DbConnection;
-import org.team2.cluk.backend.ServerLog;
+import org.team2.cluk.backend.tools.DbConnection;
+import org.team2.cluk.backend.tools.ServerLog;
 
 import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
-import java.util.*;
 
 @Path("/restaurant")
 public class Restaurant {

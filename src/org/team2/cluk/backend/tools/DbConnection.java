@@ -1,4 +1,4 @@
-package org.team2.cluk.backend;
+package org.team2.cluk.backend.tools;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +12,7 @@ import java.sql.SQLException;
 public class DbConnection {
     private static Connection connection = null;
 
-    static void connect(String userName, String password, String url) {
+    public static void connect(String userName, String password, String url) {
         try {
             // importing MySQL driver as per MySQL website
             Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
@@ -28,7 +28,7 @@ public class DbConnection {
         }
     }
 
-    static void disconnect() {
+    public static void disconnect() {
         try {
             connection.close();
         } catch (SQLException e) {

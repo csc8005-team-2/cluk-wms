@@ -1,4 +1,4 @@
-package org.team2.cluk.backend;
+package org.team2.cluk.backend.tools;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,7 +10,7 @@ import java.util.Date;
  * @version 31/03/2019
  */
 public class ServerLog {
-    static ArrayList<String> log = new ArrayList<>();
+    private static ArrayList<String> log = new ArrayList<>();
 
     public static void writeLog(String msg) {
         Date currentDateTime = new Date();
