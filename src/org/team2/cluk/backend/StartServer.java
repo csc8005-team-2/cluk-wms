@@ -31,7 +31,7 @@ public class StartServer {
         String password = "HogsGet(Text";
         String url = "jdbc:mysql://homepages.cs.ncl.ac.uk/csc8005_team02";
         // connect to the database
-        // DbConnection.connect(userName, password, url);
+        DbConnection.connect(userName, password, url);
         // initialise server
         URI baseUri = UriBuilder.fromUri(listeningUri).port(listeningPort).build();
         ResourceConfig config = new ResourceConfig(Warehouse.class, Restaurant.class);
