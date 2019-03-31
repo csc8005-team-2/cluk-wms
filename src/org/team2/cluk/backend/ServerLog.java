@@ -9,10 +9,10 @@ import java.util.Date;
  * @author Matt Grabara
  * @version 31/03/2019
  */
-class ServerLog {
+public class ServerLog {
     static ArrayList<String> log = new ArrayList<>();
 
-    static void writeLog(String msg) {
+    public static void writeLog(String msg) {
         Date currentDateTime = new Date();
         String logEntry = "[" + currentDateTime + "] " + msg;
         log.add(logEntry);
