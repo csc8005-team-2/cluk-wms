@@ -1,15 +1,17 @@
+package org.team2.cluk.backend.webresources;
+
 import java.sql.*;
 import java.util.*;
 
-public class Restaurant {
+public class RestaurantResource {
 
     private String restaurantAddress;
 
-    public Restaurant() {
+    public RestaurantResource() {
         restaurantAddress = "";
     }
 
-    public Restaurant(String name) {
+    public RestaurantResource(String name) {
         this.restaurantAddress = name;
     }
 

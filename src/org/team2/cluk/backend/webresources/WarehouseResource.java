@@ -1,10 +1,12 @@
+package org.team2.cluk.backend.webresources;
+
 import java.sql.*;
 
- public class Warehouse
+ public class WarehouseResource
 {
     private String Address;
     
-    public Warehouse(String address)
+    public WarehouseResource(String address)
     {   
         Address = address;
     }
