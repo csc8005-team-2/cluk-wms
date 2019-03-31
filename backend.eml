@@ -5,4 +5,9 @@
 	<contentEntry url="file://$MODULE_DIR$">
 		<excludeFolder url="file://$MODULE_DIR$/googleMap1"/>
 	</contentEntry>
+	<levels>
+		<level name="javax.json:javax.json-api:1.1.4" value="project"/>
+		<level name="org.glassfish.jersey.bundles:jaxrs-ri:2.28" value="project"/>
+		<level name="org.glassfish.jersey.containers:jersey-container-jdk-http:2.28" value="project"/>
+	</levels>
 </component>
