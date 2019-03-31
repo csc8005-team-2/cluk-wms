@@ -10,7 +10,7 @@ import java.sql.*;
 import java.util.*;
 
 @Path("/restaurant")
-public class RestaurantResource {
+public class Restaurant {
 
     /**
      * Handles request for total stock units at a given restaurant given as "address" in the request header

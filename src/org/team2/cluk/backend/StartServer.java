@@ -3,8 +3,7 @@ package org.team2.cluk.backend;
 import com.sun.net.httpserver.HttpServer;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.team2.cluk.backend.webresources.RestaurantResource;
-import org.team2.cluk.backend.webresources.WarehouseResource;
+import org.team2.cluk.backend.webresources.*;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -32,10 +31,10 @@ public class StartServer {
         String password = "HogsGet(Text";
         String url = "jdbc:mysql://homepages.cs.ncl.ac.uk/csc8005_team02";
         // connect to the database
-        DbConnection.connect(userName, password, url);
+        // DbConnection.connect(userName, password, url);
         // initialise server
         URI baseUri = UriBuilder.fromUri(listeningUri).port(listeningPort).build();
-        ResourceConfig config = new ResourceConfig(WarehouseResource.class, RestaurantResource.class);
+        ResourceConfig config = new ResourceConfig(Warehouse.class, Restaurant.class);
         HttpServer server = JdkHttpServerFactory.createHttpServer(baseUri, config);
         ServerLog.writeLog("Server running on " + listeningUri + " listening on port " + listeningPort);
     }

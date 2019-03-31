@@ -9,7 +9,7 @@ import javax.ws.rs.Produces;
 import java.sql.*;
 
 @Path("/warehouse")
-public class WarehouseResource
+public class Warehouse
 {
 
     @GET
