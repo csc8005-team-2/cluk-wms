@@ -1,26 +1,30 @@
 package org.team2.cluk.backend.webresources;
 
+import org.team2.cluk.backend.DbConnection;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import java.sql.*;
 
- public class WarehouseResource
+@Path("/warehouse")
+public class WarehouseResource
 {
-    private String Address;
-    
-    public WarehouseResource(String address)
-    {   
-        Address = address;
-    }
 
+    @GET
+    @Path("/get-total-stock")
+    @Produces("application/json")
     //Outputs total stock held at the warehouse(units).
-    public void GetTotalStock(Connection connection) throws SQLException
+    public void GetTotalStock(@HeaderParam("warehouse") String address) throws SQLException
     {
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
                        "FROM Inside " +            
-                       "WHERE warehouseAddress='"+Address+"'";
+                       "WHERE warehouseAddress='"+address+"'";
                        
         try {
-        statement = connection.createStatement();
+        statement = DbConnection.getConnection().createStatement();
         ResultSet rs = statement.executeQuery(query);
         while (rs.next()) {
             String StockItem = rs.getString("StockItem");
@@ -33,7 +37,8 @@ import java.sql.*;
             if (statement != null) {statement.close();}
         }                 
     }
-    
+
+    /*
     //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
     public void UpdateStock(Connection connection, String stockItem, int quantity) throws SQLException
     {
@@ -241,4 +246,5 @@ import java.sql.*;
     		e.printStackTrace();
     	}           
     }
+	 */
 }
