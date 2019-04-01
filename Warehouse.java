@@ -239,4 +239,88 @@ import java.sql.*;
     		e.printStackTrace();
     	}           
     }
+    
+    
+    //Added functionality discussed on 29/03/2019. Currently untested. Will test (02/04//2019).
+    //////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    //Method to get current minimum stock levels.
+    public void getMinStock(Connection connection) throws SQLException {
+    	
+    	Statement statement = null;
+    	String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddresss ='"+this.Address+"'";
+    	try {
+    		 statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(query);
+             
+             while(rs.next()) {
+            	 String stockItem = rs.getString("stockItem");
+            	 int minQuantity = rs.getInt("minQuantity");
+            	 System.out.print("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity);
+             }
+    	} catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {statement.close();}
+        }                 
+    }
+    
+    //Method to get currently pending orders.
+    public void getCurrentPendingOrders(Connection connection) throws SQLException {
+    	
+    	//Gets orderId and date/time for orders with status pending.
+    	Statement statement = null;
+    	String query = "SELECT orderId, orderDateTime FROM StockOrders WHERE orderStatus='Pending'";
+    	try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            
+            while(rs.next()) {
+            	int orderId = rs.getInt("orderId");
+            	Date dateTime = rs.getDate("orderDateTime");
+            	
+            	//Gets address of restaurant for each order.
+            	Statement innerStatement = null;
+            	String innerQuery = "SELECT restautantAddress FROM Orders WHERE orderId="+orderId;
+            	
+            	try {
+            		innerStatement = connection.createStatement();
+                    ResultSet innerRs = statement.executeQuery(innerQuery);
+                    rs.next();
+                    String restaurant = innerRs.getString("restaurantAddress");
+                    System.out.print("Restaurant: "+restaurant+" Order ID: "+orderId+" Date/Time ordered: "+dateTime+" Status: Pending");
+    
+            	}catch (SQLException e ) {
+                    e.printStackTrace();
+                } finally {
+                    if (innerStatement != null) {innerStatement.close();}
+                }                 
+            	
+            	//Gets contents of the order.
+            	innerStatement = null;
+            	innerQuery = "SELECT quantity, stockItem FROM Contains WHERE orderId="+orderId;
+            	
+            	try {
+            		innerStatement = connection.createStatement();
+                    ResultSet innerRs = statement.executeQuery(innerQuery);
+                    System.out.print("Order contains: \n");
+                    
+                    while(rs.next()) {
+                    	String stockItem = innerRs.getString("stockItem");
+                    	int quantity = innerRs.getInt("quantity");
+                    	System.out.print(stockItem+": "+quantity);
+                    }
+            	}catch (SQLException e ) {
+                    e.printStackTrace();
+                } finally {
+                    if (innerStatement != null) {innerStatement.close();}
+                }   
+            }    
+    	} catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {statement.close();}
+        }                 
+    }
 }
