@@ -136,4 +136,10 @@ public class Authorisation {
         }
         return Response.status(Response.Status.NOT_FOUND).entity("USER_NEVER_LOGGED_IN").build();
     }
+
+    public boolean checkAuthHeader(String authHeader) {
+        if (userTokens.containsKey(authHeader))
+            return true;
+        return false;
+    }
 }
