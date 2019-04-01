@@ -21,7 +21,7 @@ public class Restaurant {
     @GET
     @Path("/get-total-stock")
 	@Produces("application/json")
-    public Response getTotalStock(@HeaderParam("address") @DefaultValue("Alnwick Town Centre, 19 Lagny Street, Alnwick, NE66 1LA") String restaurantAddress) {
+    public Response getTotalStock(@HeaderParam("address") String restaurantAddress) {
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
 
