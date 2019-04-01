@@ -419,5 +419,86 @@ public class Restaurant {
     		if (statement != null) {statement.close();}
     	} 
 		}
-	}   	   	
+	}   
+	
+	//Added functionality discussed on 29/03/2019. Currently untested. Will test 02/04/2019.
+	////////////////////////////////////////////////////////////////////////////////////////
+	
+	//Method to get current minimum stock levels.
+    public void getMinStock(Connection connection) throws SQLException {
+    	
+    	Statement statement = null;
+    	String query = "SELECT stockItem, minQuantity from Within WHERE restaurantAddresss ='"+this.restaurantAddress+"'";
+    	try {
+    		 statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(query);
+             
+             while(rs.next()) {
+            	 String stockItem = rs.getString("stockItem");
+            	 int minQuantity = rs.getInt("minQuantity");
+            	 System.out.print("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity);
+             }
+    	} catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {statement.close();}
+        }                 
+    }
+	
+    //Method to update restaurant stock allowing for manual adjustment of stock levels.
+    public void UpdateStock(Connection connection, String stockItem, int quantity) throws SQLException
+    {
+        Statement statement = null;
+        String query = "SELECT stockItem, quantity " +
+                       "FROM Within " +            
+                       "WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'";
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            
+            rs.next();
+            int Quantity = rs.getInt("quantity");
+            System.out.println("Previos stock of "+stockItem + ": " + Quantity);
+            int newQuantity = Quantity+quantity;
+        
+            Statement statement2 = null;
+            String query2 = "UPDATE Within " +
+                            "SET quantity ='"+newQuantity+            
+                            "' WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'";
+            try {
+                statement2 = connection.createStatement();
+                statement2.executeUpdate(query2);
+                System.out.println("Updated stock of "+stockItem + ": " + newQuantity);
+            } catch (SQLException e ) {
+                e.printStackTrace();
+            } finally {
+                if (statement2 != null) {statement2.close();}
+            }                     
+        } catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {statement.close();}
+       }                                              
+    }
+	
+	//Method to get price of meal item.
+    public void getPrice(Connection connection, String meal) throws SQLException {
+    	
+    	Statement statement = null;
+    	String query = "SELECT price FROM Meals WHERE mealId ='"+meal+"'";
+    	
+    	try {
+    		statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+    		rs.next();
+    		
+    		double price = rs.getDouble("price");
+    		System.out.print("Item: "+meal+" Cost: £"+price);
+    		
+    	} catch (SQLException e ) {
+    		e.printStackTrace();
+    	} finally {
+    		if (statement != null) {statement.close();}
+        }                                              
+    }
 }    
