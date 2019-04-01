@@ -7,6 +7,8 @@ import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("/restaurant")
 public class Restaurant {
@@ -60,115 +62,215 @@ public class Restaurant {
             	try {
             		statement.close();
 				} catch (SQLException e) {
-            		// test
+            		ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
             }
         }
 		JsonArray response = responseBuilder.build();
 
-        return Response.status(Response.Status.ACCEPTED).entity(response.toString()).build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
-/*
+    @GET
+    @Path("/receive-order")
 	//this method updates the stock for a restaurant when it has received an order.
-    public void receiveOrder(Connection connection, int orderId) throws SQLException {
-    	
+    public Response receiveOrder(@HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
+    	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
+
+    	boolean processedCorrectly = true;
+
+    	Response.ResponseBuilder response = null;
+        // fetch current database connection
+        Connection connection = DbConnection.getConnection();
+
+        // variable for logging purposes only
+		String restaurant = "";
+
     	//Checking order is being sent to the correct restaurant.
-    	boolean correctRestaurant=true;
+    	boolean correctRestaurant=false;
     	Statement statement = null;
-    	String query = "SELECT restaurantAddress FROM Orders WHERE orderId ='"+orderId+"'";
+    	String query = "SELECT restaurantAddress FROM Orders WHERE orderId ='" + orderId + "'";
     	try {
     		statement = connection.createStatement();
     		ResultSet rs = statement.executeQuery(query);
-    		rs.next();
-    		String restaurant = rs.getString("restaurantAddress");
-    		if(!restaurant.equals(restaurantAddress)) {
-    			System.out.println( "The order submitted is not for this restaurant. The correct "+
-    								"delivery location is "+ restaurant+".");
-    			correctRestaurant=false;
-    		}else {
-    			System.out.println("New order recieved at: "+this.restaurantAddress+". Order ID: "+ orderId);
+
+    		// check if order found
+    		if (!rs.next()) {
+    			ServerLog.writeLog("Order " + orderId + "not found");
+    			response = Response.status(Response.Status.NOT_FOUND).entity("ORDER_NOT_FOUND");
+    			return response.build();
+			}
+
+    		// if order found, continue
+    		restaurant = rs.getString("restaurantAddress");
+    		if(restaurant.equals(restaurantAddress)) {
+				ServerLog.writeLog("New order received at: " + restaurantAddress + ". Order ID: "+ orderId);
+				correctRestaurant = true;
     		}
-    		
     	} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			if (statement != null) {statement.close();}
+			if (statement != null) {
+			    try {
+			        statement.close();
+			    } catch(SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+			}
 		}
 
-    	//If order has passed check add order items to restaurant stock.
-    	if(correctRestaurant==true) {
-    		statement = null; 
-    		query = "SELECT stockItem, quantity FROM Contains WHERE orderId ='" +orderId+"'";
+    	// if check not passed, return response already
+		if (!correctRestaurant) {
+			ServerLog.writeLog("The order submitted is not for this restaurant. The correct "+
+					"delivery location is " + restaurant + ".");
+			response = Response.status(Response.Status.FORBIDDEN).entity("WRONG_RESTAURANT");
+			return response.build();
+		}
 
-    		try {
-    			statement = connection.createStatement();      	
-    			ResultSet rs = statement.executeQuery(query);
-                	              
-    			while (rs.next()) {
-    				int quantityToAdd = rs.getInt("quantity");
-    				String stockItem = rs.getString("stockItem");
-    				System.out.println("New order contains "+ stockItem + ": " + quantityToAdd);
-    				
-    				Statement statement2 = null;
-    				String query2 = "SELECT unitSize from Stock WHERE stockItem ='" +stockItem+"'";
-    				
-    				try{
-    					statement2 = connection.createStatement();      	
-    					ResultSet rs2 = statement2.executeQuery(query2);
-    					rs2.next();
-    	    			int conversion = rs2.getInt("unitSize");
-    	    			
-    	    			quantityToAdd=quantityToAdd*conversion;
-    	    			
-    				} catch (SQLException e) {
-    					e.printStackTrace();
-    				}finally {
-						if (statement2 != null) {statement2.close();}
+		// if check passed, move on
+		ServerLog.writeLog("Order ID " + orderId + " matches with requested location: " + restaurantAddress);
+
+    	// retrieving conversion table
+		ServerLog.writeLog("Fetching unit conversion table");
+		HashMap<String, Integer> unitConversion = new HashMap<>();
+
+		statement = null;
+		query= "SELECT stockItem, unitSize from Stock";
+
+		try{
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				String stockItem = rs.getString("stockItem");
+				int unitSize = rs.getInt("unitSize");
+				unitConversion.put(stockItem, unitSize);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (statement != null) {
+				try {
+					ServerLog.writeLog("Unit conversion table retrieved successfully");
+					statement.close();
+				} catch(SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
+
+		// retrieve order content
+		ServerLog.writeLog("Retrieving order content");
+		HashMap<String, Integer> receivedOrder = new HashMap<>();
+
+		statement = null;
+		query = "SELECT stockItem, quantity FROM Contains WHERE orderId ='" +orderId+"'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				int quantityToAdd = rs.getInt("quantity");
+				String stockItem = rs.getString("stockItem");
+
+				// put order items in a hashmap, perform conversion to restaurant unit sizes
+				int conversionRate = unitConversion.get(stockItem);
+				receivedOrder.put(stockItem, quantityToAdd * conversionRate);
+				ServerLog.writeLog("Received order " + orderId + " contains " + stockItem + ": " + quantityToAdd);
+			}
+			ServerLog.writeLog("Order " + orderId + " contents received");
+		} catch (SQLException e) {
+			ServerLog.writeLog("SQL exception occurred when querying received order");
+			e.printStackTrace();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("RECEIVED_ORDER_QUERY_ERROR");
+			processedCorrectly = false;
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				}
+				catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
+
+		// get current levels of ordered stock in the restaurant
+		HashMap<String, Integer> currentStock = new HashMap<>();
+
+		for (Map.Entry<String, Integer> entry: receivedOrder.entrySet()) {
+			String stockItem = entry.getKey();
+			ServerLog.writeLog("Retrieving current level of " + stockItem + " at " + restaurantAddress);
+			statement = null;
+			query = "SELECT quantity FROM Within WHERE restaurantAddress ='" + restaurantAddress + "'" +
+					"AND stockItem ='" + stockItem + "'";
+			try {
+				statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query);
+				int previousQuantity = 0;
+
+				// if restaurant had that item earlier, update previous quantity
+				while (resultSet.next()) {
+					previousQuantity = resultSet.getInt("quantity");
+				}
+				currentStock.put(entry.getKey(), previousQuantity);
+				ServerLog.writeLog("Previous stock quantity: " + previousQuantity + " for stock: " + stockItem + " at restaurant: " + restaurantAddress);
+
+			} catch (SQLException e) {
+				ServerLog.writeLog("SQL exception occurred when querying current stock levels");
+				e.printStackTrace();
+				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("CURRENT_STOCK_LEVELS_QUERY_ERROR");
+				processedCorrectly = false;
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 					}
-    	    			
-    				//then update Within table to add this new Quantity to our original full quantity of stock 
-    				//Within must not be empty before doing this method
-                	   
-    				Statement innerStatement = null;
-    				String innerQuery = "SELECT quantity FROM Within WHERE restaurantAddress ='" +restaurantAddress+"'" + 
-    						"AND stockItem ='" +stockItem+"'";
-    				try {
-    					innerStatement = connection.createStatement();
-    					ResultSet InnerRs = innerStatement.executeQuery(innerQuery);
-    					InnerRs.next();
-    					
-    					int previousQuantity = InnerRs.getInt("quantity");
-    					System.out.println("Previous stock quantity: " + previousQuantity + " for stock: " + stockItem);
-                	        
-    					Statement updateStatement = null;
-    					int newQuantity = quantityToAdd + previousQuantity;
-    					String updateQuery = "UPDATE Within SET quantity ='" +newQuantity+"'" + "WHERE stockItem ='" +stockItem+"'";
-                	   
-    					try {
-    						updateStatement = connection.createStatement();
-    						updateStatement.executeUpdate(updateQuery);
-    						System.out.println("Updated stock of " + stockItem + ": " + newQuantity + " at restaurant: " + restaurantAddress);
-    					} catch (SQLException e) {
-    						e.printStackTrace();
-    					} finally {
-    						if (updateStatement != null) {updateStatement.close();}
-    					}
-    					
-    				} catch (SQLException e) {
-    					e.printStackTrace();
-    				} finally {
-    					if (innerStatement != null) {innerStatement.close();}
-    				}
-    			}
-    		} catch (SQLException e) {
-    			e.printStackTrace();
-    		} finally {
-    			if (statement != null) {statement.close();}
-    		}
-    	}
+				}
+			}
+		}
+
+    	// now, add order items to restaurant stock
+		for (Map.Entry<String, Integer> entry: receivedOrder.entrySet()) {
+			// retrieve stock item
+			String stockItem = entry.getKey();
+			// calculate new quantity
+			int quantityToAdd = entry.getValue();
+			int previousQuantity = currentStock.get(stockItem);
+			int newQuantity = quantityToAdd + previousQuantity;
+
+			statement = null;
+			String updateQuery = "UPDATE Within SET quantity ='" + newQuantity +"'" + "WHERE stockItem ='" + stockItem +"'";
+			try {
+				statement = connection.createStatement();
+				statement.executeUpdate(updateQuery);
+				ServerLog.writeLog("Updated stock of " + stockItem + ": " + newQuantity + " at restaurant: " + restaurantAddress);
+			} catch (SQLException e) {
+				ServerLog.writeLog("Error when updating stock at restaurant: " + restaurantAddress);
+				e.printStackTrace();
+				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("UPDATE_STOCK_ERROR");
+				processedCorrectly = false;
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}
+		}
+
+		if (processedCorrectly) {
+			ServerLog.writeLog("Order " + orderId + " received in full by restaurant " + restaurantAddress);
+			response = Response.status(Response.Status.ACCEPTED).entity("ORDER_RECEIVED");
+		}
+
+    	return response.build();
     }
-    
+
+    /*
     //Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
     public void requestCustomOrder(Connection connection, int cheeseQ, int chickenfilletbreastsQ, int chickenpiecesQ, int chickenstripsQ, int colasyrupQ, int hashbrownsQ,
     	int mayonnaiseQ, int mycoproteinsouthernfriedburgerQ, int mycoproteinsouthernfriedstripsQ, int sesameseedbunsQ, int lettuceQ, int frenchfriesQ) throws SQLException {
