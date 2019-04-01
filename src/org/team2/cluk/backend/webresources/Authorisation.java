@@ -83,7 +83,7 @@ public class Authorisation {
 
         Statement statement = null;
         String query = "SELECT username, password " +
-                "FROM Acccounts " +
+                "FROM Accounts " +
                 "WHERE username ='" + username + "'";
         try {
             statement = connection.createStatement();
