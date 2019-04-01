@@ -77,7 +77,8 @@ public class Authorisation {
         }
 
         String passwordHash = hashString(password, "SHA-256");
-        // to do: check if auth successful
+        // checking if authorisation successful
+
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
 
@@ -111,7 +112,12 @@ public class Authorisation {
         // generating token using Apache Common Lang library as per
         // https://www.baeldung.com/java-random-string
         if (loginSuccessful) {
-            String newIdToken = RandomStringUtils.randomAlphanumeric(256);
+            String newIdToken;
+            // generate tokens until unique token generated
+            do {
+                newIdToken = RandomStringUtils.randomAlphanumeric(256);
+            } while (userTokens.containsKey(newIdToken));
+
             userTokens.put(newIdToken, username);
 
             // return token to the user on successful login
