@@ -17,7 +17,7 @@ whole API logic and package `org.team2.cluk.backend.tools`
 consists of useful objects used in the project.
 ## Used libraries
 Apart from Jersey, project makes use of MySQL/J Connector,
-javax.json package and Apache Commons Lang 3.
+javax.json package and Apache Common Lang 3.
 ## Contributions
 ### Backend
 Business logic of the backend was designed by #teambackend:
