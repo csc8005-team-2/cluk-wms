@@ -499,11 +499,19 @@ public class Restaurant {
     	return Response.status(Response.Status.OK).entity(stockArray.toString()).build();
 	}
 
-        /*
     //Allows the minimum stock level to be changed.
-    public void updateMinStock(Connection connection, String stockItem, int min) throws SQLException
+    @Path("/update-min-stock")
+    @POST
+    @Consumes("application/json")
+    public Response updateMinStock(@HeaderParam("address") String restaurantAddress, String strStockObject)
         {
+            Connection connection = DbConnection.getConnection();
             Statement statement = null;
+            JsonObject stockObject = JsonTools.parseObject(strStockObject);
+
+            String stockItem = stockObject.getString("stockItem");
+            int min = stockObject.getInt("quantity");
+
             String query = "UPDATE Within SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
                            
             try {
@@ -514,10 +522,19 @@ public class Restaurant {
             } catch (SQLException e ) {
                 e.printStackTrace();
             } finally {
-                if (statement != null) {statement.close();}
-            }                 
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+
+            return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
         }
-    	
+
+        /*
     //Allows a restaurant to use stock by creating meal items.
 	public void createMeal(Connection connection, String meal) throws SQLException {
 		
