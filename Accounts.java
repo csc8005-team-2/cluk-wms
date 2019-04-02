@@ -138,7 +138,6 @@ public class Accounts {
             e.printStackTrace();
         } finally {
             if (statement != null) {statement.close();}
-        }	
-		
-	}	
+        }		
+    }	
 }
