@@ -444,10 +444,18 @@ public class Restaurant {
     }
 	    			    		   
 
-    /*
+
     //Checks stock at restaurant is above the minimum stock level.
-    public void minStockCheck(Connection connection) throws SQLException{
-    	
+	@Path("/min-stock-check")
+	@GET
+	@Produces("application/json")
+    public Response minStockCheck(@HeaderParam("address") String restaurantAddress) {
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
+		// create JsonArrayBuilder
+		JsonArrayBuilder stockArrayBuilder = Json.createArrayBuilder();
+
     	Statement statement = null;
     	String query = "SELECT stockItem, quantity, minQuantity " +
     				   "FROM Within " +            
@@ -457,22 +465,41 @@ public class Restaurant {
     		statement = connection.createStatement();
     		ResultSet rs = statement.executeQuery(query);
             while (rs.next()) {
+				JsonObjectBuilder stockEntryBuilder = Json.createObjectBuilder();
+
                 String stockItem = rs.getString("StockItem");
                 int quantity = rs.getInt("quantity");
                 int minQuantity = rs.getInt("minQuantity");
 
+                stockEntryBuilder.add("stockItem", stockItem);
+                stockEntryBuilder.add("quantity", quantity);
+                stockEntryBuilder.add("minQuantity", minQuantity);
+
                 if(quantity < minQuantity){
                 	int deficit = minQuantity - quantity;
-                	System.out.println("Current stock of "+ stockItem +" is below minimum stock levels by "+deficit+".");
-                }    
+                	ServerLog.writeLog("Current stock of "+ stockItem +" at "+ restaurantAddress + " is below minimum stock levels by "+deficit+".");
+                }
+
+                JsonObject stockEntry = stockEntryBuilder.build();
+                stockArrayBuilder.add(stockEntry);
             }
             } catch (SQLException e ) {
                 e.printStackTrace();
             } finally {
-                if (statement != null) {statement.close();}
-            }                 
-        }
-        
+                if (statement != null) {
+                	try {
+					statement.close();
+                	} catch (SQLException e) {
+                		ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                	}
+                }
+            }
+    	JsonArray stockArray = stockArrayBuilder.build();
+
+    	return Response.status(Response.Status.OK).entity(stockArray.toString()).build();
+	}
+
+        /*
     //Allows the minimum stock level to be changed.
     public void updateMinStock(Connection connection, String stockItem, int min) throws SQLException
         {
