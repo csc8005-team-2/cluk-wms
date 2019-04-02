@@ -25,6 +25,7 @@ Business logic of the backend was designed by #teambackend:
 * M. Lee
 * W. Nujum
 * A. Wood
+
 Business logic was refactored and adjusted for Web workload by 
 **M. Grabara**. During the process, server logic, logging 
 system and supporting classes in `org.team2.cluk.backend.tools` 
