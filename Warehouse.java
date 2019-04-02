@@ -241,7 +241,7 @@ import java.sql.*;
     }
     
     
-    //Added functionality discussed on 29/03/2019. Currently untested. Will test (02/04//2019).
+    //Added functionality discussed on 29/03/2019.
     //////////////////////////////////////////////////////////////////////////////////////////
     
     
@@ -249,7 +249,7 @@ import java.sql.*;
     public void getMinStock(Connection connection) throws SQLException {
     	
     	Statement statement = null;
-    	String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddresss ='"+this.Address+"'";
+    	String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddress ='"+this.Address+"'";
     	try {
     		 statement = connection.createStatement();
              ResultSet rs = statement.executeQuery(query);
@@ -257,7 +257,7 @@ import java.sql.*;
              while(rs.next()) {
             	 String stockItem = rs.getString("stockItem");
             	 int minQuantity = rs.getInt("minQuantity");
-            	 System.out.print("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity);
+            	 System.out.print("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity+"\n");
              }
     	} catch (SQLException e ) {
             e.printStackTrace();
@@ -282,20 +282,20 @@ import java.sql.*;
             	
             	//Gets address of restaurant for each order.
             	Statement innerStatement = null;
-            	String innerQuery = "SELECT restautantAddress FROM Orders WHERE orderId="+orderId;
+            	String innerQuery = "SELECT restaurantAddress FROM Orders WHERE orderId="+orderId;
             	
             	try {
             		innerStatement = connection.createStatement();
-                    ResultSet innerRs = statement.executeQuery(innerQuery);
-                    rs.next();
+                    ResultSet innerRs = innerStatement.executeQuery(innerQuery);
+                    innerRs.next();
                     String restaurant = innerRs.getString("restaurantAddress");
-                    System.out.print("Restaurant: "+restaurant+" Order ID: "+orderId+" Date/Time ordered: "+dateTime+" Status: Pending");
+                    System.out.print("Restaurant: "+restaurant+"\nOrder ID: "+orderId+"\nDate/Time ordered: "+dateTime+"\nStatus: Pending \n");
     
             	}catch (SQLException e ) {
-                    e.printStackTrace();
-                } finally {
-                    if (innerStatement != null) {innerStatement.close();}
-                }                 
+            		e.printStackTrace();
+            	}finally {
+                    if (innerStatement != null) {innerStatement.close();}          
+            	}
             	
             	//Gets contents of the order.
             	innerStatement = null;
@@ -303,19 +303,21 @@ import java.sql.*;
             	
             	try {
             		innerStatement = connection.createStatement();
-                    ResultSet innerRs = statement.executeQuery(innerQuery);
-                    System.out.print("Order contains: \n");
+                    ResultSet innerRs = innerStatement.executeQuery(innerQuery);
+                    System.out.print("\nOrder contains: \n");
                     
-                    while(rs.next()) {
+                    while(innerRs.next()) {
                     	String stockItem = innerRs.getString("stockItem");
                     	int quantity = innerRs.getInt("quantity");
-                    	System.out.print(stockItem+": "+quantity);
+                    	System.out.print(stockItem+": "+quantity+"\n");
+                        
                     }
+                    System.out.print("-------------------------------------------------------------------------\n");
             	}catch (SQLException e ) {
-                    e.printStackTrace();
-                } finally {
-                    if (innerStatement != null) {innerStatement.close();}
-                }   
+            		e.printStackTrace();
+            	}finally {
+                    if (innerStatement != null) {innerStatement.close();}          
+            	}
             }    
     	} catch (SQLException e ) {
             e.printStackTrace();
