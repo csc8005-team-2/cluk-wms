@@ -1,5 +1,5 @@
 # CLUK Warehouse Backend and Mobile App
-######CSC8005 Team 2 Repository
+*CSC8005 Team 2 Repository*
 ## Repository description
 This repository contains code for REST-ful API for the
 Warehouse Management System in its root directory and 
