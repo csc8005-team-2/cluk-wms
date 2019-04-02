@@ -421,14 +421,14 @@ public class Restaurant {
 		}
 	}   
 	
-	//Added functionality discussed on 29/03/2019. Currently untested. Will test 02/04/2019.
+	//Added functionality discussed on 29/03/2019.
 	////////////////////////////////////////////////////////////////////////////////////////
 	
 	//Method to get current minimum stock levels.
     public void getMinStock(Connection connection) throws SQLException {
     	
     	Statement statement = null;
-    	String query = "SELECT stockItem, minQuantity from Within WHERE restaurantAddresss ='"+this.restaurantAddress+"'";
+    	String query = "SELECT stockItem, minQuantity from Within WHERE restaurantAddress ='"+this.restaurantAddress+"'";
     	try {
     		 statement = connection.createStatement();
              ResultSet rs = statement.executeQuery(query);
@@ -436,7 +436,7 @@ public class Restaurant {
              while(rs.next()) {
             	 String stockItem = rs.getString("stockItem");
             	 int minQuantity = rs.getInt("minQuantity");
-            	 System.out.print("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity);
+            	 System.out.print("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity+"\n");
              }
     	} catch (SQLException e ) {
             e.printStackTrace();
@@ -493,7 +493,7 @@ public class Restaurant {
     		rs.next();
     		
     		double price = rs.getDouble("price");
-    		System.out.print("Item: "+meal+" Cost: £"+price);
+    		System.out.print("Item: "+meal+" Cost: £"+price+"\n");
     		
     	} catch (SQLException e ) {
     		e.printStackTrace();
