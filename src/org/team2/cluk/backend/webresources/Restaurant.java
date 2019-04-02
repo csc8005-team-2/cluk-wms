@@ -505,6 +505,7 @@ public class Restaurant {
     @Consumes("application/json")
     public Response updateMinStock(@HeaderParam("address") String restaurantAddress, String strStockObject)
         {
+        	// fetch db connection
             Connection connection = DbConnection.getConnection();
             Statement statement = null;
             JsonObject stockObject = JsonTools.parseObject(strStockObject);
@@ -534,80 +535,105 @@ public class Restaurant {
             return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
         }
 
-        /*
     //Allows a restaurant to use stock by creating meal items.
-	public void createMeal(Connection connection, String meal) throws SQLException {
-		
+	@Path("/create-meal")
+	@GET
+	public Response createMeal(@HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
+
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
 		//Check that there is enough stock at the restaurant to make the meal item.
-		boolean enoughStock=true;
-		
+		boolean enoughStock = true;
+
+		// check what meal is made of
+		HashMap<String, Integer> mealIngredients = new HashMap<>();
+
 		Statement statement = null;
-		String query = "SELECT stockItem, quantity FROM MadeWith WHERE mealId ='"+meal+"'";
+		String query = "SELECT stockItem, quantity FROM MadeWith WHERE mealId ='" + meal + "'";
 		try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery(query);
-            while(rs.next()){
-            	String stockItem = rs.getString("stockItem");
-            	int quantity = rs.getInt("quantity");
-            	
-            	Statement innerstatement = null;
-                String innerquery = "SELECT quantity FROM Within WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'" ;
-                try {
-                	innerstatement = connection.createStatement();
-                	ResultSet rs2 = innerstatement.executeQuery(innerquery);
-                	rs2.next();
-                	int oldQuantity = rs2.getInt("quantity");
-                	
-                	if(oldQuantity<quantity){
-                		System.out.print(meal + " cannot be made. Restaurant stock too low. \n");
-                		enoughStock=false;
-                	}
-                	
-				} catch (SQLException e ) {
-					e.printStackTrace();
-				} finally {
-					if (innerstatement != null) {innerstatement.close();}
-				}                     
-            } 
-		}catch (SQLException e ) {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				String stockItem = rs.getString("stockItem");
+				int quantity = rs.getInt("quantity");
+
+				mealIngredients.put(stockItem, quantity);
+			}
+		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			if (statement != null) {statement.close();}
-		} 
-		
-		//If enough stock update quantities.	
-		if(enoughStock == true){
-		
-		statement = null;
-    	query = "SELECT stockItem, quantity FROM MadeWith WHERE mealId ='"+meal+"'";
-    	
-    	try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery(query);
-            while(rs.next()){
-            	String stockItem = rs.getString("stockItem");
-            	int quantity = rs.getInt("quantity");
-            	
-            	
-            	Statement innerstatement = null;
-                String innerquery = "UPDATE Within set quantity =quantity-"+quantity+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+this.restaurantAddress+"'";
-                try {
-                	innerstatement = connection.createStatement();
-                	innerstatement.executeUpdate(innerquery);
-				} catch (SQLException e ) {
-					e.printStackTrace();
-				} finally {
-					if (innerstatement != null) {innerstatement.close();}
-				}                     
-            }
-            System.out.print("Item: "+meal+" created.\n");
-    	} catch (SQLException e ) {
-    		e.printStackTrace();
-    	} finally {
-    		if (statement != null) {statement.close();}
-    	} 
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
 		}
+
+		// check if enough ingredients in stock
+
+		for (Map.Entry<String, Integer> ingredient : mealIngredients.entrySet()) {
+			String stockItem = ingredient.getKey();
+			int quantity = ingredient.getValue();
+
+			statement = null;
+			query = "SELECT quantity FROM Within WHERE stockItem='" + ingredient + "' AND restaurantAddress ='" + restaurantAddress + "'";
+			try {
+				statement = connection.createStatement();
+				ResultSet rs2 = statement.executeQuery(query);
+				rs2.next();
+				int stockQuantity = rs2.getInt("quantity");
+
+				if (stockQuantity < quantity) {
+					ServerLog.writeLog(meal + " cannot be made. Restaurant stock too low. \n");
+					enoughStock = false;
+				}
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}
+		}
+
+		// return error if stock too low
+		if (!enoughStock)
+			return Response.status(Response.Status.FORBIDDEN).entity("STOCK_TOO_LOW").build();
+
+		// otherwise, create meal... yay! food!
+		for (Map.Entry<String, Integer> ingredient: mealIngredients.entrySet()) {
+			String stockItem = ingredient.getKey();
+			int quantity = ingredient.getValue();
+
+			statement = null;
+			query = "UPDATE Within set quantity =quantity-" + quantity + " WHERE stockItem='" + stockItem + "' AND restaurantAddress ='" + restaurantAddress + "'";
+			try {
+				statement = connection.createStatement();
+				statement.executeUpdate(query);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}
+		}
+		ServerLog.writeLog("Item: "+meal+" created.\n");
+
+		return Response.status(Response.Status.OK).entity("MEAL_CREATED").build();
+
 	}
 
- */
 }    
