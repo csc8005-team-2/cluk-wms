@@ -272,14 +272,14 @@ public class Restaurant {
     }
 
 	/**
-	 * Method executed when client requests custom order at the endpoint "/restaurant/request-custom-order".
+	 * Method executed when client requests custom order at the endpoint "/restaurant/request-order/custom".
 	 * Body of the request should be JSON array with each entry of form:
 	 * {stockItem: string, quantity: number}
 	 * @param restaurantAddress	value of address header specifying restaurant where order shall be delivered
 	 * @param strOrderContents	stringified JSON array containing order details
 	 * @return	202 ORDER_ACCEPTED - even if order contains entries not following the specification, they are removed from the order
 	 */
-    @Path("/request-custom-order")
+    @Path("/request-order/custom")
 	@POST
 	@Consumes("application/json")
     //Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
@@ -316,8 +316,10 @@ public class Restaurant {
     	try { 
     		statement = connection.createStatement();
     		ResultSet rs = statement.executeQuery(query);
-    		rs.next();
-    		orderId = rs.getInt("orderId");
+    		while (rs.next()) {
+    			orderId = rs.getInt("orderId");
+    			ServerLog.writeLog("Created order " + orderId + " for restaurant at " + restaurantAddress);
+			}
     	}catch (SQLException e ) {
     		e.printStackTrace();
     	} finally {
@@ -327,7 +329,7 @@ public class Restaurant {
 				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 			}
 		}
-    	
+
     	// Add Order ID and restaurant address to orders table.
     	query = "INSERT INTO Orders (restaurantAddress, orderId) VALUES (?, ?)";
 		PreparedStatement pstmt = null;
@@ -374,6 +376,7 @@ public class Restaurant {
     			pstmt.setInt(2, quantity);
     			pstmt.setString(3, stockItem);
     			pstmt.executeUpdate();
+    			ServerLog.writeLog("Order " + orderId + " contains " + stockItem + " at quantity " + quantity);
     		} catch (SQLException e ) {
     			e.printStackTrace();
     		} finally {
@@ -385,89 +388,63 @@ public class Restaurant {
     		}
     	}
 
+    	ServerLog.writeLog("Order " + orderId + " has been accepted");
     	return Response.status(Response.Status.ACCEPTED).entity("ORDER_ACCEPTED").build();
     }
-    
-    
-    /*
-    public void requestStandardOrder(Connection connection) throws SQLException {
-    	
-    	java.util.Date orderDate = new java.util.Date();
-    	java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	String currentTime = sdf.format(orderDate);
-    	int orderId=0;
 
-    	// Creating Order in StockOrders Table.
-    	String query = "INSERT INTO StockOrders (orderDateTime, orderStatus) VALUES (?, ?)";
-    			    	    	
-    	try{
-    		PreparedStatement pstmt = connection.prepareStatement(query);
-    		pstmt.setString(1, currentTime);
-    		pstmt.setString(2,"Out for delivery"); //manual set to out for delivery
-    		pstmt.executeUpdate();
-	    		
-    	} catch (SQLException e ) {
-    		e.printStackTrace();
-    	} 
 
-    	// Getting the orderId of the order we just created.
-    	Statement statement = null;
-    	query = "SELECT orderId FROM StockOrders WHERE orderDateTime ='" +currentTime+"'"; 
-    	
-    	try { 
-    		statement = connection.createStatement();
-    		ResultSet rs = statement.executeQuery(query);
-    		rs.next();
-    		orderId = rs.getInt("orderId");
-    	}catch (SQLException e ) {
-    		e.printStackTrace();
-    	} finally {
-            if (statement != null) {statement.close();}
-        } 
-    	
-    	// Add Order ID and restaurant address to orders table.
-    	query = "INSERT INTO Orders (restaurantAddress, orderId) VALUES (?, ?)";
-    	
-    	try{			    				
-    		PreparedStatement pstmt = connection.prepareStatement(query);
-    		pstmt.setString(1, restaurantAddress);
-    		pstmt.setInt(2, orderId); //same orderId as above
-    		pstmt.executeUpdate();
-    	}catch (SQLException e ) {
-    		e.printStackTrace();
-    	}
-	    			    		 
+	/**
+	 * Requests standard order for a restaurant. Fetches what are the standard order items and quantities and
+	 * calls requestCustomOrder to order them.
+	 * @param restaurantAddress	address of the destination restaurant, provided in "address" header parameter
+	 * @return	same responses as for requestCustomOrder
+	 */
+	@Path("/request-order")
+	@GET
+    public Response requestStandardOrder(@HeaderParam("address") String restaurantAddress) {
+
+    	// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
+		// create JsonArrayBuilder to contain the contents of standard order
+		JsonArrayBuilder standardOrderArrayBuilder = Json.createArrayBuilder();
+
     	//Getting standard quantities from Stock Table
-    	statement = null;
-    	query = "SELECT stockItem, typicalUnitsOrdered FROM Stock"; 
+		Statement statement = null;
+    	String query = "SELECT stockItem, typicalUnitsOrdered FROM Stock";
     	//selecting all the stock for a standard order
     	try {
     		statement = connection.createStatement();
     		ResultSet rs = statement.executeQuery(query);
     		while (rs.next()) {
+				JsonObjectBuilder orderEntryBuilder = Json.createObjectBuilder();
+
     			String stockItem = rs.getString("stockItem");
     			int typicalUnits = rs.getInt("typicalUnitsOrdered");
-    			
-    			// Add standard quantities to Contains table.
-    			String innerquery = "INSERT INTO Contains (orderId, quantity, stockItem) VALUES (?, ?, ?)";
-    			try {
-    				PreparedStatement pstmt = connection.prepareStatement(innerquery);
-    				pstmt.setInt(1, orderId);
-    				pstmt.setInt(2, typicalUnits);
-    				pstmt.setString(3, stockItem);
-    				pstmt.executeUpdate();
-    			}catch (SQLException e ) {
-    				e.printStackTrace();
-    			} 
+
+    			orderEntryBuilder.add("stockItem", stockItem);
+    			orderEntryBuilder.add("quantity", typicalUnits);
+
+    			JsonObject orderEntry = orderEntryBuilder.build();
+    			standardOrderArrayBuilder.add(orderEntry);
     		}
     	} catch (SQLException e ) {
     		e.printStackTrace();
     	} finally {
-    		if (statement != null) {statement.close();}
-    	}  
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			}
+    	}
+
+    	JsonArray standardOrderArray = standardOrderArrayBuilder.build();
+
+		return requestCustomOrder(restaurantAddress, standardOrderArray.toString());
     }
 	    			    		   
-    
+
+    /*
     //Checks stock at restaurant is above the minimum stock level.
     public void minStockCheck(Connection connection) throws SQLException{
     	
