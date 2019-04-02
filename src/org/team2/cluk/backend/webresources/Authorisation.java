@@ -2,14 +2,13 @@ package org.team2.cluk.backend.webresources;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.team2.cluk.backend.tools.DbConnection;
+import org.team2.cluk.backend.tools.JsonTools;
+import org.team2.cluk.backend.tools.Roles;
 import org.team2.cluk.backend.tools.ServerLog;
 
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -19,11 +18,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 
 @Path("/")
 public class Authorisation {
     // initialise hashmap for storing currently authorised users
     private static HashMap<String, String> userTokens = new HashMap<>();
+    private static HashSet<String> restaurantPermissions = new HashSet<>();
+    private static HashSet<String> warehousePermissions = new HashSet<>();
+    private static HashSet<String> driverPermissions = new HashSet<>();
 
     // used code from https://stackoverflow.com/questions/3103652/hash-string-via-sha-256-in-java
     private static String hashString(String plainText, String hashAlgorithm) {
@@ -54,9 +57,7 @@ public class Authorisation {
         Response res = null;
 
         // parsing incoming json using javax.json library from Java EE
-        JsonReader jsonReader = Json.createReader(new StringReader(loginData));
-        JsonObject loginDataObject = jsonReader.readObject();
-        jsonReader.close();
+        JsonObject loginDataObject = JsonTools.parseObject(loginData);
 
         // check if json is correct
         if (!loginDataObject.containsKey("username") || !loginDataObject.containsKey("password")) {
@@ -141,5 +142,24 @@ public class Authorisation {
         if (userTokens.containsKey(authHeader))
             return true;
         return false;
+    }
+
+    public static boolean checkPermissions(String authHeader, Roles role) {
+        switch (role) {
+            case WAREHOUSE: if (warehousePermissions.contains(authHeader))
+                return true;
+            case RESTAURANT: if (restaurantPermissions.contains(authHeader))
+                return true;
+            case DRIVER: if (driverPermissions.contains(authHeader))
+                return true;
+        }
+        return false;
+    }
+
+    @Path("/accounts/add")
+    @POST
+    public Response addAccount(@HeaderParam("Authorization") String idToken, String requestBody) {
+        // just a dummy method for now
+        return Response.status(Response.Status.OK).entity("ACCOUNT_ADDED").build();
     }
 }
