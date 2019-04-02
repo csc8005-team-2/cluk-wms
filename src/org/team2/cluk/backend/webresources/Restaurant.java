@@ -265,7 +265,7 @@ public class Restaurant {
 
 		if (processedCorrectly) {
 			ServerLog.writeLog("Order " + orderId + " received in full by restaurant " + restaurantAddress);
-			response = Response.status(Response.Status.ACCEPTED).entity("ORDER_RECEIVED");
+			response = Response.status(Response.Status.OK).entity("ORDER_RECEIVED");
 		}
 
     	return response.build();
