@@ -353,7 +353,7 @@ public class Restaurant {
 
     	for (JsonValue orderEntryValue: orderContents) {
     		if (!(orderEntryValue instanceof JsonObject)) {
-    			ServerLog.writeLog("Custom order entry misspecified");
+    			ServerLog.writeLog("Order entry misspecified");
     			continue;
     		}
 
