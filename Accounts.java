@@ -15,7 +15,7 @@ public class Accounts {
     	try{
     		statement = connection.createStatement();
             statement.executeUpdate(query);
-            System.out.print("Account created for " +name);
+            System.out.print("Account created for " +name+".\n");
             
     	} catch (SQLException e ) {
     		e.printStackTrace();
@@ -25,19 +25,19 @@ public class Accounts {
 	} 
 	
 	//Method to set account permissions.
-	public void setPermissions(Connection connection, String name, boolean restaurant, boolean warehouse, boolean driver) throws SQLException {
+	public void setPermissions(Connection connection, int id, boolean restaurant, boolean warehouse, boolean driver) throws SQLException {
 		int rest =0; int ware = 0; int driv =0;
 		if(restaurant == true) {rest=1;}
 		if(warehouse == true) {ware=1;}
 		if(driver == true) {driv=1;}
 		
 		Statement statement = null;
-    	String query = "UPDATE ACCOUNTS SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+" WHERE name ='"+name+"'";
+    	String query = "UPDATE Accounts SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+" WHERE id ='"+id+"'";
     	
     	try {
             statement = connection.createStatement();
             statement.executeUpdate(query);
-            System.out.println("Updated permissions for: "+name);
+            System.out.println("Updated permissions for id: "+id);
             
         } catch (SQLException e ) {
             e.printStackTrace();
@@ -47,15 +47,15 @@ public class Accounts {
 	}
     
 	//Method to remove account from database.
-	public void removeAccount(Connection connection, String name) throws SQLException {
+	public void removeAccount(Connection connection, int id) throws SQLException {
 		
 		Statement statement = null;
-		String query = "DELETE FROM Accounts WHERE name ='"+name+"'";
+		String query = "DELETE FROM Accounts WHERE id ='"+id+"'";
 		
 		try {
             statement = connection.createStatement();
-            statement.executeQuery(query);
-            System.out.println("Account for employee "+ name + " removed.");
+            statement.executeUpdate(query);
+            System.out.println("Account for employee id "+ id + " removed.");
             
         } catch (SQLException e ) {
             e.printStackTrace();
@@ -96,7 +96,8 @@ public class Accounts {
             	else {sDriv="No";}
             	
             	System.out.print("ID: "+ id +" Name: "+ name +" Username: "+ username +" \n");
-            	System.out.print("Restaurant access: "+sRest+" Warehouse access: "+sWare+" Driver access "+sDriv);
+            	System.out.print("Restaurant access: "+sRest+" Warehouse access: "+sWare+" Driver access "+sDriv+"\n");
+            	System.out.print("----------------------------------------------------------------------\n");
             }
         } catch (SQLException e ) {
             e.printStackTrace();
@@ -107,10 +108,10 @@ public class Accounts {
 	
 	
 	//Method to check access rights.
-	public void checkAccess(Connection connection, String name) throws SQLException {
+	public void checkAccess(Connection connection, int id) throws SQLException {
 		
 		Statement statement = null;
-		String query = "SELECT restaurant, warehouse, driver FROM Accounts WHERE name ='"+name+"'";
+		String query = "SELECT restaurant, warehouse, driver FROM Accounts WHERE id ='"+id+"'";
 		
 		try {
 			statement = connection.createStatement();
@@ -131,7 +132,7 @@ public class Accounts {
             if(rest ==0 && ware == 1 && driv == 1) {access="Warehouse and driver";}
             if(rest ==0 && ware == 0 && driv == 0) {access="No access";}
             
-            System.out.print("The user "+name+" has permissions for: "+access);
+            System.out.print("The user with id "+id+" has permissions for: "+access+"\n");
                         
 		} catch (SQLException e ) {
             e.printStackTrace();
