@@ -1,6 +1,7 @@
 package org.team2.cluk.backend.webresources;
 
 import org.team2.cluk.backend.tools.DbConnection;
+import org.team2.cluk.backend.tools.JsonTools;
 import org.team2.cluk.backend.tools.ServerLog;
 
 import javax.json.*;
@@ -270,17 +271,26 @@ public class Restaurant {
     	return response.build();
     }
 
-    /*
+	/**
+	 * Method executed when client requests custom order at the endpoint "/restaurant/request-custom-order".
+	 * Body of the request should be JSON array with each entry of form:
+	 * {stockItem: string, quantity: number}
+	 * @param restaurantAddress	value of address header specifying restaurant where order shall be delivered
+	 * @param strOrderContents	stringified JSON array containing order details
+	 * @return	202 ORDER_ACCEPTED - even if order contains entries not following the specification, they are removed from the order
+	 */
+    @Path("/request-custom-order")
+	@POST
+	@Consumes("application/json")
     //Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
-    public void requestCustomOrder(Connection connection, int cheeseQ, int chickenfilletbreastsQ, int chickenpiecesQ, int chickenstripsQ, int colasyrupQ, int hashbrownsQ,
-    	int mayonnaiseQ, int mycoproteinsouthernfriedburgerQ, int mycoproteinsouthernfriedstripsQ, int sesameseedbunsQ, int lettuceQ, int frenchfriesQ) throws SQLException {
-    	
-    	ArrayList<Integer> parameterList = new ArrayList<>();
-    	parameterList.add(cheeseQ);parameterList.add(chickenfilletbreastsQ);parameterList.add(chickenpiecesQ);parameterList.add(chickenstripsQ);
-    	parameterList.add(colasyrupQ);parameterList.add(hashbrownsQ);parameterList.add(mayonnaiseQ);parameterList.add(mycoproteinsouthernfriedburgerQ);
-    	parameterList.add( mycoproteinsouthernfriedstripsQ);parameterList.add(sesameseedbunsQ);parameterList.add(lettuceQ);parameterList.add(frenchfriesQ);
-    
-    	
+    public Response requestCustomOrder(@HeaderParam("address") String restaurantAddress, String strOrderContents) {
+
+    	// fetch current db connection
+    	Connection connection = DbConnection.getConnection();
+
+    	// parse request body to retrieve contents
+		JsonArray orderContents = JsonTools.parseArray(strOrderContents);
+
     	java.util.Date orderDate = new java.util.Date();
     	java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	String currentTime = sdf.format(orderDate);
@@ -311,54 +321,75 @@ public class Restaurant {
     	}catch (SQLException e ) {
     		e.printStackTrace();
     	} finally {
-            if (statement != null) {statement.close();}
-        } 
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			}
+		}
     	
     	// Add Order ID and restaurant address to orders table.
     	query = "INSERT INTO Orders (restaurantAddress, orderId) VALUES (?, ?)";
-    	
-    	try{			    				
-    		PreparedStatement pstmt = connection.prepareStatement(query);
+		PreparedStatement pstmt = null;
+    	try{
+			pstmt = connection.prepareStatement(query);
     		pstmt.setString(1, restaurantAddress);
     		pstmt.setInt(2, orderId); //same orderId as above
     		pstmt.executeUpdate();
     	}catch (SQLException e ) {
     		e.printStackTrace();
-    	}
+    	}finally {
+			try {
+				pstmt.close();
+			} catch (SQLException e) {
+				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			}
+		}
     	
     	//Getting stock items from Stock Table
-    	statement = null;
-    	query = "SELECT stockItem FROM Stock ORDER BY stockItem";
-  
-    	try {
-    		statement = connection.createStatement();
-    		ResultSet rs = statement.executeQuery(query);
-    		int i =0;
-    		while (rs.next()) {
-    			String stockItem = rs.getString("stockItem");
-    			
-    			// Add specified quantities to Contains table.
-    			String innerquery = "INSERT INTO Contains (orderId, quantity, stockItem) VALUES (?, ?, ?)";
-    			try {
-    				PreparedStatement pstmt = connection.prepareStatement(innerquery);
-    				pstmt.setInt(1, orderId);
-    				pstmt.setInt(2, parameterList.get(i));
-    				pstmt.setString(3, stockItem);
-    				pstmt.executeUpdate();
-    				i=i+1;
-    			}catch (SQLException e ) {
-    				e.printStackTrace();
-    			} 
+		pstmt = null;
+
+    	for (JsonValue orderEntryValue: orderContents) {
+    		if (!(orderEntryValue instanceof JsonObject)) {
+    			ServerLog.writeLog("Custom order entry misspecified");
+    			continue;
     		}
-    	} catch (SQLException e ) {
-    		e.printStackTrace();
-    	} finally {
-    		if (statement != null) {statement.close();}
-    	}  
+
+    		JsonObject orderEntry = (JsonObject) orderEntryValue;
+
+    		if (!orderEntry.containsKey("stockItem") || !orderEntry.containsKey("quantity")) {
+    			ServerLog.writeLog("Order entry misspecified. Skipping this entry");
+    			continue;
+			}
+
+    		String stockItem = orderEntry.getString("stockItem");
+    		int quantity = orderEntry.getInt("quantity");
+
+    		query = "INSERT INTO Contains (orderId, quantity, stockItem) VALUES (?, ?, ?)";
+    		pstmt = null;
+
+    		try {
+				pstmt = connection.prepareStatement(query);
+    			pstmt.setInt(1, orderId);
+    			pstmt.setInt(2, quantity);
+    			pstmt.setString(3, stockItem);
+    			pstmt.executeUpdate();
+    		} catch (SQLException e ) {
+    			e.printStackTrace();
+    		} finally {
+    			try {
+    				pstmt.close();
+    			} catch (SQLException e) {
+    				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+    			}
+    		}
+    	}
+
+    	return Response.status(Response.Status.ACCEPTED).entity("ORDER_ACCEPTED").build();
     }
     
     
-    
+    /*
     public void requestStandardOrder(Connection connection) throws SQLException {
     	
     	java.util.Date orderDate = new java.util.Date();
