@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">googleMap1</string>
+    <string name="title_activity_maps">Map</string>
+
+    <string name="API_Key_warehouse_SeatonBurnServices"></string>
+    <string name="API_Key_warehouse_AlnwickTownCentre"></string>
+    <string name="API_Key_warehouse_NewtonAycliffe"></string>
+    <string name="API_Key_warehouse_ThirskTownCentre"></string>
+    <string name="API_Key_warehouse_WhitbyTownCentre"></string>
+    <string name="API_Key_warehouse_Full_Jurny"></string>
+
+</resources>
