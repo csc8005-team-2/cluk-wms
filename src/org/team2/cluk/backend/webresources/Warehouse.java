@@ -10,6 +10,8 @@ import javax.json.JsonValue;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("/warehouse")
 public class Warehouse
@@ -113,6 +115,7 @@ public class Warehouse
                 }
             }
 
+            // update stock to the new level
             int newQuantity = currentQuantity + requestedQuantity;
 
             statement = null;
@@ -139,10 +142,14 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("STOCK_UPDATED").build();
     }
 
-    /*
+    @GET
+    @Path("/send-order")
     //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
-    public void SendOrder(Connection connection, int orderId) throws SQLException
+    public Response sendOrder(@HeaderParam("address") String address, @HeaderParam("orderId") int orderId)
     {
+        // fetch current db connection
+        Connection connection = DbConnection.getConnection();
+
     	//Check if order has already been delivered.
     	boolean orderFulfilled = false;
     	Statement statement = null;
@@ -154,18 +161,31 @@ public class Warehouse
     		rs.next();
     		String orderStatus = rs.getString("orderStatus");
     		if(!orderStatus.equalsIgnoreCase("Pending")){
-    			System.out.println("Order has already been fulfilled.");
+    			ServerLog.writeLog("Order has already been fulfilled.");
     			orderFulfilled = true;
     		}
     	} catch (SQLException e ) {
     		e.printStackTrace();
     	} finally {
-    		if (statement != null) {statement.close();}
+    		if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
     	}
-    		
+
+    	if (!orderFulfilled)
+    	    return Response.status(Response.Status.FORBIDDEN).entity("ORDER_ALREADY_FULFILLED").build();
+
+
+    	// retrieve order contents
+        HashMap<String, Integer> orderedStock = new HashMap<>();
+
     	//Check if warehouse has enough stock to fulfil order.
-    	boolean stockAvaliable = true;
-    	int cQuantity=0; int iQuantity=0;
+    	boolean stockAvailable = true;
+
     	statement = null;
     	query = "SELECT quantity, stockItem "+
     			"FROM Contains WHERE orderId='"+orderId+"'";
@@ -174,82 +194,109 @@ public class Warehouse
     		ResultSet rs = statement.executeQuery(query);
 		
     		while(rs.next()){
+                int cQuantity=0;
+
     			cQuantity = rs.getInt("quantity");
     			String cStock= rs.getString("stockItem");
-    			
-    			Statement innerStatement =null;
-    			String innerQuery = "SELECT quantity FROM Inside WHERE stockItem ='"+cStock+"' AND warehouseAddress ='"+Address+"'";
-    			try{
-    				innerStatement = connection.createStatement();
-    				ResultSet innerRs = innerStatement.executeQuery(innerQuery);
-    				
-    				innerRs.next();
-    				iQuantity = innerRs.getInt("quantity");
-    			}catch (SQLException e ) {
-    	    		e.printStackTrace();
-    	    	} finally {
-    	    		if (innerStatement != null) {innerStatement.close();}
-    	    	}
-    	    	
-    			if(cQuantity > iQuantity){
-    				System.out.println("Order cannot be fulfilled. Warehouse stock too low.");
-    	    		stockAvaliable = false;
-				}
+
+    			orderedStock.put(cStock, cQuantity);
     		}
     	} catch (SQLException e ) {
 			e.printStackTrace();
 		} finally {
-			if (statement != null) {statement.close();}
+			if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
 		}
-    	
+
+    	// check if enough stock is available to fulfill the order
+    	for (Map.Entry<String, Integer> orderedItem: orderedStock.entrySet()) {
+    	    String cStock = orderedItem.getKey();
+    	    int cQuantity = orderedItem.getValue();
+
+            statement =null;
+            query = "SELECT quantity FROM Inside WHERE stockItem ='"+cStock+"' AND warehouseAddress ='"+address+"'";
+            try{
+                statement = connection.createStatement();
+                ResultSet innerRs = statement.executeQuery(query);
+
+                innerRs.next();
+                int iQuantity = innerRs.getInt("quantity");
+
+                if(cQuantity > iQuantity){
+                    ServerLog.writeLog("Order cannot be fulfilled. Warehouse stock too low.");
+                    stockAvailable = false;
+                }
+
+            }catch (SQLException e ) {
+                e.printStackTrace();
+            } finally {
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+        }
+
+    	if (!stockAvailable)
+    	    return Response.status(Response.Status.FORBIDDEN).entity("STOCK_TOO_LOW").build();
+
     	//If passed previous checks update stock levels.
-    	if(stockAvaliable==true && orderFulfilled==false) {
-    		statement = null;
-    		query = "SELECT stockItem, quantity " +
-					"FROM Contains " +            
-					"WHERE orderId='"+orderId+"'";
-    		try {
-				statement = connection.createStatement();
-				ResultSet rs = statement.executeQuery(query);
-				while(rs.next()){
-					int quantity = rs.getInt("quantity");
-					String stockItem = rs.getString("StockItem");
-					
-					Statement innerStatement = null;
-					String innerQuery = "UPDATE Inside " +
-                        				"SET quantity = quantity-"+quantity+           
-                        				" WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+Address+"'";
-					try {
-						innerStatement = connection.createStatement();
-						innerStatement.executeUpdate(innerQuery);
-					} catch (SQLException e ) {
-						e.printStackTrace();
-					} finally {
-						if (innerStatement != null) {innerStatement.close();}
-					}                     
-				}
-    		} catch (SQLException e ) {
-				e.printStackTrace();
-			} finally {
-				if (statement != null) {statement.close();}
-			}   
-    		
-    		//Update database to mark order as out for delivery.
-    		statement = null;
-			query = "UPDATE StockOrders "+
-					"SET orderStatus = 'Out for delivery' "+
-					"WHERE orderId='"+orderId+"'";
-			try {
-				statement = connection.createStatement();
-				statement.executeUpdate(query);
-			} catch (SQLException e ) {
-				e.printStackTrace();
-			} finally {
-				if (statement != null) {statement.close();}
-			}                     
-    	}
+
+        for (Map.Entry<String, Integer> orderEntry: orderedStock.entrySet()) {
+            String stockItem = orderEntry.getKey();
+            int quantity = orderEntry.getValue();
+
+            statement = null;
+            query = "UPDATE Inside " +
+                    "SET quantity = quantity-" + quantity +
+                    " WHERE stockItem='" + stockItem + "' AND warehouseAddress ='" + address + "'";
+            try {
+                statement = connection.createStatement();
+                statement.executeUpdate(query);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+        }
+
+        //Update database to mark order as out for delivery.
+        statement = null;
+        query = "UPDATE StockOrders "+
+                "SET orderStatus = 'Out for delivery' "+
+                "WHERE orderId='"+orderId+"'";
+        try{
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+        } catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+        return Response.status(Response.Status.OK).entity("ORDER_SENT").build();
     }
-    
+
+    /*
     //Checks the warehouse stock is above the minimum level.
     public void minStockCheck(Connection connection) throws SQLException
     {
