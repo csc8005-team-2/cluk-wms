@@ -1,11 +1,14 @@
 package org.team2.cluk.backend.webresources;
 
 import org.team2.cluk.backend.tools.DbConnection;
+import org.team2.cluk.backend.tools.JsonTools;
+import org.team2.cluk.backend.tools.ServerLog;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonValue;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 import java.sql.*;
 
 @Path("/warehouse")
@@ -16,7 +19,7 @@ public class Warehouse
     @Path("/get-total-stock")
     @Produces("application/json")
     //Outputs total stock held at the warehouse(units).
-    public void GetTotalStock(@HeaderParam("warehouse") String address) throws SQLException
+    public void GetTotalStock(@HeaderParam("warehouse") String address)
     {
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
@@ -34,47 +37,109 @@ public class Warehouse
         } catch (SQLException e ) {
             e.printStackTrace();
         } finally {
-            if (statement != null) {statement.close();}
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
         }                 
     }
 
-    /*
+    /**
+     * {stockItem: string, quantity: number}
+     * @param address
+     * @param requestBody
+     * @return
+     * @throws SQLException
+     */
+    @POST
+    @Path("/update-stock")
+    @Consumes("application/json")
     //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
-    public void UpdateStock(Connection connection, String stockItem, int quantity) throws SQLException
+    public Response updateStock(@HeaderParam("warehouse") String address, String requestBody)
     {
-        Statement statement = null;
-        String query = "SELECT stockItem, quantity " +
-                       "FROM Inside " +            
-                       "WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+Address+"'";
-        try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery(query);
-            
-            rs.next();
-            int Quantity = rs.getInt("quantity");
-            System.out.println("Previos stock of "+stockItem + ": " + Quantity);
-            int newQuantity = Quantity+quantity;
-        
-            Statement statement2 = null;
-            String query2 = "UPDATE Inside " +
-                            "SET quantity ='"+newQuantity+            
-                            "' WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+Address+"'";
+        ServerLog.writeLog("Updating warehouse stock at " + address);
+        // fetch db connection
+        Connection connection = DbConnection.getConnection();
+
+        // parse request body
+        JsonArray stockToUpdate = JsonTools.parseArray(requestBody);
+
+        for (JsonValue entry: stockToUpdate) {
+            // check if array entry is a JSON
+            if (!(entry instanceof JsonObject)) {
+                ServerLog.writeLog("Order entry misspecified. Skipping entry.");
+                continue;
+            }
+
+            JsonObject entryObj = (JsonObject) entry;
+
+            // check if JSON correctly specified
+            if (!(entryObj.containsKey("stockItem") || entryObj.containsKey("quantity"))) {
+                ServerLog.writeLog("Order entry misspecified. Skipping entry.");
+                continue;
+            }
+
+            String stockItem = entryObj.getString("stockItem");
+            int requestedQuantity = entryObj.getInt("quantity");
+
+            // retrieve current level of given stock
+            int currentQuantity = 0;
+
+            Statement statement = null;
+            String query = "SELECT stockItem, quantity " +
+                    "FROM Inside " +
+                    "WHERE stockItem='" + stockItem + "' AND warehouseAddress ='" + address + "'";
             try {
-                statement2 = connection.createStatement();
-                statement2.executeUpdate(query2);
-                System.out.println("Updated stock of "+stockItem + ": " + newQuantity);
-            } catch (SQLException e ) {
+                statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(query);
+
+                while (rs.next()) {
+                    currentQuantity = rs.getInt("quantity");
+                    System.out.println("Previous stock of " + stockItem + ": " + currentQuantity + " at " + address);
+                }
+
+            } catch (SQLException e) {
                 e.printStackTrace();
             } finally {
-                if (statement2 != null) {statement2.close();}
-            }                     
-        } catch (SQLException e ) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {statement.close();}
-       }                                              
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+
+            int newQuantity = currentQuantity + requestedQuantity;
+
+            statement = null;
+            query = "UPDATE Inside " +
+                    "SET quantity ='" + newQuantity +
+                    "' WHERE stockItem='" + stockItem + "' AND warehouseAddress ='" + address + "'";
+            try {
+                statement = connection.createStatement();
+                statement.executeUpdate(query);
+                ServerLog.writeLog("Updated stock of " + stockItem + ": " + newQuantity + " at " + address);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+        }
+
+        return Response.status(Response.Status.OK).entity("STOCK_UPDATED").build();
     }
-    
+
+    /*
     //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
     public void SendOrder(Connection connection, int orderId) throws SQLException
     {
