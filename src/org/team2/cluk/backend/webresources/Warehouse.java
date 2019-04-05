@@ -4,9 +4,7 @@ import org.team2.cluk.backend.tools.DbConnection;
 import org.team2.cluk.backend.tools.JsonTools;
 import org.team2.cluk.backend.tools.ServerLog;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
@@ -296,36 +294,55 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("ORDER_SENT").build();
     }
 
-    /*
+    @GET
+    @Path("/min-stock-check")
     //Checks the warehouse stock is above the minimum level.
-    public void minStockCheck(Connection connection) throws SQLException
+    public Response minStockCheck(@HeaderParam("address") String address)
     {
+        Connection connection = DbConnection.getConnection();
+
+        JsonArrayBuilder lackingStockArrayBuilder = Json.createArrayBuilder();
+
         Statement statement = null;
         String query = "SELECT stockItem, quantity, minQuantity " +
                        "FROM Inside " +            
-                       "WHERE warehouseAddress='"+Address+"'";
+                       "WHERE warehouseAddress='"+address+"'";
                        
         try {
         statement = connection.createStatement();
         ResultSet rs = statement.executeQuery(query);
         while (rs.next()) {
-            String StockItem = rs.getString("StockItem");
-            int Quantity = rs.getInt("quantity");
+            String stockItem = rs.getString("StockItem");
+            int quantity = rs.getInt("quantity");
             int minQuantity = rs.getInt("minQuantity");
 
-            if(Quantity < minQuantity){
-            	int deficit = minQuantity - Quantity;
-            	System.out.println("Current stock of "+ StockItem +" is below minimum stock levels by "+deficit+".");
-            	this.UpdateStock(connection, StockItem, 100);
+            if(quantity < minQuantity){
+            	int deficit = minQuantity - quantity;
+
+            	JsonObjectBuilder stockEntry = Json.createObjectBuilder();
+            	stockEntry.add("stockItem", stockItem);
+            	stockEntry.add("quantity", deficit);
+
+            	lackingStockArrayBuilder.add(stockEntry.build());
+            	System.out.println("Current stock of "+ stockItem +" is below minimum stock levels by "+deficit+".");
             }    
         }
         } catch (SQLException e ) {
             e.printStackTrace();
         } finally {
-            if (statement != null) {statement.close();}
-        }                 
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+
+        return updateStock(address, lackingStockArrayBuilder.build().toString());
     }
-    
+
+    /*
     //Allows the warehouse stock minimums to be set.
     public void updateMinStock(Connection connection, String stockItem, int min) throws SQLException
     {
