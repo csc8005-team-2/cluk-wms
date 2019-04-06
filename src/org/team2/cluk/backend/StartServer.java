@@ -36,7 +36,7 @@ public class StartServer {
         DbConnection.connect(userName, password, url);
         // initialise server
         URI baseUri = UriBuilder.fromUri(listeningUri).port(listeningPort).build();
-        ResourceConfig config = new ResourceConfig(Warehouse.class, Restaurant.class);
+        ResourceConfig config = new ResourceConfig(Warehouse.class, Restaurant.class, Authorisation.class);
         HttpServer server = JdkHttpServerFactory.createHttpServer(baseUri, config);
         ServerLog.writeLog("Server running on " + listeningUri + " listening on port " + listeningPort);
     }
