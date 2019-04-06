@@ -345,25 +345,48 @@ public class Warehouse
         return updateStock(address, lackingStockArrayBuilder.build().toString());
     }
 
-    /*
     //Allows the warehouse stock minimums to be set.
-    public void updateMinStock(Connection connection, String stockItem, int min) throws SQLException
+    @Path("/update-min-stock")
+    @POST
+    @Consumes("application/json")
+    public Response updateMinStock(@HeaderParam("address") String address, String requestBody)
     {
+        // fetch db connection
+        Connection connection = DbConnection.getConnection();
+
+        JsonObject stockObject = JsonTools.parseObject(requestBody);
+
+        // check if request is correct
+        if (!(stockObject.containsKey("stockItem") || stockObject.containsKey("quantity")))
+            return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+
+        String stockItem = stockObject.getString("stockItem");
+        int min = stockObject.getInt("quantity");
+
         Statement statement = null;
-        String query = "UPDATE Inside SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+Address+"'";
+        String query = "UPDATE Inside SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+address+"'";
                        
         try {
         	statement = connection.createStatement();
         	statement.executeUpdate(query);
-        	System.out.println("Minimum stock levels updated to: " + min);
+        	ServerLog.writeLog("Minimum stock levels updated to: " + min + " at " + address);
         
         } catch (SQLException e ) {
             e.printStackTrace();
         } finally {
-            if (statement != null) {statement.close();}
-        }                 
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+
+        return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
     }
 
+    /*
     //Assigns an order to a driver(basic) may require expanding based on driver class.
     public void assignOrderToDriver(Connection connection, int orderId, String driverId) throws SQLException{
     	try {
