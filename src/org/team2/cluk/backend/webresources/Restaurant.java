@@ -518,7 +518,7 @@ public class Restaurant {
             try {
             	statement = connection.createStatement();
             	statement.executeUpdate(query);
-            	System.out.println("Minimum stock levels updated to: " + min);
+            	ServerLog.writeLog("Minimum stock levels updated to: " + min);
             
             } catch (SQLException e ) {
                 e.printStackTrace();
