@@ -11,10 +11,15 @@ Mobile app is created in Android Studio.
 ## Backend description
 Backend is created in Java EE using Jersey library as JAX-RS
 implementation. To launch server, use `StartServer` class 
-in `org.team2.cluk.backend` package. 
+in `org.team2.cluk.backend` package.
+ 
 Package `org.team2.cluk.backend.webresources` contains
 whole API logic and package `org.team2.cluk.backend.tools`
 consists of useful objects used in the project.
+
+Package `org.team2.cluk.backend.unprocessed` contains classes 
+`Driver` and `WorkingHours` that have not been yet integrated
+with the rest of the Web API.
 ## Used libraries
 Apart from Jersey, project makes use of MySQL/J Connector,
 javax.json package and Apache Common Lang 3.
