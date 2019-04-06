@@ -5,6 +5,7 @@ import org.team2.cluk.backend.tools.JsonTools;
 import org.team2.cluk.backend.tools.ServerLog;
 
 import javax.json.*;
+import javax.validation.constraints.Positive;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
@@ -77,7 +78,7 @@ public class Warehouse
             JsonObject entryObj = (JsonObject) entry;
 
             // check if JSON correctly specified
-            if (!(entryObj.containsKey("stockItem") || entryObj.containsKey("quantity"))) {
+            if (!(entryObj.containsKey("stockItem") && entryObj.containsKey("quantity"))) {
                 ServerLog.writeLog("Order entry misspecified. Skipping entry.");
                 continue;
             }
@@ -294,6 +295,54 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("ORDER_SENT").build();
     }
 
+    @Path("/get-min-stock")
+    @POST
+    @Consumes("application/json")
+    public Response getMinStock(@HeaderParam("address") String address) {
+        Response.ResponseBuilder res = null;
+        Connection connection = DbConnection.getConnection();
+
+
+
+        Statement statement = null;
+        String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddress ='"+address+"'";
+        try {
+            JsonArrayBuilder minStockBuilder = Json.createArrayBuilder();
+            JsonArray minStock = minStockBuilder.build();
+
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+
+            while(rs.next()) {
+                JsonObjectBuilder stockEntryBuilder = Json.createObjectBuilder();
+
+                String stockItem = rs.getString("stockItem");
+                int minQuantity = rs.getInt("minQuantity");
+
+                stockEntryBuilder.add("stockItem", stockItem);
+                stockEntryBuilder.add("quantity", minQuantity);
+                minStockBuilder.add(stockEntryBuilder);
+
+                ServerLog.writeLog("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity+"\n");
+            }
+
+            res = Response.status(Response.Status.OK).entity(minStock.toString());
+        } catch (SQLException e ) {
+            res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_QUERYING_MIN_STOCK_LEVEL");
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+
+        return res.build();
+    }
+
     @GET
     @Path("/min-stock-check")
     //Checks the warehouse stock is above the minimum level.
@@ -357,7 +406,7 @@ public class Warehouse
         JsonObject stockObject = JsonTools.parseObject(requestBody);
 
         // check if request is correct
-        if (!(stockObject.containsKey("stockItem") || stockObject.containsKey("quantity")))
+        if (!stockObject.containsKey("stockItem") || !stockObject.containsKey("quantity"))
             return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
 
         String stockItem = stockObject.getString("stockItem");
@@ -419,5 +468,87 @@ public class Warehouse
     	res = Response.status(Response.Status.OK).entity("ORDER_ASSIGNED");
 
     	return res.build();
+    }
+
+    @GET
+    @Path("/get-pending-orders")
+    //Method to get currently pending orders.
+    public Response getCurrentPendingOrders() {
+        Response.ResponseBuilder res = null;
+
+        Connection connection = DbConnection.getConnection();
+
+        JsonArrayBuilder pendingOrdersBuilder = Json.createArrayBuilder();
+
+        //Gets orderId and date/time for orders with status pending.
+        Statement statement = null;
+        String query = "SELECT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
+                "FROM StockOrders, Orders WHERE StockOrders.orderStatus='Pending' AND Orders.orderId=StockOrders.orderId";
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+
+            JsonObjectBuilder orderEntry = Json.createObjectBuilder();
+
+            while(rs.next()) {
+                int orderId = rs.getInt("StockOrders.orderId");
+                Date dateTime = rs.getDate("StockOrders.orderDateTime");
+                String address = rs.getString("Orders.restaurantAddress");
+
+                orderEntry.add("orderId", orderId);
+                orderEntry.add("dateTime", dateTime.toString());
+                orderEntry.add("address", address);
+
+                //Gets contents of the order.
+                JsonArrayBuilder orderContents = Json.createArrayBuilder();
+                Statement innerStatement = null;
+                String innerQuery = "SELECT quantity, stockItem FROM Contains WHERE orderId="+orderId;
+
+                try {
+                    innerStatement = connection.createStatement();
+                    ResultSet innerRs = innerStatement.executeQuery(innerQuery);
+
+                    while(innerRs.next()) {
+                        String stockItem = innerRs.getString("stockItem");
+                        int quantity = innerRs.getInt("quantity");
+                        JsonObjectBuilder stockEntry = Json.createObjectBuilder();
+
+                        stockEntry.add("stockItem", stockItem);
+                        stockEntry.add("quantity", quantity);
+
+                        orderContents.add(stockEntry);
+                    }
+                }catch (SQLException e ) {
+                    e.printStackTrace();
+                }finally {
+                    if (innerStatement != null) {
+                        try {
+                            innerStatement.close();
+                        } catch (SQLException e) {
+                            ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                        }
+                    }
+                }
+
+                orderEntry.add("contents", orderContents);
+
+                pendingOrdersBuilder.add(orderEntry);
+            }
+
+            res = Response.status(Response.Status.OK).entity(pendingOrdersBuilder.build().toString());
+
+        } catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+
+        return res.build();
     }
 }

@@ -510,6 +510,9 @@ public class Restaurant {
             Statement statement = null;
             JsonObject stockObject = JsonTools.parseObject(strStockObject);
 
+            if (!(stockObject.containsKey("stockItem") && stockObject.containsKey("quantity")))
+				return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+
             String stockItem = stockObject.getString("stockItem");
             int min = stockObject.getInt("quantity");
 
@@ -636,4 +639,110 @@ public class Restaurant {
 
 	}
 
+	@POST
+	@Path("/update-stock")
+	//Method to update restaurant stock allowing for manual adjustment of stock levels.
+	public Response updateStock(@HeaderParam("address") String restaurantAddress, String requestBody)
+	{
+		Response.ResponseBuilder res = null;
+		Connection connection = DbConnection.getConnection();
+
+		JsonObject requestJson = JsonTools.parseObject(requestBody);
+
+		if (!(requestJson.containsKey("stockItem") || requestJson.containsKey("quantity")))
+			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+
+		String stockItem = requestJson.getString("stockItem");
+		int differenceInQuantity = requestJson.getInt("quantity");
+
+		int currentQuantity = -1;
+		Statement statement = null;
+		String query = "SELECT stockItem, quantity " +
+				"FROM Within " +
+				"WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+
+			rs.next();
+			currentQuantity = rs.getInt("quantity");
+			ServerLog.writeLog("Previous stock of "+stockItem + ": " + currentQuantity);
+
+
+		} catch (SQLException e ) {
+			res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_QUERYING_CURRENT_STOCK");
+			e.printStackTrace();
+		} finally {
+			if (statement != null) {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}
+		}
+
+		int newQuantity = currentQuantity + differenceInQuantity;
+
+		statement = null;
+		query = "UPDATE Within " +
+				"SET quantity ='"+newQuantity+
+				"' WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(query);
+			ServerLog.writeLog("Updated stock of "+stockItem + ": " + newQuantity);
+			res = Response.status(Response.Status.OK).entity("STOCK_UPDATED");
+		} catch (SQLException e ) {
+			res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_UPDATING_STOCK");
+			e.printStackTrace();
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
+
+		return res.build();
+	}
+
+	@GET
+	@Path("/get-price")
+	//Method to get price of meal item.
+	public Response getPrice(@HeaderParam("meal") String meal) {
+		Connection connection = DbConnection.getConnection();
+
+		double price = -1;
+
+		Statement statement = null;
+		String query = "SELECT price FROM Meals WHERE mealId ='"+meal+"'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+
+			if (rs.next()) {
+				price = rs.getDouble("price");
+				ServerLog.writeLog("Item: " + meal + " Cost: " + price + "\n");
+			}
+
+		} catch (SQLException e ) {
+			e.printStackTrace();
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
+
+		return Response.status(Response.Status.OK).entity(String.format("%2.f", price)).build();
+	}
 }    
