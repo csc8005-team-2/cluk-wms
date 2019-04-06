@@ -339,6 +339,9 @@ public class Warehouse
             }
         }
 
+        if (lackingStockArrayBuilder.build().toArray().length==0)
+            return Response.status(Response.Status.OK).entity("ENOUGH_STOCK").build();
+
         return updateStock(address, lackingStockArrayBuilder.build().toString());
     }
 
