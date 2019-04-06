@@ -386,20 +386,38 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
     }
 
-    /*
+    @GET
+    @Path("/assign-to-driver")
     //Assigns an order to a driver(basic) may require expanding based on driver class.
-    public void assignOrderToDriver(Connection connection, int orderId, String driverId) throws SQLException{
-    	try {
+    public Response assignOrderToDriver(@HeaderParam("orderId") int orderId, @HeaderParam("driverId") String driverId){
+        Response.ResponseBuilder res = null;
 
-		String query = "INSERT INTO SentBy(orderId,driverId)VALUES (?,?)";
-    	PreparedStatement statement= connection.prepareStatement(query);
-		statement.setInt(1,orderId);
-		statement.setString(2, driverId);
-		statement.execute();
-		
+        // fetch current dbConnection
+        Connection connection = DbConnection.getConnection();
+
+        String query = "INSERT INTO SentBy(orderId,driverId)VALUES (?,?)";
+        PreparedStatement statement = null;
+
+    	try {
+    	    statement = connection.prepareStatement(query);
+		    statement.setInt(1,orderId);
+		    statement.setString(2, driverId);
+		    statement.execute();
     	}catch (SQLException e ) {
     		e.printStackTrace();
-    	}           
+    		res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ORDER_ASSIGNMENT_ERROR");
+    	}
+    	finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+    	res = Response.status(Response.Status.OK).entity("ORDER_ASSIGNED");
+
+    	return res.build();
     }
-	 */
 }
