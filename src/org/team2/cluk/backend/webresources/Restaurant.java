@@ -8,6 +8,8 @@ import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
+import java.text.ParseException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -291,18 +293,39 @@ public class Restaurant {
     	// parse request body to retrieve contents
 		JsonArray orderContents = JsonTools.parseArray(strOrderContents);
 
+		//added delivery date to stock orders.
     	java.util.Date orderDate = new java.util.Date();
     	java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		java.text.SimpleDateFormat dayOfweek = new java.text.SimpleDateFormat("EEEE");
     	String currentTime = sdf.format(orderDate);
+    	Calendar c = Calendar.getInstance();
     	int orderId=0;
-
-    	// Creating Order in StockOrders Table.
-    	String query = "INSERT INTO StockOrders (orderDateTime, orderStatus) VALUES (?, ?)";
+    	
+		try {
+			c.setTime(sdf.parse(currentTime));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		
+		if (dayOfweek.format(orderDate).matches("Monday|Tuesday|Wednesday|Thursday|Sunday")){
+			c.add(Calendar.DATE, 1);
+		}else if (dayOfweek.format(orderDate).contentEquals("Friday")){
+			c.add(Calendar.DATE, 3);		
+		}else if (dayOfweek.format(orderDate).contentEquals("Saturday")){
+			c.add(Calendar.DATE, 2);
+		}
+		
+		String deliveryDate = date.format(c.getTime());
+    	
+		// Creating Order in StockOrders Table.
+    	String query = "INSERT INTO StockOrders (orderDateTime, orderStatus, orderDeliveryDate) VALUES (?, ?, ?)";
     			    	    	
     	try{
     		PreparedStatement pstmt = connection.prepareStatement(query);
     		pstmt.setString(1, currentTime);
-    		pstmt.setString(2,"Out for delivery"); //manual set to out for delivery
+    		pstmt.setString(2,"Out for delivery");
+    		pstmt.setString(3, deliveryDate);
     		pstmt.executeUpdate();
 	    		
     	} catch (SQLException e ) {
@@ -745,4 +768,4 @@ public class Restaurant {
 
 		return Response.status(Response.Status.OK).entity(String.format("%2.f", price)).build();
 	}
-}    
+}     
