@@ -55,7 +55,7 @@ public class Authorisation {
         boolean loginSuccessful = false;
 
         // create response object
-        Response res = null;
+        Response.ResponseBuilder res = null;
 
         // parsing incoming json using javax.json library from Java EE
         JsonObject loginDataObject = JsonTools.parseObject(loginData);
@@ -98,7 +98,7 @@ public class Authorisation {
             }
         } catch (SQLException e) {
             ServerLog.writeLog("Error verifying user " + username + "credentials");
-            res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("CREDENTIAL_QUERY_ERROR").build();
+            res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("CREDENTIAL_QUERY_ERROR");
         } finally {
             if (statement != null) {
                 try {
@@ -123,10 +123,10 @@ public class Authorisation {
             userTokens.put(newIdToken, username);
 
             // return token to the user on successful login
-            res = Response.status(Response.Status.OK).entity(newIdToken).build();
-        } else res = Response.status(Response.Status.UNAUTHORIZED).entity("WRONG_CREDENTIALS").build();
+            res = Response.status(Response.Status.OK).entity(newIdToken);
+        } else res = Response.status(Response.Status.UNAUTHORIZED).entity("WRONG_CREDENTIALS");
 
-        return res;
+        return res.build();
     }
 
     @Path("/logout")
