@@ -20,7 +20,7 @@ public class Warehouse
     @Path("/get-total-stock")
     @Produces("application/json")
     //Outputs total stock held at the warehouse(units).
-    public void GetTotalStock(@HeaderParam("warehouse") String address)
+    public void GetTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
@@ -59,7 +59,7 @@ public class Warehouse
     @Path("/update-stock")
     @Consumes("application/json")
     //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
-    public Response updateStock(@HeaderParam("warehouse") String address, String requestBody)
+    public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
         ServerLog.writeLog("Updating warehouse stock at " + address);
         // fetch db connection
@@ -144,7 +144,7 @@ public class Warehouse
     @GET
     @Path("/send-order")
     //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
-    public Response sendOrder(@HeaderParam("address") String address, @HeaderParam("orderId") int orderId)
+    public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") int orderId)
     {
         // fetch current db connection
         Connection connection = DbConnection.getConnection();
@@ -298,7 +298,7 @@ public class Warehouse
     @Path("/get-min-stock")
     @POST
     @Consumes("application/json")
-    public Response getMinStock(@HeaderParam("address") String address) {
+    public Response getMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address) {
         Response.ResponseBuilder res = null;
         Connection connection = DbConnection.getConnection();
 
@@ -346,7 +346,7 @@ public class Warehouse
     @GET
     @Path("/min-stock-check")
     //Checks the warehouse stock is above the minimum level.
-    public Response minStockCheck(@HeaderParam("address") String address)
+    public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
         Connection connection = DbConnection.getConnection();
 
@@ -391,14 +391,14 @@ public class Warehouse
         if (lackingStockArrayBuilder.build().toArray().length==0)
             return Response.status(Response.Status.OK).entity("ENOUGH_STOCK").build();
 
-        return updateStock(address, lackingStockArrayBuilder.build().toString());
+        return updateStock(idToken, address, lackingStockArrayBuilder.build().toString());
     }
 
     //Allows the warehouse stock minimums to be set.
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
-    public Response updateMinStock(@HeaderParam("address") String address, String requestBody)
+    public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
         // fetch db connection
         Connection connection = DbConnection.getConnection();
@@ -438,7 +438,7 @@ public class Warehouse
     @GET
     @Path("/assign-to-driver")
     //Assigns an order to a driver(basic) may require expanding based on driver class.
-    public Response assignOrderToDriver(@HeaderParam("orderId") int orderId, @HeaderParam("driverId") String driverId){
+    public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") int orderId, @HeaderParam("driverId") String driverId){
         Response.ResponseBuilder res = null;
 
         // fetch current dbConnection
@@ -473,7 +473,7 @@ public class Warehouse
     @GET
     @Path("/get-pending-orders")
     //Method to get currently pending orders.
-    public Response getCurrentPendingOrders() {
+    public Response getCurrentPendingOrders(@HeaderParam("Authorization") String idToken) {
         Response.ResponseBuilder res = null;
 
         Connection connection = DbConnection.getConnection();

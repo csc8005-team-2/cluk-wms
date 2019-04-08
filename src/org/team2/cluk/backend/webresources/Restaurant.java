@@ -22,7 +22,7 @@ public class Restaurant {
     @GET
     @Path("/get-total-stock")
 	@Produces("application/json")
-    public Response getTotalStock(@HeaderParam("address") String restaurantAddress) {
+    public Response getTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
 
@@ -75,7 +75,7 @@ public class Restaurant {
     @GET
     @Path("/receive-order")
 	//this method updates the stock for a restaurant when it has received an order.
-    public Response receiveOrder(@HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
+    public Response receiveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
     	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
 
     	boolean processedCorrectly = true;
@@ -283,7 +283,7 @@ public class Restaurant {
 	@POST
 	@Consumes("application/json")
     //Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
-    public Response requestCustomOrder(@HeaderParam("address") String restaurantAddress, String strOrderContents) {
+    public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strOrderContents) {
 
     	// fetch current db connection
     	Connection connection = DbConnection.getConnection();
@@ -401,7 +401,7 @@ public class Restaurant {
 	 */
 	@Path("/request-order")
 	@GET
-    public Response requestStandardOrder(@HeaderParam("address") String restaurantAddress) {
+    public Response requestStandardOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
     	// fetch db connection
 		Connection connection = DbConnection.getConnection();
@@ -440,7 +440,7 @@ public class Restaurant {
 
     	JsonArray standardOrderArray = standardOrderArrayBuilder.build();
 
-		return requestCustomOrder(restaurantAddress, standardOrderArray.toString());
+		return requestCustomOrder(idToken, restaurantAddress, standardOrderArray.toString());
     }
 	    			    		   
 
@@ -449,7 +449,7 @@ public class Restaurant {
 	@Path("/min-stock-check")
 	@GET
 	@Produces("application/json")
-    public Response minStockCheck(@HeaderParam("address") String restaurantAddress) {
+    public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 
@@ -503,7 +503,7 @@ public class Restaurant {
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
-    public Response updateMinStock(@HeaderParam("address") String restaurantAddress, String strStockObject)
+    public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strStockObject)
         {
         	// fetch db connection
             Connection connection = DbConnection.getConnection();
@@ -541,7 +541,7 @@ public class Restaurant {
     //Allows a restaurant to use stock by creating meal items.
 	@Path("/create-meal")
 	@GET
-	public Response createMeal(@HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
+	public Response createMeal(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
 
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
@@ -642,7 +642,7 @@ public class Restaurant {
 	@POST
 	@Path("/update-stock")
 	//Method to update restaurant stock allowing for manual adjustment of stock levels.
-	public Response updateStock(@HeaderParam("address") String restaurantAddress, String requestBody)
+	public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String requestBody)
 	{
 		Response.ResponseBuilder res = null;
 		Connection connection = DbConnection.getConnection();
@@ -714,7 +714,7 @@ public class Restaurant {
 	@GET
 	@Path("/get-price")
 	//Method to get price of meal item.
-	public Response getPrice(@HeaderParam("meal") String meal) {
+	public Response getPrice(@HeaderParam("Authorization") String idToken, @HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
 
 		double price = -1;

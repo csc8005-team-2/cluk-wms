@@ -134,7 +134,7 @@ public class Authorisation {
     public Response logoutUser(@HeaderParam("Authorization") String idToken) {
         if (userTokens.containsKey(idToken)) {
             userTokens.remove(idToken);
-            return Response.status(Response.Status.ACCEPTED).entity("LOGOUT_SUCCESSFUL").build();
+            return Response.status(Response.Status.OK).entity("LOGOUT_SUCCESSFUL").build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("USER_NEVER_LOGGED_IN").build();
     }
@@ -182,7 +182,7 @@ public class Authorisation {
         try{
             statement = connection.createStatement();
             statement.executeUpdate(query);
-            System.out.print("Account created for " +name+".\n");
+            ServerLog.writeLog("Account created for " +name+".\n");
 
         } catch (SQLException e ) {
             e.printStackTrace();
@@ -220,7 +220,7 @@ public class Authorisation {
                 driver = rs.getBoolean("driver");
             }
         } catch (SQLException e) {
-            ServerLog.writeLog("Error verifying user " + username + "credentials");
+            ServerLog.writeLog("Error verifying user " + username + " credentials");
         } finally {
             if (statement != null) {
                 try {
@@ -254,7 +254,7 @@ public class Authorisation {
     @Path("/accounts/set-permission")
     @Consumes("application/json")
     //Method to set account permissions.
-    public Response setPermissions(String requestBody) {
+    public Response setPermissions(@HeaderParam("Authorization") String idToken, String requestBody) {
         Connection connection = DbConnection.getConnection();
 
         JsonObject requestJson = JsonTools.parseObject(requestBody);
@@ -300,7 +300,7 @@ public class Authorisation {
     @Path("/accounts/remove")
     @GET
     //Method to remove account from database.
-    public Response removeAccount(@HeaderParam("username") String username) {
+    public Response removeAccount(@HeaderParam("Authorization") String idToken, @HeaderParam("username") String username) {
         Response.ResponseBuilder res = null;
 
         // fetch dbConnection
@@ -350,7 +350,7 @@ public class Authorisation {
     @GET
     @Produces("application/json")
     //Method to see staff info
-    public Response getStaffInfo() {
+    public Response getStaffInfo(@HeaderParam("Authorization") String idToken) {
         Connection connection = DbConnection.getConnection();
 
         JsonArrayBuilder staffInfoBuilder = Json.createArrayBuilder();
