@@ -273,7 +273,7 @@ public class Authorisation {
         if(driver == true) {driv=1;}
 
         Statement statement = null;
-        String query = "UPDATE Accounts SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+" WHERE usename ='"+username+"'";
+        String query = "UPDATE Accounts SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+" WHERE username ='"+username+"'";
 
         try {
             statement = connection.createStatement();
