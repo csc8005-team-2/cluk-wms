@@ -31,7 +31,6 @@ public class Driver {
 		this.workDuration = workDuration;
 		this.region = region;
 		this.availability = availability;
-
 	}
 
 	//method to add a driver's information to the driver table
@@ -631,5 +630,4 @@ public class Driver {
 			}
 		}
 	}
-
 }
