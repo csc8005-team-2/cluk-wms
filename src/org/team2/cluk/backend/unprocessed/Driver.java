@@ -1,9 +1,6 @@
-package org.team2.cluk.backend.unprocessed;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-//import java.time.LocalDate;
-//import java.util.Date;
 import java.sql.*;
 
 public class Driver {
@@ -13,29 +10,36 @@ public class Driver {
 	private String lastName;
 	private final int id;
 	private String phoneNumber;
-	private int capacity;
+	private int availableCapacity;
+	private int assignedOrderCapacity;
 	private int workDuration; //mins.
 	private final int breakTime = 45; //mins
+	private String region;
+	private boolean availability;
+	private final int maxWorkDuration = 600;//10 hours = 600mins, use this to limit assigning order to driver etc
+	private final int maxAvailableCapacity = 500; //not sure of the number but this should be the maximum capacity a driver can have!
 
 
-	public Driver(Connection connection, String firstName, String lastName, int id, String phoneNumber,  int capacity, int workDuration){
+	public Driver(Connection connection, String firstName, String lastName, int id, String phoneNumber, int availableCapacity, int assignedOrderCapacity, int workDuration, String region, boolean availability){
 		this.connection = connection;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.id = id;
 		this.phoneNumber = phoneNumber;
-		this.capacity = capacity;
+		this.availableCapacity = availableCapacity;
+		this.assignedOrderCapacity = assignedOrderCapacity;
 		this.workDuration = workDuration;
+		this.region = region;
+		this.availability = availability;
 
 	}
 
 	//method to add a driver's information to the driver table
-	public void addDriverInfo(String firstName, String lastName, int id, String phoneNumber,  int capacity, int workDuration) throws SQLException {
+	public void addDriverInfo(String firstName, String lastName, int id, String phoneNumber,  int availableCapacity, int assignedOrderCapacity, int workDuration, String region, boolean availability) throws SQLException {
 
 		Statement statement1 = null;
-		String query1 = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, capacity, workDuration) " +
-				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber + "', '" + capacity + "', '" + workDuration + "')";
-
+		String query1 = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
+				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber + "', '" + availableCapacity + "', '" + assignedOrderCapacity + "', '" + workDuration + "', '" + region + "', '" + availability "')";
 		try {
 			statement1 = this.connection.createStatement();
 			statement1.executeQuery(query1);
@@ -302,7 +306,8 @@ public class Driver {
 		}
 	}
 
-	//method to make drivers go on break, applying the break time to their work duration
+	//method to make drivers go on break, adding the break time to their work duration
+	//need to make sure driver's work duration doesn't pass the max of 10hours
 	public void goOnBreak(int id, WorkingHours w) throws SQLException{
 
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
@@ -313,7 +318,7 @@ public class Driver {
 		boolean goOnBreak = false;
 
 		while (goOnBreak == false) {
-
+			//4.5hours = 270mins
 			if(workDuration == 270) {
 
 				Statement statement13 = null;
@@ -360,10 +365,11 @@ public class Driver {
 
 	}
 
-	public void printCapacity() throws SQLException{
+	//method to print the available driver capacity after an order has been assigned
+	public void printAvailableCapacity(int id) throws SQLException{
 
 		Statement statement15 = null;
-		String query15 = "SELECT capacity " +
+		String query15 = "SELECT availableCapacity " +
 				"FROM Driver " +
 				"WHERE id ='" + id +"'";
 
@@ -371,8 +377,8 @@ public class Driver {
 			statement15 = this.connection.createStatement();
 			ResultSet rs = statement15.executeQuery(query15);
 			while (rs.next()) {
-				int Capacity = rs.getInt("capacity");
-				System.out.println("Driver " + id + "'s car capacity is " + Capacity + "\n");
+				int availableCapacity = rs.getInt("availableCapacity");
+				System.out.println("Driver " + id + "'s car availableCapacity is " + availableCapacity + "\n");
 
 			}
 		} catch (SQLException e) {
@@ -384,30 +390,31 @@ public class Driver {
 		}
 	}
 
-	public void UpdateCapacity(int id, int capacity) throws SQLException{
+	//**Need to improve this method to update the available capacity after an order has been assigned to a driver
+	public void UpdateAvailableCapacity(int id, int availableCapacity) throws SQLException{
 
 		Statement statement16 = null;
-		String query16 = "SELECT capacity " +
+		String query16 = "SELECT availableCapacity " +
 				"FROM Driver " +
-				"WHERE id ='" + id+"'";
+				"WHERE id ='" + id+ "'";
 		try {
 			statement16 = this.connection.createStatement();
 			ResultSet rs = statement16.executeQuery(query16);
 
 			rs.next();
 
-			int Capacity = rs.getInt("capacity");
-			System.out.println("Previous capacity of Driver " + id + " is " + capacity);
-			int newCapacity = Capacity+capacity;
+			int AvailableCapacity = rs.getInt("availableCapacity");
+			System.out.println("Previous availableCapacity of Driver " + id + " is " + availableCapacity);
+			int newAvailableCapacity = availableCapacity+AvailableCapacity;
 
 			Statement statement17 = null;
 			String query17 = "UPDATE Driver " +
-					"SET capacity ='" + newCapacity+
-					"' WHERE id='" + id +"' AND capacity ='"+ capacity+ "'";
+					"SET availableCapacity ='" + newAvailableCapacity+
+					"' WHERE id='" + id + "'";
 			try {
 				statement17 = this.connection.createStatement();
 				statement17.executeUpdate(query17);
-				System.out.println("Updated capacity of Driver "+ id + " is " + newCapacity);
+				System.out.println("Updated availableCapacity of Driver "+ id + " is " + newAvailableavailableCapacity);
 			} catch (SQLException e ) {
 				e.printStackTrace();
 			} finally {
@@ -423,4 +430,206 @@ public class Driver {
 			}
 		}
 	}
+
+	//this method prints out the capacity of orders assigned to a driver, database should be updated
+	public void printAssignedOrderCapacity(int id) throws SQLException{
+
+		Statement statement18 = null;
+		String query18 = "SELECT availableCapacity " +
+				"FROM Driver " +
+				"WHERE id ='" + id +"'";
+
+		try {
+			statement18 = this.connection.createStatement();
+			ResultSet rs = statement18.executeQuery(query18);
+			while (rs.next()) {
+				int availableCapacity = rs.getInt("availableCapacity");
+				System.out.println("Driver " + id + "'s car availableCapacity is " + availableCapacity + "\n");
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (statement18 != null) {
+				statement18.close();
+			}
+		}
+	}
+
+	//**Need to improve this method to update the capacity of assigned orders to the driver
+	public void UpdateAssignedOrderCapacity(int id, int assignedOrderCapacity) throws SQLException{
+
+		Statement statement19 = null;
+		String query19 = "SELECT availableCapacity " +
+				"FROM Driver " +
+				"WHERE id ='" + id+ "'";
+		try {
+			statement19 = this.connection.createStatement();
+			ResultSet rs = statement19.executeQuery(query19);
+
+			rs.next();
+
+			int AvailableCapacity = rs.getInt("availableCapacity");
+			System.out.println("Previous availableCapacity of Driver " + id + " is " + availableCapacity);
+			int newAvailableCapacity = availableCapacity+AvailableCapacity;
+
+			Statement statement20 = null;
+			String query20 = "UPDATE Driver " +
+					"SET availableCapacity ='" + newAvailableCapacity+
+					"' WHERE id='" + id + "'";
+			try {
+				statement20 = this.connection.createStatement();
+				statement20.executeUpdate(query20);
+				System.out.println("Updated availableCapacity of Driver "+ id + " is " + newAvailableavailableCapacity);
+			} catch (SQLException e ) {
+				e.printStackTrace();
+			} finally {
+				if (statement20 != null) {
+					statement20.close();
+				}
+			}
+		} catch (SQLException e ) {
+			e.printStackTrace();
+		} finally {
+			if (statement19 != null) {
+				statement19.close();
+			}
+		}
+	}
+
+	//method to print a driver's region using id either North or South
+	public void printRegion(int id) throws SQLException{
+
+		Statement statement21 = null;
+		String query21 = "SELECT region " +
+				"FROM Driver " +
+				"WHERE id ='" + id + "'";
+
+		try {
+			statement21 = this.connection.createStatement();
+			ResultSet rs = statement21.executeQuery(query21);
+			while (rs.next()) {
+				String Region = rs.getString("region");
+				System.out.println("Driver " + id + "'s region " + region + "\n");
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (statement21 != null) {
+				statement21.close();
+			}
+		}
+	}
+
+	//method to update driver's region using the id and region
+	public void updateRegion(int id, String region) throws SQLException{
+
+		Statement statement22 = null;
+		String query22 = "SELECT region" +
+				"FROM Driver " +
+				"WHERE id='" + id +"'";
+
+		try {
+			statement22 = this.connection.createStatement();
+			ResultSet rs = statement22.executeQuery(query22);
+
+			rs.next();
+			String newRegion = rs.getString("region");
+			System.out.println("Driver " + id + "'s region is " + region + "\n");
+
+			Statement statement23 = null;
+			String query23 = "UPDATE Driver " +
+					"SET region ='" + newRegion +
+					"'WHERE id='" + id + "'";
+
+			try {
+				statement23 = this.connection.createStatement();
+				statement23.executeUpdate(query23);
+				System.out.println("Driver " + id + "'s region has been updated to " + newRegion + "\n");
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement23 != null) {
+					statement23.close();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (statement22 != null) {
+				statement22.close();
+			}
+		}
+	}
+
+	//method to print a driver's availability using id
+	public void printAvailability(int id) throws SQLException{
+
+		Statement statement24 = null;
+		String query24 = "SELECT availability " +
+				"FROM Driver " +
+				"WHERE id ='" + id + "'";
+
+		try {
+			statement24 = this.connection.createStatement();
+			ResultSet rs = statement24.executeQuery(query24);
+			while (rs.next()) {
+				String Availability = rs.getString("availability");
+				System.out.println("Driver " + id + "'s availability is " + availability + "\n");
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (statement24 != null) {
+				statement24.close();
+			}
+		}
+	}
+
+	//UPDATE??
+	//**Need to update this method to update driver's availability using the driver's work duration and if the available capacity is max
+	public void updateAvailability(int id, String availability) throws SQLException{
+
+		Statement statement25 = null;
+		String query25 = "SELECT availability" +
+				"FROM Driver " +
+				"WHERE id='" + id +"'";
+
+		try {
+			statement25 = this.connection.createStatement();
+			ResultSet rs = statement25.executeQuery(query25);
+
+			rs.next();
+			String newAvailability = rs.getString("availability");
+			System.out.println("Driver " + id + "'s availability is " + availability + "\n");
+
+			Statement statement26 = null;
+			String query26 = "UPDATE Driver " +
+					"SET availability ='" + newRegion +
+					"'WHERE id='" + id + "'";
+
+			try {
+				statement26 = this.connection.createStatement();
+				statement26.executeUpdate(query26);
+				System.out.println("Driver " + id + "'s availability has been updated to " + newAvailability + "\n");
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement26 != null) {
+					statement26.close();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (statement25 != null) {
+				statement25.close();
+			}
+		}
+	}
+
 }
