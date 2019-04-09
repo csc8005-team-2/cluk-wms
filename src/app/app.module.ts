@@ -1,6 +1,8 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
+import { HttpClientModule } from '@angular/common/http';
+
 import { MaterialModule } from './material.module'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -19,6 +21,7 @@ import { MainMenuComponent } from './components/main-menu/main-menu.component';
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MaterialModule

@@ -1,13 +1,12 @@
 <div class="container">
-<form class="login" validate>
-<mat-form-field>
-  <input matInput required placeholder="Username">
-</mat-form-field>
-<mat-form-field>
-  <input matInput required type="password" placeholder="Password">
-</mat-form-field>
-<button mat-raised-button>Login</button>
-<a mat-link href="#">Forgot password?</a>
-</form>
+  <div class="login">
+    <mat-form-field>
+      <input matInput #username required placeholder="Username" validate>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput #password required type="password" placeholder="Password" validate>
+    </mat-form-field>
+    <button mat-raised-button (click)="login(username.value, password.value)">Login</button>
+  </div>
+<!-- <a mat-link href="#">Forgot password?</a> -->
 </div>
-
