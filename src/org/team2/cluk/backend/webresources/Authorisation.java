@@ -50,7 +50,7 @@ public class Authorisation {
     @Path("/login")
     @POST
     @Consumes("application/json")
-    @Produces("application/json")
+    @Produces("text/plain")
     public Response loginUser(String loginData) {
         // create variable to check whether login was successful
         boolean loginSuccessful = false;
@@ -124,9 +124,7 @@ public class Authorisation {
             userTokens.put(newIdToken, username);
 
             // return token to the user on successful login
-            JsonObjectBuilder idTokenBuilder = Json.createObjectBuilder();
-            idTokenBuilder.add("idToken", newIdToken);
-            res = Response.status(Response.Status.OK).entity(idTokenBuilder.build());
+            res = Response.status(Response.Status.OK).entity(newIdToken);
         } else res = Response.status(Response.Status.UNAUTHORIZED).entity("WRONG_CREDENTIALS");
 
         return res.build();
