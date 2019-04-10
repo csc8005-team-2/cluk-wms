@@ -3,7 +3,6 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { Observable, throwError, of, Subject } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { IdToken } from '../classes/id-token';
-import { text } from '@angular/core/src/render3';
 import { Message } from '../classes/message';
 
 @Injectable({
