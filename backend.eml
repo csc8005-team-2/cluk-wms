@@ -4,6 +4,7 @@
 	<exclude-output/>
 	<contentEntry url="file://$MODULE_DIR$">
 		<excludeFolder url="file://$MODULE_DIR$/googleMap1"/>
+		<excludeFolder url="file://$MODULE_DIR$/src/org/team2/cluk/backend/unprocessed"/>
 	</contentEntry>
 	<levels>
 		<level name="javax.json:javax.json-api:1.1.4" value="project"/>
