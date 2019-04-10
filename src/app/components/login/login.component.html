@@ -1,5 +1,6 @@
 <div class="container">
   <div class="login">
+    <p class="error" *ngIf="areCredentialsWrong()">Username or password are incorrect</p>
     <mat-form-field>
       <input matInput #username required placeholder="Username" validate>
     </mat-form-field>

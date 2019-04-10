@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {Component, OnInit} from '@angular/core';
+import {SessionService} from "../../services/session.service";
+import { IdToken } from 'src/app/classes/id-token';
 
 @Component({
   selector: 'app-login',
@@ -7,21 +8,27 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
+  private wrongCredentials: boolean = false;
 
-  constructor(private http: HttpClient) { }
-
-  login(_username: string, _password: string) {
-    const reqHeader = new HttpHeaders().append('Content-Type', 'application/json');
-    const reqBody = {username: _username, password: _password};
-    this.http.post('http://localhost:9998/login', reqBody, {headers: reqHeader, responseType: 'text'} ).subscribe((res) => {
-      console.log(res);
-  }, err => {
-    console.log(err);
-  });
-
-  }
+  constructor(private session: SessionService) { }
 
   ngOnInit() {
   }
 
+  login(_username: string, _password: string) {
+    this.wrongCredentials = false;
+    this.session.login(_username, _password).subscribe(res => {
+      let resObj: IdToken = res;
+      if (res.idToken) {
+        console.log('Login successful');
+      }
+    }, err => {
+      if (err.error == 'WRONG_CREDENTIALS')
+        this.wrongCredentials = true;
+    });
+  }
+
+  areCredentialsWrong(): boolean {
+    return this.wrongCredentials;
+  }
 }
