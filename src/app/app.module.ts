@@ -11,13 +11,15 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { NewOrderComponent } from './components/new-order/new-order.component';
 import { MainMenuComponent } from './components/main-menu/main-menu.component';
+import { TotalStockComponent } from './components/warehouse/total-stock/total-stock.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     NewOrderComponent,
-    MainMenuComponent
+    MainMenuComponent,
+    TotalStockComponent
   ],
   imports: [
     BrowserModule,
