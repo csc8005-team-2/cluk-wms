@@ -50,7 +50,7 @@ public class Authorisation {
     @Path("/login")
     @POST
     @Consumes("application/json")
-    @Produces("text/plain")
+    @Produces("application/json")
     public Response loginUser(String loginData) {
         // create variable to check whether login was successful
         boolean loginSuccessful = false;
@@ -123,8 +123,12 @@ public class Authorisation {
 
             userTokens.put(newIdToken, username);
 
+            // generate output JSON
+            JsonObjectBuilder outputJsonBuilder = Json.createObjectBuilder();
+            outputJsonBuilder.add("idToken", newIdToken);
+            JsonObject outputJson = outputJsonBuilder.build();
             // return token to the user on successful login
-            res = Response.status(Response.Status.OK).entity(newIdToken);
+            res = Response.status(Response.Status.OK).entity(outputJson);
         } else res = Response.status(Response.Status.UNAUTHORIZED).entity("WRONG_CREDENTIALS");
 
         return res.build();
@@ -135,9 +139,10 @@ public class Authorisation {
     public Response logoutUser(@HeaderParam("Authorization") String idToken) {
         if (userTokens.containsKey(idToken)) {
             userTokens.remove(idToken);
-            return Response.status(Response.Status.OK).entity("LOGOUT_SUCCESSFUL").build();
+            JsonObject response = Json.createObjectBuilder().add("message", "LOGOUT_SUCCESSFUL").build();
+            return Response.status(Response.Status.OK).entity(response.toString()).build();
         }
-        return Response.status(Response.Status.NOT_FOUND).entity("USER_NEVER_LOGGED_IN").build();
+        return Response.status(Response.Status.BAD_REQUEST).entity("USER_NEVER_LOGGED_IN").build();
     }
 
     public static boolean checkAuthHeader(String authHeader) {
