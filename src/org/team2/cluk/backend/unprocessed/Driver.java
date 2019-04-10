@@ -1,3 +1,4 @@
+package org.team2.cluk.backend.unprocessed.;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -38,7 +39,7 @@ public class Driver {
 
 		Statement statement1 = null;
 		String query1 = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
-				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber + "', '" + availableCapacity + "', '" + assignedOrderCapacity + "', '" + workDuration + "', '" + region + "', '" + availability "')";
+				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber + "', '" + availableCapacity + "', '" + assignedOrderCapacity + "', '" + workDuration + "', '" + region + "', '" + availability + "')";
 		try {
 			statement1 = this.connection.createStatement();
 			statement1.executeQuery(query1);
