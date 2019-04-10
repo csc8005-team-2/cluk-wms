@@ -16,6 +16,12 @@ export class MainMenuComponent implements OnInit {
       this.router.navigate(['']);
     })
   }
+
+  isLoggedIn(): boolean {
+    return this.session.isLoggedIn();
+  }
+  
+  
   ngOnInit() {
   }
 
