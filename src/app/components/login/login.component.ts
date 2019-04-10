@@ -17,15 +17,14 @@ export class LoginComponent implements OnInit {
   login(_username: string, _password: string) {
     this.wrongCredentials = false;
     this.session.login(_username, _password).subscribe(res => {
-      if (res.idToken) {
-        console.log('Login successful');
-      }
+
     }, err => {
       if (err.error == 'WRONG_CREDENTIALS')
         this.wrongCredentials = true;
     });
   }
 
+  
   areCredentialsWrong(): boolean {
     return this.wrongCredentials;
   }

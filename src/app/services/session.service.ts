@@ -20,8 +20,8 @@ export class SessionService {
     return this.http.post<IdToken>('http://localhost:9998/login', reqBody, {headers: reqHeader} ).pipe(
       tap ((res: IdToken) => {
         this.idToken = res.idToken;
-      }),
-      catchError(this.handleError<IdToken>('login'))
+      }) /* ,
+      catchError(this.handleError<IdToken>('login')) */
     );
   }
 
@@ -40,6 +40,16 @@ export class SessionService {
     return this.idToken;
   }
 
+  isLoggedIn(): boolean {
+    if (this.idToken) return true;
+    return false;
+  }
+
+  // call for stock available to order list
+  // call for stock available at restaurant list
+  // call for submitting the order
+  // call for deducting stock
+  
   private handleError<T> (operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
    
