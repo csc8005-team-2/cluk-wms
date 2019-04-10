@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import {SessionService} from "../../services/session.service";
-import { IdToken } from 'src/app/classes/id-token';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +17,6 @@ export class LoginComponent implements OnInit {
   login(_username: string, _password: string) {
     this.wrongCredentials = false;
     this.session.login(_username, _password).subscribe(res => {
-      let resObj: IdToken = res;
       if (res.idToken) {
         console.log('Login successful');
       }
