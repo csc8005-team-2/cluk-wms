@@ -1,21 +1,8 @@
 package org.team2.cluk.backend.unprocessed;
 
-import org.team2.cluk.backend.tools.DbConnection;
-import org.team2.cluk.backend.tools.JsonTools;
-import org.team2.cluk.backend.tools.ServerLog;
-
-import javax.json.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import java.sql.*;
-
-import java.time.LocalDate;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.sql.*;
-
-@Path("/driver")
 
 public class Driver {
 
@@ -24,35 +11,31 @@ public class Driver {
 	private String lastName;
 	private final int id;
 	private String phoneNumber;
-	//private int availableCapacity;
-	//private int assignedOrderCapacity;
+	private int availableCapacity;
+	private int assignedOrderCapacity;
 	private int workDuration; //mins.
 	private final int breakTime = 45; //mins
 	private String region;
-	//private boolean availability;
+	private boolean availability;
 	private final int maxWorkDuration = 600;//10 hours = 600mins, use this to limit assigning order to driver etc
-	//private final int maxAvailableCapacity = 500; //not sure of the number but this should be the maximum capacity a driver can have!
+	private final int maxAvailableCapacity = 500; //not sure of the number but this should be the maximum capacity a driver can have!
 
 
-	public Driver(Connection connection, String firstName, String lastName, int id, String phoneNumber, int workDuration, String region){
+	public Driver(Connection connection, String firstName, String lastName, int id, String phoneNumber, int availableCapacity, int assignedOrderCapacity, int workDuration, String region, boolean availability){
 		this.connection = connection;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.id = id;
 		this.phoneNumber = phoneNumber;
-		//this.availableCapacity = availableCapacity;
-		//this.assignedOrderCapacity = assignedOrderCapacity;
+		this.availableCapacity = availableCapacity;
+		this.assignedOrderCapacity = assignedOrderCapacity;
 		this.workDuration = workDuration;
 		this.region = region;
-		//this.availability = availability;
+		this.availability = availability;
 	}
 
-
-	@GET
-	@Path("/add-driver-info")
-	@Produces("application/json")
 	//method to add a driver's information to the driver table
-	public Response addDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, @HeaderParam("region") String region) throws SQLException {
+	public void addDriverInfo(String firstName, String lastName, int id, String phoneNumber,  int availableCapacity, int assignedOrderCapacity, int workDuration, String region, boolean availability) throws SQLException {
 
 		Statement statement1 = null;
 		String query1 = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
@@ -91,24 +74,8 @@ public class Driver {
 		}
 	}
 
-
-	@GET
-	@Path("/get-first-name")
-	@Produces("application/json")
-
 	//method to print a driver's first name using the driver's id
-	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id) throws SQLException{
-
-		ServerLog.writeLog("Requested information of the driver's first name of " + id);
-
-		if (id.isBlank()) {
-			ServerLog.writeLog("Rejected request as driver id not specified");
-			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
-		}
-
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch current database connection
-		Connection connection = DbConnection.getConnection();
+	public void printFirstName(int id) throws SQLException{
 
 		Statement statement3 = null;
 		String query3 = "SELECT firstName " +
@@ -116,44 +83,24 @@ public class Driver {
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement3 = Dbconnection.getConnection().createStatement();
+			statement3 = this.connection.createStatement();
 			ResultSet rs = statement3.executeQuery(query3);
-			while (rs.next()) {	
-				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
-
+			while (rs.next()) {
 				String firstName = rs.getString("firstName");
-
-				arrayEntryBuilder.add("firstName", firstName);
-
-				JsonObject arrayEntry = arrayEntryBuilder.build();
-				responseBuilder.add(arrayEntry);
-
-				//System.out.println("Driver " + id + "'s first name is " + firstName + ".\n");
+				System.out.println("Driver " + id + "'s first name is " + firstName + ".\n");
 
 			}
 		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
 			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-
 		} finally {
 			if (statement3 != null) {
-				try{
-					statement3.close();
-				}catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
+				statement3.close();
 			}
-
 		}
-		JsonArray response = responseBuilder.build();
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-
 	}
 
 	// method to update a driver's first name using the id and new first name
-	public void updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("firstName") String firstName) throws SQLException{
+	public void updateFirstName(int id, String firstName) throws SQLException{
 
 		Statement statement4 = null;
 		String query4 = "SELECT firstName" +
@@ -194,23 +141,8 @@ public class Driver {
 		}
 	}
 
-	@GET
-	@Path("/get-last-name")
-	@Produces("application/json")
-
-	//method to print a driver's last name using the driver's id
-	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id) throws SQLException{
-
-		ServerLog.writeLog("Requested information of the driver's last name of " + id);
-
-		if (id.isBlank()) {
-			ServerLog.writeLog("Rejected request as driver's id not specified");
-			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
-		}
-
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch current database connection
-		Connection connection = DbConnection.getConnection();
+	//method to print a driver's last name using id as an input parameter
+	public void printLastName(int id) throws SQLException{
 
 		Statement statement6 = null;
 		String query6 = "SELECT lastName " +
@@ -218,40 +150,21 @@ public class Driver {
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement6 = Dbconnection.getConnection().createStatement();
+			statement6 = this.connection.createStatement();
 			ResultSet rs = statement6.executeQuery(query6);
-			while (rs.next()) {	
-				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
+			while (rs.next()) {
 				String lastName = rs.getString("lastName");
-
-				arrayEntryBuilder.add("lastName", lastName);
-
-				JsonObject arrayEntry = arrayEntryBuilder.build();
-				responseBuilder.add(arrayEntry);
-
-				//System.out.println("Driver " + id + "'s last name is " + lastName + ".\n");
+				System.out.println("Driver " + id + "'s last name is " + lastName + ".\n");
 
 			}
 		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
 			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-
 		} finally {
 			if (statement6 != null) {
-				try{
-					statement6.close();
-				}catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
+				statement6.close();
 			}
-
 		}
-		JsonArray response = responseBuilder.build();
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-
 	}
 
 	//method to update driver's last name using the id and new last name
@@ -296,24 +209,8 @@ public class Driver {
 		}
 	}
 
-
-	@GET
-	@Path("/get-phone-number")
-	@Produces("application/json")
-
 	//method to print a driver's phone number using id
-	public Response getPhoneNumber(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id)throws SQLException{
-
-		ServerLog.writeLog("Requested information on the driver's phone number of driver " + id);
-
-		if (id.isBlank()) {
-			ServerLog.writeLog("Rejected request as driver's id not specified");
-			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
-		}
-
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch current database connection
-		Connection connection = DbConnection.getConnection();
+	public void printPhoneNumber(int id) throws SQLException{
 
 		Statement statement9 = null;
 		String query9 = "SELECT phoneNumber " +
@@ -321,36 +218,20 @@ public class Driver {
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement9 = Dbconnection.getConnection().createStatement();
+			statement9 = this.connection.createStatement();
 			ResultSet rs = statement9.executeQuery(query9);
 			while (rs.next()) {
-				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
-
 				String PhoneNumber = rs.getString("phoneNumber");
+				System.out.println("Driver " + id + "'s phone number is " + PhoneNumber + "\n");
 
-				arrayEntryBuilder.add("phoneNumber", phoneNumber);
-
-				JsonObject arrayEntry = arrayEntryBuilder.build();
-				responseBuilder.add(arrayEntry);
-
-				//System.out.println("Driver " + id + "'s phone number is " + PhoneNumber + "\n");
 			}
 		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
 			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
 		} finally {
 			if (statement9 != null) {
-				try {
-					statement9.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
+				statement9.close();
 			}
 		}
-		JsonArray response = responseBuilder.build();
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
 	//method to update a driver's phone number using the id and new phone number
@@ -396,23 +277,8 @@ public class Driver {
 		}
 	}
 
-	@GET
-	@Path("/get-work-duration")
-	@Produces("application/json")
-
 	//method to print a driver's current work duration
-	public Response getWorkDuration@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
-
-		ServerLog.writeLog("Requested information on work duration of driver of " + id);
-
-		if (id.isBlank()) {
-			ServerLog.writeLog("Rejected request as driver's id not specified");
-			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
-		}
-
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch current database connection
-		Connection connection = DbConnection.getConnection();
+	public void printWorkDuration(int id, WorkingHours w) throws SQLException{
 
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 		int startTime = Integer.parseInt(formatter.format(w.getStartTime()));
@@ -425,52 +291,32 @@ public class Driver {
 				"FROM WorkingHours" +
 				"WHERE id = id";
 		try {
-			statement12 = Dbconnection.getConnection().createStatement();
+			statement12 = this.connection.createStatement();
 			ResultSet rs = statement12.executeQuery(query12);
 
-			while(rs.next()) {
-				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
-
-				int WorkDuration = rs.getInt(workDuration);
-
-				arrayEntryBuilder.add("workDuration", workDuration);
-
-				//System.out.println(" Driver " + id + "'s work duration so far is " + WorkDuration + "\n");
-			}
+			rs.next();
+			int WorkDuration = rs.getInt(workDuration);
+			System.out.println(" Driver " + id + "'s work duration so far is " + WorkDuration + "\n");
 		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
 			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
 		} finally {
 			if (statement12 != null) {
-				try {
-					statement12.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
+				statement12.close();
 			}
 		}
-		JsonArray response = responseBuilder.build();
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
-	@POST
-	@Path("go-on-break")
 	//method to make drivers go on break, adding the break time to their work duration
 	//need to make sure driver's work duration doesn't pass the max of 10hours
-	public Response goOnBreak(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
-
-		// fetch current db connection
-		Connection connection = DbConnection.getConnection();
+	public void goOnBreak(int id, WorkingHours w) throws SQLException{
 
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 		int startTime = Integer.parseInt(formatter.format(w.getStartTime()));
 		int endTime = Integer.parseInt(formatter.format(w.getEndTime()));
 		workDuration = endTime-startTime;
 
-		//check if driver has worked 4.5 hours before going on break
 		boolean goOnBreak = false;
+
 		while (goOnBreak == false) {
 			//4.5hours = 270mins
 			if(workDuration == 270) {
@@ -481,14 +327,12 @@ public class Driver {
 						"WHERE id='" + id +"'";
 
 				try {
-					statement13 = DbConnection.getConnection().createStatement();
+					statement13 = this.connection.createStatement();
 					ResultSet rs = statement13.executeQuery(query13);
 
 					rs.next();
 					int WorkDuration = rs.getInt(workDuration);
-
-					//System.out.println("Previous work duration of driver " + id + "\t" + "is" + WorkDuration + "\n");
-
+					System.out.println("Previous work duration of driver " + id + "\t" + "is" + WorkDuration + "\n");
 					int newWorkDuration = WorkDuration + breakTime;
 
 					Statement statement14 = null;
@@ -497,79 +341,31 @@ public class Driver {
 							"'WHERE id='" + id+"'";
 
 					try {
-						statement14 = DbConnection.getConnection();
+						statement14 = this.connection.createStatement();
 						statement14.executeUpdate(query14);
-						ServerLog.writeLog("Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break" + "\n");
+						System.out.println("Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break" + "\n");
 						goOnBreak = true;
 
 					} catch (SQLException e) {
-						ServerLog.writeLog("Error when updating work duration of Driver: " + id);
 						e.printStackTrace();
-						response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("UPDATE_WORKDURATION_ERROR");
 					} finally {
 						if (statement14 != null) {
-							try {
-								statement14.close();
-							} catch (SQLException e) {
-								ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-							}
-						}
-					} finally {
-						if (statement13 != null) {
-							try {
-								statement14.close();
-							} catch (SQLException e) {
-								ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-							}
+							statement14.close();
 						}
 					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					if (statement13 != null) {
+						statement13.close();
+					}
 				}
-
-				if (goOnBreak){
-					ServerLog.writeLog("Driver" + id + " went on break today. ");
-					response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
-				}
-
-				return response.build();
-
 			}
 		}
+
 	}
 
-	@Path("/assign-order-to-driver")
-	@POST
-	//method to assign order to driver.
-
-	public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, String requestBody){
-
-		Response.ResponseBuilder res = null;
-		Connection connection = DbConnection.getConnection();
-
-		JsonObject requestJson = JsonTools.parseObject(requestBody);
-
-		if (!(requestJson.containsKey("orderId") || requestJson.containsKey("id")))
-			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
-
-		int orderId = requestJson.getInt("orderId");
-		int id = requestJson.getInt("id");
-
-		Statement statement = null;
-		String query = "SELECT orderDeliveryDate" +
-				"FROM StockOrders " +
-				"WHERE orderId='" + orderId + "'";
-		try {
-			statement = DbConnection.getConnection().createStatement();
-			ResultSet rs = statement.executeQuery(query);
-
-			LocalDate date = getLocalDate();
-			Date dateFormat = new DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date);
-
-			if (orderDeliveryDate == dateFormat){
-
-			}
-	}
-
-	/*//method to print the available driver capacity after an order has been assigned
+	//method to print the available driver capacity after an order has been assigned
 	public void printAvailableCapacity(int id) throws SQLException{
 
 		Statement statement15 = null;
@@ -699,26 +495,10 @@ public class Driver {
 				statement19.close();
 			}
 		}
-	}*/
-
-
-	@GET
-	@Path("/get-region")
-	@Produces("application/json")
+	}
 
 	//method to print a driver's region using id either North or South
-	public Response getRegion(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id) throws SQLException{
-
-		ServerLog.writeLog("Requested information on region of driver " + id);
-
-		if (id.isBlank()) {
-			ServerLog.writeLog("Rejected request as driver's id not specified");
-			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
-		}
-
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch current database connection
-		Connection connection = DbConnection.getConnection();
+	public void printRegion(int id) throws SQLException{
 
 		Statement statement21 = null;
 		String query21 = "SELECT region " +
@@ -726,36 +506,20 @@ public class Driver {
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement21 = Dbconnection.getConnection().createStatement();
+			statement21 = this.connection.createStatement();
 			ResultSet rs = statement21.executeQuery(query21);
 			while (rs.next()) {
-				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
-
 				String Region = rs.getString("region");
+				System.out.println("Driver " + id + "'s region " + region + "\n");
 
-				arrayEntryBuilder.add("region", region);
-
-				JsonObject arrayEntry = arrayEntryBuilder.build();
-				responseBuilder.add(arrayEntry);
-
-				//System.out.println("Driver " + id + "'s region " + region + "\n");
 			}
 		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
 			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
 		} finally {
 			if (statement21 != null) {
-				try {
-					statement21.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
+				statement21.close();
 			}
 		}
-		JsonArray response = responseBuilder.build();
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
 	//method to update driver's region using the id and region
@@ -800,9 +564,7 @@ public class Driver {
 		}
 	}
 
-
-
-	/*	//method to print a driver's availability using id
+	//method to print a driver's availability using id
 	public void printAvailability(int id) throws SQLException{
 
 		Statement statement24 = null;
@@ -825,9 +587,9 @@ public class Driver {
 				statement24.close();
 			}
 		}
-	}*/
+	}
 
-	/*	//UPDATE??
+	//UPDATE??
 	//**Need to update this method to update driver's availability using the driver's work duration and if the available capacity is max
 	public void updateAvailability(int id, String availability) throws SQLException{
 
@@ -868,5 +630,5 @@ public class Driver {
 				statement25.close();
 			}
 		}
-	}*/
+	}
 }
