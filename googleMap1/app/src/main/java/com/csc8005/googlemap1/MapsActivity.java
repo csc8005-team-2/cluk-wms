@@ -3,13 +3,15 @@ package com.csc8005.googlemap1;
 import android.Manifest;
 import android.content.IntentSender;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.os.Build;
 
+import com.csc8005.googlemap1.Direction.DirectionFinder;
+import com.csc8005.googlemap1.Direction.DirectionFinderListener;
+import com.csc8005.googlemap1.Direction.Routes;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.GoogleMap;
 
@@ -21,27 +23,46 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.content.pm.PackageManager;
-import java.sql.*;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * This is the main class that hold the activity of lunching Google Map. The Direction of giving destination
+ * would be taken from JSON data as it's aimed to be used with GoogleMap-API.
+ *
+ * References that have been learned from are:
+ * Google Developers: https://developers.google.com/android/
+ * Android Developers: https://developer.android.com
+ * Stackoverflow: https://stackoverflow.com
+ * Open sources of implementing GoogleAPI from : https://github.com
+ * As well as involving the student's background in JAVA.
+ */
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener, DirectionFinderListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     // Google GoogleMap
@@ -50,38 +71,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient googleApiClient;
     // Google LocationRequest
     private LocationRequest locationRequest;
-    // GoogleMap user Location.
-    private Location destination;
     // GoogleMap detucting current Location.
-    private Marker userCurrentLocation;
+    private Marker userCurrentLocationMarker;
+    // To save all the addresses info and mark them out on map
+    private List<Marker> originMarkers = new ArrayList<>();
+    private List<Marker> destinationMarkers = new ArrayList<>();
+    private List<Polyline> polylinePaths = new ArrayList<>();
     //DEFAULT_ZOOM for camera movments.
     private static final float DEFAULT_ZOOM = 10f;
     // App's constants references: Refernce to USER_REQUEST_LOACATION.
     private static final int USER_REQUEST_LOACATION = 9000;
     private static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9001;
-    // Resturants location on map.
-    private static final LatLng warehose           = new LatLng(54.875796, -1.5896747);
-    private static final LatLng SeatonBurnServices = new LatLng(55.066538, -1.6359047);
-    private static final LatLng AlnwickTownCentre  = new LatLng(55.4128398, -1.711825);
-    private static final LatLng NewtonAycliffe     = new LatLng(54.6123511, -1.5824388);
-    private static final LatLng ThirskTownCentre   = new LatLng(54.2322091, -1.3451253);
-    private static final LatLng WhitbyTownCentre   = new LatLng(54.4851519, -0.6174552);
+    // Restaurants location on map.
+    private static final LatLng warehose           = new LatLng(54.875984, -1.587459);
+    private static final LatLng SeatonBurnServices = new LatLng(55.066738, -1.633700);
+    private static final LatLng AlnwickTownCentre  = new LatLng(55.413019, -1.709631);
+    private static final LatLng NewtonAycliffe     = new LatLng(54.612528, -1.580213);
+    private static final LatLng ThirskTownCentre   = new LatLng(54.232400, -1.342910);
+    private static final LatLng WhitbyTownCentre   = new LatLng(54.485342, -0.615261);
+    // Google map GUI style
+    private Button btnFindPath;
+    private EditText etStart;
+    private EditText etEnd;
 
 
     /**
-     * Check for user permission whent been accepted.
+     * This method called when an Activity first call or launched, it's responsible to create the
+     * map activity fragment.
+     * When ever orientation(i.e. from horizontal to vertical) of activity gets changed or an Activity
+     * gets forcefully terminated by any Operating System then savedInstanceState i.e.
      *
-     * @param savedInstanceState
+     * When the activity is lunched a pop up message will show to check for user location permission
+     * if been accepted.
+     *
+     * @param savedInstanceState object of Bundle Class will save the state of an Activity and it's
+     * responsible to save all the changes of the Activity.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // call the check location condition
             CheckUserLocationPermission();
         }
+        // implementing the GUI when user type in
+        btnFindPath =  (Button)   findViewById(R.id.button);
+        etStart     =  (EditText) findViewById(R.id.editText4);
+        etEnd       =  (EditText) findViewById(R.id.editText5);
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        // once user click the button
+        btnFindPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+        // clear the map fragment from all markers, fetching URL request and show the optimizing route
+                mMap.clear();
+                sendRequest();
+            }
+        });
+
+    // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -99,29 +149,60 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        MapViewSettings();
-        ourLocationsMarker();
+        MapViewSettings();     // show views such as Compass
+        RsturansLocationsMarker(); //  shows marker on restaurants locations
+
+        // check if the user has accepted the location permission then shows his location on map
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission
                 (this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             BuildApiClient();
-            mMap.setMyLocationEnabled(true);
+            mMap.setMyLocationEnabled(true); // user location shown and implement by onConnected method
         }
+
+        // once user click on location marker
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+            // InfoWindow will show the location details
+                View view = getLayoutInflater().inflate(R.layout.address_maps,null);
+                TextView locality   = (TextView) view.findViewById(R.id.locality);
+                TextView snippet    = (TextView) view.findViewById(R.id.snippet);
+
+                LatLng latLng = marker.getPosition();
+                locality.setText(marker.getTitle());
+                snippet.setText(marker.getSnippet());
+
+                return view; // InfoWindow
+            }
+        });
 
     }
 
     /**
-     * This method is called whenever the device is connected to the map.
+     * This method will be invoked asynchronously when the connect request has successfully completed.
+     * After this callback, the application can make requests on other methods provided by the client
+     * and expect that no user intervention is required to call methods that use account and scopes
+     * provided to the client constructor.
      *
      * @param bundle
      */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.i(TAG, "LOCATION SERVICES CONECCTED");
+        Log.i(TAG, "Location Services Connected");
 
+         // get high accuracy of location, set to PRIORITY_HIGH_ACCURACY and setInterval(long) to 1 second.
+        // This would be appropriate for mapping applications that are showing your location in real-time.
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(1000).setFastestInterval(1000).setPriority(locationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        // context
+        locationRequest.setInterval(1000).setFastestInterval(1000) // in millisecond
+        .setPriority(locationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        // if location permission checked then shows the location on map in a second.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
@@ -131,23 +212,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * This method is called whenever the user is moving, to update the current location on the map.
      *
-     * @param location
+     * @param location to hold user location datafiles.
      */
     @Override
     public void onLocationChanged(Location location) {
-        destination = location;
-        if (userCurrentLocation != null)
+
+        if (userCurrentLocationMarker != null)
         {
-            // Check if there is any marker in the map then remove it to update the location for user's current location
-            userCurrentLocation.remove();
+            // Check if there is any marker in the map then remove it to update the location for
+           // user's current location
+            userCurrentLocationMarker.remove();
         }
 
-        //Showing Current Location Marker on Map
+        // Showing updated Current Location Marker on Map
         LatLng userPoints = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(userPoints).title("Your current location");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-        userCurrentLocation = mMap.addMarker(markerOptions);
+        userCurrentLocationMarker = mMap.addMarker(markerOptions);
 
         // Move the camera to user location
         moveCamera(userPoints, DEFAULT_ZOOM);
@@ -182,10 +263,126 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         mMap.setMyLocationEnabled(true);
                     }
                 } else {
-                    Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show();
                     DefaultLocation();
                 }
                 return;
+        }
+    }
+
+    /**
+     * This method is been implemented once the user has searched for his journey to show a message
+     * that the map searching for the best route.
+     *
+     * Any markers or polyline  will br removed according to updates in searching inputs.
+     */
+    @Override
+    public void onDirectionFinderStart() {
+
+        Toast.makeText(this, "Please, wait while finding your direction!", Toast.LENGTH_SHORT).show();
+
+        // remove the marker from origin address when the user is searching for another address
+        if (originMarkers != null) {
+            for (Marker marker : originMarkers) {
+                marker.remove();
+            }
+        }
+
+        // remove the marker from destination address when the user is searching for another address
+        if (destinationMarkers != null) {
+            for (Marker marker : destinationMarkers) {
+                marker.remove();
+            }
+        }
+
+        // remove the polyline from map when the user is searching for another address
+        if (polylinePaths != null) {
+            for (Polyline polyline:polylinePaths ) {
+                polyline.remove();
+            }
+        }
+    }
+
+    /**
+     * This method is responsible of taking uesr's input and mark out its location, draw its optimzing
+     * route and calculating the distance and time duration for user's journey.
+     *
+     * @param routes a list to hold the start and end addresses.
+     */
+
+    @Override
+    public void onDirectionFinderSuccess(List<Routes> routes) {
+        polylinePaths = new ArrayList<>();  // show the route direction
+        originMarkers = new ArrayList<>(); // show star-location markers
+        destinationMarkers = new ArrayList<>(); // show end-location markers
+
+        for (Routes r : routes) {
+
+            // point out startAddress info
+            MarkerOptions markerOptions = new MarkerOptions();
+            markerOptions.title(r.startAddress)
+                    .position(new LatLng(r.startLocation.latitude,r.startLocation.longitude));
+
+            // add marker in destination point
+            originMarkers.add(mMap.addMarker(markerOptions));
+
+            // move the camera towards the start point
+            moveCamera(r.startLocation, DEFAULT_ZOOM);
+
+            // point out endAddress info
+            MarkerOptions markerOptions1 = new MarkerOptions();
+            markerOptions1.title(r.endAddress)
+                    .position(new LatLng(r.endLocation.latitude,r.endLocation.longitude));
+
+            //calculating distances in kilometers
+            float result[] = new float[r.duration.value];
+            Location.distanceBetween(r.startLocation.latitude,r.startLocation.longitude,
+                    r.endLocation.latitude,r.endLocation.longitude,result);
+            int distance = (int) result[0];
+
+            // calculating duration time
+            int durationTime = r.duration.value;
+            markerOptions1.snippet("Distance = "+ distance/ 1000+ " Km"+"\n"+
+            "Duration = "+ durationTime/3600+" Houres, "+ (durationTime/60)%60+ " minutes" ); // convert m to km
+
+            // add marker in destination point
+            destinationMarkers.add(mMap.addMarker(markerOptions1));
+
+            // styling the polyline
+            PolylineOptions polylineOptions = new PolylineOptions()
+            .geodesic(true).color(Color.BLUE).width(5);
+
+            // looping throw addresses to find the route and drawing it
+            for (int i = 0; i < r.points.size(); i++)
+                polylineOptions.add(r.points.get(i));
+            polylinePaths.add(mMap.addPolyline(polylineOptions));
+
+        }
+    }
+
+    /**
+     *  This method is responsible to handel user's inputs of address details.
+     *  Shows a message if null pointer checked.
+     */
+    private void sendRequest() {
+
+        String origin = etStart.getText().toString(); // reading the input of start-location
+        String destination = etEnd.getText().toString(); // reading the input of end-location
+
+        // handling if null input, a message will shows to inform the user to type and address
+        if (origin.isEmpty()) {
+            Toast.makeText(this, "Please, insert an origin address!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (destination.isEmpty()) {
+            Toast.makeText(this, "Please, insert a destination address!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // execute and fetch URL request for giving addresses
+        try {
+            new DirectionFinder(this, origin, destination).execute();
+        }
+        catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 
@@ -204,17 +401,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Method to aske the user's choice of location permission.
+     * Method to ask for user choice of location permission.
+     * First condition will check for user permission, if not accepted then the second condition will
+     * check if the user has had the message for permission request.
      *
-     * @return true if user granted.
+     * @return true if user has seen the permission request and is been granted, false if not and
+     * the DefaultLocation will be invoked.
      */
     public boolean CheckUserLocationPermission() {
+        // check for user permission if return false then check for request message
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION))
+            {
+                // if return true then the user will see the request message
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                         Manifest.permission.ACCESS_COARSE_LOCATION}, USER_REQUEST_LOACATION);
             } else {
+                // if return false then show the request message to the user again
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, USER_REQUEST_LOACATION);
             }
             return false;
@@ -231,29 +436,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 "showing default location", Toast.LENGTH_SHORT).show();
         // Move the camera to defualt location
         moveCamera(warehose, DEFAULT_ZOOM);
+        // drawing a marker and circle around it
         mMap.addMarker(new MarkerOptions().position(warehose).title("Marker in Warehouse"));
-        mMap.addCircle(new CircleOptions().center(warehose).radius(500).strokeWidth(3f).strokeColor(Color.RED)
+        mMap.addCircle(new CircleOptions().center(warehose).radius(10).strokeWidth(3f).strokeColor(Color.RED)
                 .fillColor(Color.argb(70, 150, 50, 50)));
 
     }
 
     /**
-     * Animated the camera movment.
+     * Animated the camera movement towards a giving location.
      *
-     * @param latLng
-     * @param zoom
+     * @param latLng to hold latitude & latitude
+     * @param zoom   to hold camera zoom
      */
     private void moveCamera(LatLng latLng, float zoom) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
     }
 
-    public void ourLocationsMarker() {
-        /*mMap.addPolyline(
-                new PolylineOptions().add(warehose).add(SeatonBurnServices)
-                        .add(AlnwickTownCentre).add(NewtonAycliffe)
-                        .add(ThirskTownCentre).add(WhitbyTownCentre)
-                        .width(5f).color(Color.RED));*/
+    /**
+     * This method is used to draw  markers for restaurants locations on the map.
+     */
+
+    public void RsturansLocationsMarker() {
 
         mMap.addMarker(new MarkerOptions().position(warehose).title("Marker in Warehouse"));
         mMap.addMarker(new MarkerOptions().position(SeatonBurnServices).title("Marker in Seaton Burn Services"));
@@ -266,6 +471,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Method to enable services view in the map.
      */
+
     public void MapViewSettings() {
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
@@ -273,7 +479,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setRotateGesturesEnabled(true);
         mMap.getUiSettings().setScrollGesturesEnabledDuringRotateOrZoom(true);
-        mMap.getUiSettings().setMapToolbarEnabled(true);
         mMap.getUiSettings().setTiltGesturesEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setIndoorLevelPickerEnabled(true);
@@ -282,64 +487,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setBuildingsEnabled(true);
     }
 
-    private String getUrl(LatLng origin, LatLng dest, String directionMode) {
-        // Origin of route
-        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
-        // Destination of route
-        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
-        // Mode
-        String mode = "mode=" + directionMode;
-        // Building the parameters to the web service
-        String parameters = str_origin + "&" + str_dest + "&" + mode;
-        // Output format
-        String output = "json";
-        // Building the url to the web service
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + getString(R.string.google_maps_key);
-        return url;
-    }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.i(TAG, "LOCATION SERVICES DISCONNECTED");
     }
 
+    /**
+     * Handling the internet connection failure.
+     * @param connectionResult
+     */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         if (connectionResult.hasResolution()) {
             try {
                 connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
-            } catch (IntentSender.SendIntentException e) {
+            }
+            catch (IntentSender.SendIntentException e) {
                 e.printStackTrace();
             }
         } else {
-            Log.i(TAG, "LOCATION SERVICES FAILED WITH CODE:" + connectionResult.getErrorCode());
-        }
-    }
-
-    private class MyTask extends AsyncTask<String, String, Connection> {
-        Connection connection = null;
-
-        @Override
-        protected Connection doInBackground(String... strings) {
-            try {
-                String userName = "csc8005_team02";
-                String password = "HogsGet(Text";
-                String url = "jdbc:mysql://homepages.cs.ncl.ac.uk/csc8005_team02";
-                Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-                connection = DriverManager.getConnection(url, userName, password);
-                System.out.println("Database connection established");
-            } catch (Exception e) {
-                System.err.println("Cannot connect to database server");
-                System.err.println(e.getMessage());
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.close();
-                        System.out.println("Database connection terminated");
-                    } catch (Exception e) { /* ignore close errors */ }
-                }
-            }
-            return connection;
+            Log.i(TAG, "Location Services Failed:" + connectionResult.getErrorCode());
         }
     }
 }
