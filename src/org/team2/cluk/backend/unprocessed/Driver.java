@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.sql.*;
+import java.util.HashMap;
 
 @Path("/driver")
 
@@ -54,19 +55,19 @@ public class Driver {
 	//method to add a driver's information to the driver table
 	public Response addDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, @HeaderParam("region") String region) throws SQLException {
 
-		Statement statement1 = null;
-		String query1 = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
-				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber + "', '" + availableCapacity + "', '" + assignedOrderCapacity + "', '" + workDuration + "', '" + region + "', '" + availability + "')";
+		Statement statement = null;
+		String query = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
+				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber "', '" + workDuration + "', '" + region "')";
 		try {
-			statement1 = this.connection.createStatement();
-			statement1.executeQuery(query1);
+			statement = this.connection.createStatement();
+			statement.executeQuery(query);
 			System.out.println("Driver information " + id + "has been added to the database" + ".\n");
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			if (statement1 != null) {
-				statement1.close();
+			if (statement != null) {
+				statement.close();
 			}
 		}
 	}
@@ -74,19 +75,19 @@ public class Driver {
 	//method to remove a driver's information from the table
 	public void removeDriverInfo(int id) throws SQLException{
 
-		Statement statement2 = null;
-		String query2 = "DELETE FROM Driver WHERE id = '" + id + "'";
+		Statement statement = null;
+		String query = "DELETE FROM Driver WHERE id = '" + id + "'";
 
 		try {
-			statement2 = this.connection.createStatement();
-			statement2.executeUpdate(query2);
+			statement = this.connection.createStatement();
+			statement.executeUpdate(query);
 			System.out.println("Driver information id " + id + "has been removed from the database" + ".\n");
 
 		} catch (SQLException e ) {
 			e.printStackTrace();
 		} finally {
-			if (statement2 != null) {
-				statement2.close();
+			if (statement != null) {
+				statement.close();
 			}
 		}
 	}
@@ -110,14 +111,14 @@ public class Driver {
 		// fetch current database connection
 		Connection connection = DbConnection.getConnection();
 
-		Statement statement3 = null;
-		String query3 = "SELECT firstName " +
+		Statement statement = null;
+		String query = "SELECT firstName " +
 				"FROM Driver " +
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement3 = Dbconnection.getConnection().createStatement();
-			ResultSet rs = statement3.executeQuery(query3);
+			statement = Dbconnection.getConnection().createStatement();
+			ResultSet rs = statement.executeQuery(query);
 			while (rs.next()) {	
 				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
@@ -137,9 +138,9 @@ public class Driver {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
 
 		} finally {
-			if (statement3 != null) {
+			if (statement != null) {
 				try{
-					statement3.close();
+					statement.close();
 				}catch (SQLException e) {
 					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
@@ -153,43 +154,34 @@ public class Driver {
 	}
 
 	// method to update a driver's first name using the id and new first name
-	public void updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("firstName") String firstName) throws SQLException{
+	@Path("/update-first-name")
+	@POST
+	@Consumes("application/json")
+	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("firstName") String firstName, String firstNameObject) throws SQLException{
 
-		Statement statement4 = null;
-		String query4 = "SELECT firstName" +
-				"FROM Driver " +
-				"WHERE id='" + id +"'";
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		Statement statement = null;
+		JsonObject firstNameObject = JsonTools.parseObject(firstNameObject);
 
+		if (!(firstNameObject.containsKey("firstName")) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+		}
+
+		String newFirstName = firstNameObject.getString("firstName");
+		String query = "UPDATE Driver " +
+				"SET firstName ='" + newFirstName +
+				"'WHERE id='" + id + "'";
 		try {
-			statement4 = this.connection.createStatement();
-			ResultSet rs = statement4.executeQuery(query4);
-
-			rs.next();
-			String newFirstName = rs.getString("firstName");
-			System.out.println("Driver " + id + "'s first name is " + firstName + "\n");
-
-			Statement statement5 = null;
-			String query5 = "UPDATE Driver " +
-					"SET firstName ='" + newFirstName +
-					"'WHERE id='" + id + "'";
-
-			try {
-				statement5 = this.connection.createStatement();
-				statement5.executeUpdate(query5);
-				System.out.println("Driver " + id + "'s first name has been updated to " + newFirstName + "\n");
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				if (statement5 != null) {
-					statement5.close();
-				}
-			}
+			statement = this.connection.createStatement();
+			statement.executeUpdate(query);
+			ServerLog.writeLog("Driver " + id + "'s first name has been updated to: " + newFirstName);
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} finally {
-			if (statement4 != null) {
-				statement4.close();
+			} finally {
+				if (statement != null) {
+					statement.close();
+				}
 			}
 		}
 	}
@@ -212,14 +204,14 @@ public class Driver {
 		// fetch current database connection
 		Connection connection = DbConnection.getConnection();
 
-		Statement statement6 = null;
-		String query6 = "SELECT lastName " +
+		Statement statement = null;
+		String query = "SELECT lastName " +
 				"FROM Driver " +
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement6 = Dbconnection.getConnection().createStatement();
-			ResultSet rs = statement6.executeQuery(query6);
+			statement = Dbconnection.getConnection().createStatement();
+			ResultSet rs = statement.executeQuery(query);
 			while (rs.next()) {	
 				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
@@ -239,9 +231,9 @@ public class Driver {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
 
 		} finally {
-			if (statement6 != null) {
+			if (statement != null) {
 				try{
-					statement6.close();
+					statement.close();
 				}catch (SQLException e) {
 					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
@@ -254,44 +246,34 @@ public class Driver {
 
 	}
 
-	//method to update driver's last name using the id and new last name
-	public void updateLastName(int id, String lastName) throws SQLException{
+	// method to update a driver's phone number
+	@Path("/update-last-name")
+	@POST
+	@Consumes("application/json")
+	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("lastName") String lastName, String lastNameObject) throws SQLException{
 
-		Statement statement7 = null;
-		String query7 = "SELECT lastName" +
-				"FROM Driver " +
-				"WHERE id='" + id +"'";
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		Statement statement = null;
+		JsonObject lastNameObject = JsonTools.parseObject(lastNameObject);
 
+		if (!(lastNameObject.containsKey("lastName")) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+		}
+
+		String newlastName = lastNameObject.getString("lastName");
+		String query = "UPDATE Driver " +
+				"SET lastName ='" + newlastName +
+				"'WHERE id='" + id + "'";
 		try {
-			statement7 = this.connection.createStatement();
-			ResultSet rs = statement7.executeQuery(query7);
-
-			rs.next();
-			String newLastName = rs.getString("lastName");
-			System.out.println("Driver " + id + "'s last name is " + lastName + "\n");
-
-			Statement statement8 = null;
-			String query8 = "UPDATE Driver " +
-					"SET lastName ='" + newLastName +
-					"'WHERE id='" + id + "'";
-
-			try {
-				statement8 = this.connection.createStatement();
-				statement8.executeUpdate(query8);
-				System.out.println("Driver " + id + "'s last name has been updated to " + newLastName + "\n");
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				if (statement8 != null) {
-					statement8.close();
-				}
-			}
+			statement = this.connection.createStatement();
+			statement.executeUpdate(query);
+			ServerLog.writeLog("Driver " + id + "'s first name has been updated to: " + newlastName);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			if (statement7 != null) {
-				statement7.close();
+			if (statement != null) {
+				statement.close();
 			}
 		}
 	}
@@ -315,14 +297,14 @@ public class Driver {
 		// fetch current database connection
 		Connection connection = DbConnection.getConnection();
 
-		Statement statement9 = null;
-		String query9 = "SELECT phoneNumber " +
+		Statement statement = null;
+		String query = "SELECT phoneNumber " +
 				"FROM Driver " +
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement9 = Dbconnection.getConnection().createStatement();
-			ResultSet rs = statement9.executeQuery(query9);
+			statement = Dbconnection.getConnection().createStatement();
+			ResultSet rs = statement9.executeQuery(query);
 			while (rs.next()) {
 				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
@@ -340,9 +322,9 @@ public class Driver {
 			e.printStackTrace();
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
 		} finally {
-			if (statement9 != null) {
+			if (statement != null) {
 				try {
-					statement9.close();
+					statement.close();
 				} catch (SQLException e) {
 					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
@@ -353,45 +335,34 @@ public class Driver {
 		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
-	//method to update a driver's phone number using the id and new phone number
-	public void UpdatePhoneNumber(int id, String phoneNumber) throws SQLException{
+	// method to update a driver's phone number
+	@Path("/update-phone-number")
+	@POST
+	@Consumes("application/json")
+	public Response updatePhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, String phoneNumberObject) throws SQLException{
 
-		Statement statement10 = null;
-		String query10 = "SELECT phoneNumber" +
-				"FROM Driver " +
-				"WHERE id='" + id +"'";
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		Statement statement = null;
+		JsonObject phoneNumberObject = JsonTools.parseObject(phoneNumberObject);
 
+		if (!(phoneNumberObject.containsKey("phoneNumber")) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+		}
+
+		String newPhoneNumber = phoneNumberObject.getString("phoneNumber");
+		String query = "UPDATE Driver " +
+				"SET phoneNumber ='" + newPhoneNumber +
+				"'WHERE id='" + id + "'";
 		try {
-			statement10 = this.connection.createStatement();
-			ResultSet rs = statement10.executeQuery(query10);
-
-			rs.next();
-			String PhoneNumber = rs.getString("phoneNumber");
-			System.out.println("Driver " + id + "'s phone number is " + PhoneNumber + "\n");
-			String newPhoneNumber = PhoneNumber + phoneNumber;
-
-			Statement statement11 = null;
-			String query11 = "UPDATE Driver " +
-					"SET phoneNumber ='" + newPhoneNumber +
-					"'WHERE id='" + id+"'";
-
-			try {
-				statement11 = this.connection.createStatement();
-				statement11.executeUpdate(query11);
-				System.out.println("Updated phone number for Driver " + id + "\t" + "is" + newPhoneNumber + "\n");
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				if (statement11 != null) {
-					statement11.close();
-				}
-			}
+			statement = this.connection.createStatement();
+			statement.executeUpdate(query);
+			ServerLog.writeLog("Driver " + id + "'s phone number has been updated to: " + newPhoneNumber);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			if (statement10 != null) {
-				statement10.close();
+			if (statement != null) {
+				statement.close();
 			}
 		}
 	}
@@ -419,14 +390,14 @@ public class Driver {
 		int endTime = Integer.parseInt(formatter.format(w.getEndTime()));
 		workDuration = endTime-startTime;
 
-		Statement statement12 = null;
+		Statement statement = null;
 
-		String query12 = "SELECT date" +
+		String query = "SELECT date" +
 				"FROM WorkingHours" +
 				"WHERE id = id";
 		try {
-			statement12 = Dbconnection.getConnection().createStatement();
-			ResultSet rs = statement12.executeQuery(query12);
+			statement = Dbconnection.getConnection().createStatement();
+			ResultSet rs = statement.executeQuery(query);
 
 			while(rs.next()) {
 				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
@@ -442,9 +413,9 @@ public class Driver {
 			e.printStackTrace();
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
 		} finally {
-			if (statement12 != null) {
+			if (statement != null) {
 				try {
-					statement12.close();
+					statement.close();
 				} catch (SQLException e) {
 					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
@@ -459,6 +430,8 @@ public class Driver {
 	@Path("go-on-break")
 	//method to make drivers go on break, adding the break time to their work duration
 	//need to make sure driver's work duration doesn't pass the max of 10hours
+	//basically updating the workDuration field
+
 	public Response goOnBreak(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
 
 		// fetch current db connection
@@ -475,14 +448,14 @@ public class Driver {
 			//4.5hours = 270mins
 			if(workDuration == 270) {
 
-				Statement statement13 = null;
-				String query13 = "SELECT workDuration" +
+				Statement statement = null;
+				String query = "SELECT workDuration" +
 						"FROM Driver " +
 						"WHERE id='" + id +"'";
 
 				try {
-					statement13 = DbConnection.getConnection().createStatement();
-					ResultSet rs = statement13.executeQuery(query13);
+					statement = DbConnection.getConnection().createStatement();
+					ResultSet rs = statement.executeQuery(query);
 
 					rs.next();
 					int WorkDuration = rs.getInt(workDuration);
@@ -491,14 +464,14 @@ public class Driver {
 
 					int newWorkDuration = WorkDuration + breakTime;
 
-					Statement statement14 = null;
-					String query14 = "UPDATE Driver " +
+					Statement statement = null;
+					String query = "UPDATE Driver " +
 							"SET workDuration ='" + newWorkDuration +
 							"'WHERE id='" + id+"'";
 
 					try {
-						statement14 = DbConnection.getConnection();
-						statement14.executeUpdate(query14);
+						statement = DbConnection.getConnection();
+						statement.executeUpdate(query14);
 						ServerLog.writeLog("Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break" + "\n");
 						goOnBreak = true;
 
@@ -507,17 +480,17 @@ public class Driver {
 						e.printStackTrace();
 						response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("UPDATE_WORKDURATION_ERROR");
 					} finally {
-						if (statement14 != null) {
+						if (statement != null) {
 							try {
-								statement14.close();
+								statement.close();
 							} catch (SQLException e) {
 								ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 							}
 						}
 					} finally {
-						if (statement13 != null) {
+						if (statement != null) {
 							try {
-								statement14.close();
+								statement.close();
 							} catch (SQLException e) {
 								ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 							}
@@ -536,9 +509,12 @@ public class Driver {
 		}
 	}
 
-	@Path("/create-meal")
-	@GET
-	//method to assign order to driver.
+	@Path("/assign-order-to-driver")
+	@POST
+	//method to assign order to driver by first checking for orders that are to be delivered today and the orderstatus
+	// is approved, then use the orderId to get the corresponding restaurantAddress in the orders table, thereafter
+	// getting the restaurantAddress from Restaurant table that matches the one in orders table where the region is north
+	//and south individually
 
 	public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, String requestBody){
 
@@ -547,26 +523,111 @@ public class Driver {
 
 		JsonObject requestJson = JsonTools.parseObject(requestBody);
 
-		if (!(requestJson.containsKey("orderId") || requestJson.containsKey("id")))
+		if (!(requestJson.containsKey("orderId") || requestJson.containsKey("id"))) {
 			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+		}
 
 		int orderId = requestJson.getInt("orderId");
 		int id = requestJson.getInt("id");
 
+		//get today's date
+		LocalDate date = getLocalDate();
+		Date dateFormat = new DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date);
+
+		//get orderId from stockOrders table where the orderDeliveryDate is today's date and orderSatatus is approved for delivery.
 		Statement statement = null;
-		String query = "SELECT orderDeliveryDate" +
-				"FROM StockOrders " +
-				"WHERE orderId='" + orderId + "'";
+		String query = "SELECT orderId" +
+						"FROM StockOrders" +
+						"WHERE orderDeliveryDate='" dateFormat +  " AND orderStatus= approved'";
 		try {
 			statement = DbConnection.getConnection().createStatement();
 			ResultSet rs = statement.executeQuery(query);
 
-			LocalDate date = getLocalDate();
-			Date dateFormat = new DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date);
-
-			if (orderDeliveryDate == dateFormat){
-
+			while (rs.next()){
+				int orderIdStockOrders = rs.getInt("orderId");
 			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		//get the restaurantAddress where the orderId from orders table is equal to the orderId from stockOrders table.
+		Statement statement1 = null;
+		String query1 = "SELECT restaurantAddress " +
+					"FROM Orders " +
+					"WHERE orderid ='" + orderIdStockOrders + "'";
+
+		try {
+			statement1 = DbConnection.getConnection().createStatement();
+			ResultSet rs1 = statement1.executeQuery(query1);
+
+			while (rs.next()) {
+				String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is north
+		Statement statement2 = null;
+		String query2 = "SELECT restaurantAddress" +
+					"FROM Restaurant " +
+					"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + " AND region= north'";
+		try{
+			statement2 = DbConnection.getConnection().createSatement();
+			ResultSet rs2 = statement2.executeQuery(query2);
+
+			while (rs2.next()) {
+					String restaurantAddressRestaurantTable = rs2.getString("restaurantAddress");
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is south
+		Statement statement3 = null;
+		String query3 = "SELECT restaurantAddress" +
+				"FROM Restaurant " +
+				"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + " AND region= south'";
+		try{
+			statement3 = DbConnection.getConnection().createSatement();
+			ResultSet rs3 = statement3.executeQuery(query3);
+
+			while (rs3.next()) {
+				String restaurantAddressRestaurantTable = rs3.getString("restaurantAddress");
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		//hashmap? to assign orderId to driverId??
+		HashMap<Integer, Integer> assignedOrder = new HashMap<>();
+
+		Statement statement4 = null;
+		String query4 = "SELECT id" +
+				"FROM Driver" +
+				"WHERE region = 'north' OR region = 'south'";
+		try {
+			statement4 = connection.createStatement();
+			ResultSet rs4 = statement4.executeQuery(query4);
+			while (rs4.next()) {
+				int driverid = rs4.getInt("id");
+				assignedOrder.put(driverid, orderId);
+				ServerLog.writeLog("Order " + orderId + " has been assigned to driver: " + driverid);
+			}
+		} catch (SQLException e) {
+			ServerLog.writeLog("SQL exception occurred when assigning order to driver");
+			e.printStackTrace();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ASSIGNED_ORDER_QUERY_ERROR");
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				}
+				catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
 	}
 
 	/*//method to print the available driver capacity after an order has been assigned
@@ -720,14 +781,14 @@ public class Driver {
 		// fetch current database connection
 		Connection connection = DbConnection.getConnection();
 
-		Statement statement21 = null;
-		String query21 = "SELECT region " +
+		Statement statement = null;
+		String query = "SELECT region " +
 				"FROM Driver " +
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement21 = Dbconnection.getConnection().createStatement();
-			ResultSet rs = statement21.executeQuery(query21);
+			statement = Dbconnection.getConnection().createStatement();
+			ResultSet rs = statement.executeQuery(query);
 			while (rs.next()) {
 				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
@@ -758,48 +819,37 @@ public class Driver {
 		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
-	//method to update driver's region using the id and region
-	public void updateRegion(int id, String region) throws SQLException{
+	// method to update a driver's region
+	@Path("/update-region")
+	@POST
+	@Consumes("application/json")
+	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("region") String region, String regionObject) throws SQLException{
 
-		Statement statement22 = null;
-		String query22 = "SELECT region" +
-				"FROM Driver " +
-				"WHERE id='" + id +"'";
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		Statement statement = null;
+		JsonObject regionObject = JsonTools.parseObject(regionObject);
 
+		if (!(regionObject.containsKey("region")) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+		}
+
+		String newRegion = lastNameObject.getString("region");
+		String query = "UPDATE Driver " +
+				"SET region ='" + newRegion +
+				"'WHERE id='" + id + "'";
 		try {
-			statement22 = this.connection.createStatement();
-			ResultSet rs = statement22.executeQuery(query22);
-
-			rs.next();
-			String newRegion = rs.getString("region");
-			System.out.println("Driver " + id + "'s region is " + region + "\n");
-
-			Statement statement23 = null;
-			String query23 = "UPDATE Driver " +
-					"SET region ='" + newRegion +
-					"'WHERE id='" + id + "'";
-
-			try {
-				statement23 = this.connection.createStatement();
-				statement23.executeUpdate(query23);
-				System.out.println("Driver " + id + "'s region has been updated to " + newRegion + "\n");
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				if (statement23 != null) {
-					statement23.close();
-				}
-			}
+			statement = this.connection.createStatement();
+			statement.executeUpdate(query);
+			ServerLog.writeLog("Driver " + id + "'s region has been updated to: " + newRegion);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			if (statement22 != null) {
-				statement22.close();
+			if (statement != null) {
+				statement.close();
 			}
 		}
 	}
-
 
 
 	/*	//method to print a driver's availability using id
