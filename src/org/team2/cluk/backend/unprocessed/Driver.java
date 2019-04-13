@@ -53,41 +53,102 @@ public class Driver {
 	@Path("/add-driver-info")
 	@Produces("application/json")
 	//method to add a driver's information to the driver table
-	public Response addDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, @HeaderParam("region") String region) throws SQLException {
+	public Response addDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, @HeaderParam("region") String region, String requestBody) throws SQLException {
 
-		Statement statement = null;
-		String query = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
-				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber "', '" + workDuration + "', '" + region "')";
-		try {
-			statement = this.connection.createStatement();
-			statement.executeQuery(query);
-			System.out.println("Driver information " + id + "has been added to the database" + ".\n");
+		ServerLog.writeLog("Adding driver info to driver table ");
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		// parse request body
+		JsonArray infoToAdd = JsonTools.parseArray(requestBody);
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			if (statement != null) {
-				statement.close();
+		boolean infoAddition = false;
+
+		for (JsonValue entry: infoToAdd) {
+			// check if array entry is a JSON
+			if (!(entry instanceof JsonObject)) {
+				ServerLog.writeLog("Driver info entry misspecified. Skipping entry!");
+				continue;
+			}
+
+			JsonObject entryObj = (JsonObject) entry;
+
+			// check if JSON correctly specified
+			if (!(entryObj.containsKey("firstName") && entryObj.containsKey("lastName") && entryObj.containsKey("id") && entryObj.containsKey("phoneNumber") && entryObj.containsKey("workDuration") && entryObj.containsKey("region"))) {
+				ServerLog.writeLog("Driver entry misspecified. Skipping entry!");
+				continue;
+			}
+
+			firstName = entryObj.getString("firstName");
+			lastName = entryObj.getString("lastName");
+			int driverId = entryObj.getInt("id");
+			phoneNumber = entryObj.getString("phoneNumber");
+			workDuration = entryObj.getInt("workDuration");
+			region = entryObj.getString("region");
+
+
+			Statement statement = null;
+			String query = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
+					"SELECT '" + firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber
+			"', '" + workDuration + "', '" + region "')";
+			try {
+				statement = this.connection.createStatement();
+				statement.executeQuery(query);
+				ServerLog.writeLog("Driver information " + id + "has been added to the database");
+				infoAddition = true;
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
 			}
 		}
 	}
 
+
+	@POST
+	@Path("/remove-driver-info")
 	//method to remove a driver's information from the table
-	public void removeDriverInfo(int id) throws SQLException{
+	public void removeDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, String requestBody) throws SQLException {
 
-		Statement statement = null;
-		String query = "DELETE FROM Driver WHERE id = '" + id + "'";
+		ServerLog.writeLog("Removing driver info from driver table ");
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		// parse request body
+		JsonArray infoToRemove = JsonTools.parseArray(requestBody);
 
-		try {
-			statement = this.connection.createStatement();
-			statement.executeUpdate(query);
-			System.out.println("Driver information id " + id + "has been removed from the database" + ".\n");
+		boolean infoRemoval = false;
+		for (JsonValue removal : infoToRemove) {
+			// check if array removal is a JSON
+			if (!(removal instanceof JsonObject)) {
+				ServerLog.writeLog("Driver info removal misspecified. Skipping removal!");
+				continue;
+			}
 
-		} catch (SQLException e ) {
-			e.printStackTrace();
-		} finally {
-			if (statement != null) {
-				statement.close();
+			Statement statement = null;
+			String query = "DELETE FROM Driver WHERE id = '" + id + "'";
+
+			try {
+				statement = this.connection.createStatement();
+				statement.executeUpdate(query);
+				ServerLog.writeLog("Driver information id " + id + "has been removed from the database");
+				infoRemoval = true;
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
 			}
 		}
 	}
