@@ -95,7 +95,7 @@ public class Driver {
 				statement.executeQuery(query);
 				ServerLog.writeLog("Driver information " + id + "has been added to the database");
 				infoAddition = true;
-				
+				 
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
@@ -490,8 +490,10 @@ public class Driver {
 	@POST
 	@Path("go-on-break")
 	//method to make drivers go on break, adding the break time to their work duration
-	//need to make sure driver's work duration doesn't pass the max of 10hours
 	//basically updating the workDuration field
+	//this method would only update the workDuration field while goOnBreak is false and workDuration hasn't exceeded
+	//the max which means that the driver can only take one break per day which happens after the they have worked
+	//270 mins = 4.5 hours and obviosuly the driver cannot go on break unless their workDuration reaches 270 mins.
 
 	public Response goOnBreak(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
 
@@ -505,7 +507,7 @@ public class Driver {
 
 		//check if driver has worked 4.5 hours before going on break
 		boolean goOnBreak = false;
-		while (goOnBreak == false) {
+		while (goOnBreak == false && workDuration < maxWorkDuration) {
 			//4.5hours = 270mins
 			if(workDuration == 270) {
 
@@ -533,7 +535,7 @@ public class Driver {
 					try {
 						statement = DbConnection.getConnection();
 						statement.executeUpdate(query14);
-						ServerLog.writeLog("Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break" + "\n");
+						ServerLog.writeLog("Updated work Duration for Driver " + id + "is" + newWorkDuration + " after going on break");
 						goOnBreak = true;
 
 					} catch (SQLException e) {
@@ -558,15 +560,14 @@ public class Driver {
 						}
 					}
 				}
-
-				if (goOnBreak){
-					ServerLog.writeLog("Driver" + id + " went on break today. ");
-					response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
-				}
-
-				return response.build();
-
 			}
+
+			if (goOnBreak){
+				ServerLog.writeLog("Driver" + id + " went on break today. ");
+				response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
+			}
+
+			return response.build();
 		}
 	}
 
