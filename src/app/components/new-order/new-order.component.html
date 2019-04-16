@@ -1,0 +1,34 @@
+<div id="selectionForm">
+  <div id="incorrectSelectionMsg" *ngIf="incorrectSelection">Information missing! Cannot add to the list!</div>
+<mat-form-field>
+  <mat-select #ingredientInput placeholder="Ingredient needed">
+    <mat-option *ngFor="let ingredient of availableIngredients" [value]="ingredient.sku" required>
+      {{ingredient.name}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+<mat-form-field>
+  <input matInput #qtyInput type="number" placeholder="Quantity needed" required>
+</mat-form-field>
+
+<button mat-raised-button (click)="addItem(ingredientInput.value, qtyInput.value)"><mat-icon>add</mat-icon></button>
+</div>
+
+<table id="orderSummary" mat-table [dataSource]="orderDataSource">
+  <ng-container matColumnDef="sku">
+    <th mat-header-cell *matHeaderCellDef>SKU</th>
+    <td mat-cell *matCellDef="let element">{{element.sku}}</td>
+  </ng-container>
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let element">{{findName(element.sku)}}</td>
+  </ng-container>
+  <ng-container matColumnDef="quantity">
+    <th mat-header-cell *matHeaderCellDef>Quantity</th>
+    <td mat-cell *matCellDef="let element">{{element.quantity}}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
