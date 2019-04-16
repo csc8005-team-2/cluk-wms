@@ -1,12 +1,76 @@
-.main-screen{
-    position: relative;
-    height: 80%;
-}
-
-mat-sidenav {
-    width: 25%;
-}
-
-footer {
-    text-align: right;
-}
+ 
+  .example-spacer {
+    flex: 1 1 auto;
+  }
+  md-tabs.md-no-animation md-ink-bar {
+      transition: none;
+  }
+  
+  .content {
+    padding: 16px;
+  }
+  
+  #transcript-area {
+    width: 100%
+  }
+  
+  #test-row {
+    z-index: 20;
+  }
+  
+  @media screen and (min-width: 720px){
+    #main-card {
+      margin-top: -72px;
+      margin-bottom: -32px;
+      max-width: 60vw;
+      min-width: 20vw;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+  
+  @media screen and (max-width: 720px){
+    #main-card {
+      margin-left: 0px;
+      margin-right: 0px;
+    }
+  }
+  
+  /*
+   * Actual Sticky Footer Styles
+   */
+  .all-wrap {
+    min-height: 100vh;
+  }
+  
+  .page-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .container {
+    flex: 1;
+  
+  }
+  
+  /*
+   * Make the Component injected by Router Outlet full height:
+   */
+  main {
+    display: flex;
+    flex-direction: column;
+    > *:not(router-outlet) {
+      flex: 1;
+      display: block;
+    }
+  }
+  
+  .footer {
+    font-size: 14px;
+  }
+  
+  .footer-dark {
+    /* background-color: #0D47A1; */
+  }
+  

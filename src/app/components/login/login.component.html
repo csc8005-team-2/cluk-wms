@@ -1,0 +1,13 @@
+<div class="container">
+  <div class="login">
+    <p class="error" *ngIf="areCredentialsWrong()">Username or password are incorrect</p>
+    <mat-form-field>
+      <input matInput #username required placeholder="Username" validate>
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput #password required type="password" placeholder="Password" validate>
+    </mat-form-field>
+    <button mat-raised-button (click)="login(username.value, password.value)">Login</button>
+  </div>
+<!-- <a mat-link href="#">Forgot password?</a> -->
+</div>
