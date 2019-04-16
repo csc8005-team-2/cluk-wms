@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { DataSourceFromTable } from "c:/Users/Nykky/Desktop/GroupProjectFiles/chickWareFront/src/app/classes/table-data-source";
 
 export interface RestaurantOrdersObject {
   restaurantID: string;
