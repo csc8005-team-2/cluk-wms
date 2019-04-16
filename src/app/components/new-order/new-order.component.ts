@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { TableDataSource } from '../../classes/table-data-source';
+import { DataSourceFromTable } from '../../classes/table-data-source';
 
 export interface Ingredient {
   sku: string;
@@ -31,14 +31,14 @@ export class NewOrderComponent implements OnInit {
   // could be done simply using an array 'order' but then it would not be dynamic
   // and won't refresh on table change
   order: OrderItem[] = [];
-  orderDataSource: TableDataSource = new TableDataSource(this.order);
+  orderDataSource: DataSourceFromTable = new DataSourceFromTable(this.order);
   incorrectSelection: boolean = false;
 
   addItem(sku: string, qty: number) {
     if (sku && qty) {
       this.incorrectSelection = false;
     this.order.push({sku: sku, quantity: qty});
-    this.orderDataSource = new TableDataSource(this.order);
+    this.orderDataSource = new DataSourceFromTable(this.order);
     this.cdRef.detectChanges();
     } else {
       this.incorrectSelection = true;

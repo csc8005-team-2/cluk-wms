@@ -2,7 +2,7 @@ import { DataSource } from '@angular/cdk/table';
 import { Observable } from 'rxjs';
 import { of } from 'rxjs';
 
-export class TableDataSource extends DataSource<any> {
+export class DataSourceFromTable extends DataSource<any> {
 
     constructor(private data) {
       super();
