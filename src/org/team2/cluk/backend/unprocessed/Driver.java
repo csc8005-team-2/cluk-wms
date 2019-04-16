@@ -29,13 +29,13 @@ public class Driver {
 	//private int assignedOrderCapacity;
 	private int workDuration; //mins.
 	private final int breakTime = 45; //mins
-	private String region;
+	//private String region;
 	//private boolean availability;
 	private final int maxWorkDuration = 600;//10 hours = 600mins, use this to limit assigning order to driver etc
 	//private final int maxAvailableCapacity = 500; //not sure of the number but this should be the maximum capacity a driver can have!
 
 
-	public Driver(Connection connection, String firstName, String lastName, int id, String phoneNumber, int workDuration, String region){
+	public Driver(Connection connection, String firstName, String lastName, int id, String phoneNumber, int workDuration){
 		this.connection = connection;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -44,7 +44,7 @@ public class Driver {
 		//this.availableCapacity = availableCapacity;
 		//this.assignedOrderCapacity = assignedOrderCapacity;
 		this.workDuration = workDuration;
-		this.region = region;
+		//this.region = region;
 		//this.availability = availability;
 	}
 
@@ -53,7 +53,7 @@ public class Driver {
 	@Path("/add-driver-info")
 	@Produces("application/json")
 	//method to add a driver's information to the driver table
-	public Response addDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, @HeaderParam("region") String region, String requestBody) throws SQLException {
+	public Response addDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody) throws SQLException {
 
 		ServerLog.writeLog("Adding driver info to driver table ");
 		// fetch db connection
@@ -73,7 +73,7 @@ public class Driver {
 			JsonObject entryObj = (JsonObject) entry;
 
 			// check if JSON correctly specified
-			if (!(entryObj.containsKey("firstName") && entryObj.containsKey("lastName") && entryObj.containsKey("id") && entryObj.containsKey("phoneNumber") && entryObj.containsKey("workDuration") && entryObj.containsKey("region"))) {
+			if (!(entryObj.containsKey("firstName") && entryObj.containsKey("lastName") && entryObj.containsKey("id") && entryObj.containsKey("phoneNumber") && entryObj.containsKey("workDuration") /*&& entryObj.containsKey("region")*/)) {
 				ServerLog.writeLog("Driver entry misspecified. Skipping entry!");
 				continue;
 			}
@@ -83,13 +83,13 @@ public class Driver {
 			int driverId = entryObj.getInt("id");
 			phoneNumber = entryObj.getString("phoneNumber");
 			workDuration = entryObj.getInt("workDuration");
-			region = entryObj.getString("region");
+			//region = entryObj.getString("region");
 
 
 			Statement statement = null;
-			String query = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, region, availability) " +
+			String query = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, availability) " +
 					"SELECT '" + firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber
-			"', '" + workDuration + "', '" + region "')";
+			"', '" + workDuration /*+ "', '" + region*/"')";
 			try {
 				statement = this.connection.createStatement();
 				statement.executeQuery(query);
@@ -578,7 +578,7 @@ public class Driver {
 	// getting the restaurantAddress from Restaurant table that matches the one in orders table where the region is north
 	//and south individually
 
-	public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, String requestBody){
+	public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, String requestBody) {
 
 		Response.ResponseBuilder res = null;
 		Connection connection = DbConnection.getConnection();
@@ -599,69 +599,78 @@ public class Driver {
 		//get orderId from stockOrders table where the orderDeliveryDate is today's date and orderSatatus is approved for delivery.
 		Statement statement = null;
 		String query = "SELECT orderId" +
-						"FROM StockOrders" +
-						"WHERE orderDeliveryDate='" dateFormat +  " AND orderStatus= approved'";
+				"FROM StockOrders" +
+				"WHERE orderDeliveryDate='" dateFormat + " AND orderStatus= approved'";
 		try {
 			statement = DbConnection.getConnection().createStatement();
 			ResultSet rs = statement.executeQuery(query);
 
-			while (rs.next()){
+			while (rs.next()) {
 				int orderIdStockOrders = rs.getInt("orderId");
+
+				//get the restaurantAddress where the orderId from orders table is equal to the orderId from stockOrders table.
+				Statement statement1 = null;
+				String query1 = "SELECT restaurantAddress " +
+						"FROM Orders " +
+						"WHERE orderid ='" + orderIdStockOrders + "'";
+
+				try {
+					statement1 = DbConnection.getConnection().createStatement();
+					ResultSet rs1 = statement1.executeQuery(query1);
+
+					while (rs.next()) {
+						String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
+
+						//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is north
+						Statement statement2 = null;
+						String query2 = "SELECT restaurantAddress" +
+								"FROM Restaurant " +
+								"WHERE restaurantAddress = '" + restaurantAddressOrdersTable /*+ " AND region= north*/'";
+						try {
+							statement2 = DbConnection.getConnection().createSatement();
+							ResultSet rs2 = statement2.executeQuery(query2);
+
+							while (rs2.next()) {
+								String restaurantAddressRestaurantTable = rs2.getString("restaurantAddress");
+
+								//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is south
+								Statement statement3 = null;
+								String query3 = "SELECT restaurantAddress" +
+										"FROM Restaurant " +
+										"WHERE restaurantAddress = '" + restaurantAddressOrdersTable /*+ " AND region= south*/'";
+								try {
+									statement3 = DbConnection.getConnection().createSatement();
+									ResultSet rs3 = statement3.executeQuery(query3);
+
+									while (rs3.next()) {
+										String restaurantAddressRestaurantTable = rs3.getString("restaurantAddress");
+									}
+								} catch (SQLException e) {
+									e.printStackTrace();
+								}
+
+							}
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
 
-		//get the restaurantAddress where the orderId from orders table is equal to the orderId from stockOrders table.
-		Statement statement1 = null;
-		String query1 = "SELECT restaurantAddress " +
-					"FROM Orders " +
-					"WHERE orderid ='" + orderIdStockOrders + "'";
 
-		try {
-			statement1 = DbConnection.getConnection().createStatement();
-			ResultSet rs1 = statement1.executeQuery(query1);
 
-			while (rs.next()) {
-				String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
-			}
-		}catch (SQLException e) {
-			e.printStackTrace();
-		}
 
-		//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is north
-		Statement statement2 = null;
-		String query2 = "SELECT restaurantAddress" +
-					"FROM Restaurant " +
-					"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + " AND region= north'";
-		try{
-			statement2 = DbConnection.getConnection().createSatement();
-			ResultSet rs2 = statement2.executeQuery(query2);
 
-			while (rs2.next()) {
-					String restaurantAddressRestaurantTable = rs2.getString("restaurantAddress");
-			}
-		}catch (SQLException e) {
-			e.printStackTrace();
-		}
 
-		//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is south
-		Statement statement3 = null;
-		String query3 = "SELECT restaurantAddress" +
-				"FROM Restaurant " +
-				"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + " AND region= south'";
-		try{
-			statement3 = DbConnection.getConnection().createSatement();
-			ResultSet rs3 = statement3.executeQuery(query3);
-
-			while (rs3.next()) {
-				String restaurantAddressRestaurantTable = rs3.getString("restaurantAddress");
-			}
-		}catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		//hashmap? to assign orderId to driverId??
+		/*//hashmap? to assign orderId to driverId??
 		HashMap<Integer, Integer> assignedOrder = new HashMap<>();
 
 		Statement statement4 = null;
@@ -689,8 +698,7 @@ public class Driver {
 					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
 			}
-		}
-	}
+		}*/
 
 	/*//method to print the available driver capacity after an order has been assigned
 	public void printAvailableCapacity(int id) throws SQLException{
@@ -715,7 +723,6 @@ public class Driver {
 				statement15.close();
 			}
 		}
-	}
 
 	//**Need to improve this method to update the available capacity after an order has been assigned to a driver
 	public void UpdateAvailableCapacity(int id, int availableCapacity) throws SQLException{
@@ -825,7 +832,7 @@ public class Driver {
 	}*/
 
 
-	@GET
+	/*@GET
 	@Path("/get-region")
 	@Produces("application/json")
 
@@ -911,7 +918,7 @@ public class Driver {
 				statement.close();
 			}
 		}
-	}
+	}*/
 
 
 	/*	//method to print a driver's availability using id
