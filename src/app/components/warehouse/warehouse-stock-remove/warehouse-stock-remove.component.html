@@ -1,4 +1,4 @@
-<table id="WarehouseManager" mat-table [dataSource]="availableIngredients">
+<table id="WarehouseStockRemove" mat-table [dataSource]="availableIngredients">
 
   <ng-container matColumnDef="stockNumber">
     <th mat-header-cell *matHeaderCellDef>Stock Number</th>
@@ -10,14 +10,14 @@
     <td mat-cell *matCellDef="let element">{{element.stockItem}}</td>
   </ng-container>
   
-  <ng-container matColumnDef="currentThreshold">
+  <ng-container matColumnDef="currentAmount">
     <th mat-header-cell *matHeaderCellDef>Current Threshold</th>
-    <td mat-cell *matCellDef="let element">{{element.currentThreshold}}</td>
+    <td mat-cell *matCellDef="let element">{{element.currentAmount}}</td>
   </ng-container>
 
-  <ng-container matColumnDef="newMinThreshold">
+  <ng-container matColumnDef="amountRemove">
     <th mat-header-cell *matHeaderCellDef>New Min Threshold</th>
-    <td mat-cell *matCellDef="let element">{{element.newMinThreshold}}</td>
+    <td mat-cell *matCellDef="let element">{{element.amountRemove}}</td>
   </ng-container>
   
   <ng-container matColumnDef="select">

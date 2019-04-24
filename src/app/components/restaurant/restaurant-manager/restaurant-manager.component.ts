@@ -1,20 +1,20 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 
-export interface WarehouseManagerObject {
+export interface RestaurantManagerObject {
   stockNumber: string;
   stockItem: string;
   currentThreshold: string;
   newMinThreshold: string;
 }
 
+
 @Component({
-  selector: 'app-warehouse-manager',
-  templateUrl: './warehouse-manager.component.html',
-  styleUrls: ['./warehouse-manager.component.css']
+  selector: 'app-restaurant-manager',
+  templateUrl: './restaurant-manager.component.html',
+  styleUrls: ['./restaurant-manager.component.css']
 })
-export class WarehouseManagerComponent implements OnInit {
-  // Restaurant Orders table
-  availableIngredients: WarehouseManagerObject[] = [
+export class RestaurantManagerComponent implements OnInit {
+  availableIngredients: RestaurantManagerObject[] = [
     {stockNumber: 'Let-539', stockItem: 'Shredded Iceberg Lettuce', currentThreshold: '10', newMinThreshold: '5'},
     {stockNumber: 'Chsl-157', stockItem: 'Cheese Slices', currentThreshold: '200', newMinThreshold: '150'},
     {stockNumber: 'CKP-754', stockItem: 'Chicken Pieces', currentThreshold: '100', newMinThreshold: '100'},
@@ -34,3 +34,13 @@ export class WarehouseManagerComponent implements OnInit {
   }
 
 }
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,37 @@
+<div class="queryStock">
+  <div id="incorrectSelectionMsg" *ngIf="incorrectSelection">Information missing! Cannot return total stock list!</div>
+<mat-form-field>
+  <input #numberInput matInput placeholder="Stock Number">
+</mat-form-field>
+
+<mat-form-field>
+  <mat-select #itemInput placeholder="Stock Item">
+    <mat-option *ngFor="let item of availableItems" [value]="StockObject.stockNumber" required>
+      {{StockObject.stockItem}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+<button mat-raised-button (click)="addItem(numberInput.value, itemInput.value)"><mat-icon>Submit</mat-icon></button>
+</div>
+
+<table id="queryStock" mat-table [dataSource]="availableIngredients">
+
+<ng-container matColumnDef="stockNumber">
+  <th mat-header-cell *matHeaderCellDef>Stock Number</th>
+  <td mat-cell *matCellDef="let element">{{element.stockNumber}}</td>
+</ng-container>
+
+<ng-container matColumnDef="stockItem">
+  <th mat-header-cell *matHeaderCellDef>Stock Item</th>
+  <td mat-cell *matCellDef="let element">{{element.stockItem}}</td>
+</ng-container>
+
+<ng-container matColumnDef="quantity">
+  <th mat-header-cell *matHeaderCellDef>Quantity</th>
+  <td mat-cell *matCellDef="let element">{{element.quantity}}</td>
+</ng-container>
+
+<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+<tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
