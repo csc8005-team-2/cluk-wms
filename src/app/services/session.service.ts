@@ -9,6 +9,7 @@ import {UserPermissions} from '../classes/user-permissions';
 import {StockItem} from '../classes/stock-item';
 import {OrderId} from '../classes/order-id';
 import {MealPrice} from '../classes/meal-price';
+import {OrderEntry} from '../classes/order-entry';
 
 @Injectable({
   providedIn: 'root'
@@ -150,7 +151,65 @@ export class SessionService {
   }
 
   // methods for handling warehouse management
+  getTotalStockWar(_address: string): Observable<StockItem[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
 
+    return this.http.get<StockItem[]>(this.BACKEND_URL + '/warehouse/get-total-stock', {headers: reqHeader});
+  }
+
+  updateStockWar(_address: string, newStockLvls: StockItem[]): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.post<Message>(this.BACKEND_URL + '/warehouse/update-stock', newStockLvls, {headers: reqHeader});
+  }
+
+  sendOrder(_address: string, orderId: number): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address)
+      .append('orderId', orderId.toString());
+
+    return this.http.get<Message>(this.BACKEND_URL + '/warehouse/send-order', {headers: reqHeader});
+  }
+
+  getMinStockWar(_address: string): Observable<StockItem[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.get<StockItem[]>(this.BACKEND_URL + '/warehouse/get-min-stock', {headers: reqHeader});
+  }
+
+  minStockCheckWar(_address: string): Observable<StockItem[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.get<StockItem[]>(this.BACKEND_URL + '/warehouse/min-stock-check', {headers: reqHeader});
+  }
+
+  updateMinStockWar(_address: string, newStockLvl: StockItem): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.post<Message>(this.BACKEND_URL + '/warehouse/update-min-stock', newStockLvl, {headers: reqHeader});
+  }
+
+  assignToDriver(_orderId: number, _driverId: number): Observable<Message> {
+    const orderId = _orderId.toString();
+    const driverId = _driverId.toString();
+
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('orderId', orderId)
+      .append('driverId', driverId);
+
+    return this.http.get<Message>(this.BACKEND_URL + '/warehouse/assign-to-driver', {headers: reqHeader});
+  }
+
+  getPendingOrders(): Observable<OrderEntry[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+
+    return this.http.get<OrderEntry[]>(this.BACKEND_URL + '/warehouse/get-pending-orders', {headers: reqHeader});
+  }
 
   /* private handleError<T> (operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
