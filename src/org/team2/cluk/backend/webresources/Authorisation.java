@@ -51,7 +51,7 @@ public class Authorisation {
     @POST
     @Consumes("application/json")
     @Produces("application/json")
-    public Response loginUser(String loginData) {
+    public synchronized Response loginUser(String loginData) {
         // create variable to check whether login was successful
         boolean loginSuccessful = false;
 
@@ -136,7 +136,7 @@ public class Authorisation {
 
     @Path("/logout")
     @GET
-    public Response logoutUser(@HeaderParam("Authorization") String idToken) {
+    public synchronized Response logoutUser(@HeaderParam("Authorization") String idToken) {
         if (userTokens.containsKey(idToken)) {
             userTokens.remove(idToken);
             JsonObject response = Json.createObjectBuilder().add("message", "LOGOUT_SUCCESSFUL").build();
@@ -205,7 +205,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity("ACCOUNT_CREATED").build();
     }
 
-    public void refreshPermissions(String username) {
+    public synchronized void refreshPermissions(String username) {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
 
