@@ -19,23 +19,43 @@ public class Warehouse
     @Path("/get-total-stock")
     @Produces("application/json")
     //Outputs total stock held at the warehouse(units).
-    public void GetTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
+    public Response GetTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
+        ServerLog.writeLog("Requested information on total stock in the warehouse at "+address);
+
+        if (address.isBlank()) {
+            ServerLog.writeLog("Rejected request as warehouse address not specified");
+            return Response.status(Response.Status.BAD_REQUEST).entity("ADDRESS_BLANK_OR_NOT_PROVIDED").build();
+        }
+
+        JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+        // fetch current database connection
+        Connection connection = DbConnection.getConnection();
+
         Statement statement = null;
         String query = "SELECT stockItem, quantity " +
                        "FROM Inside " +            
                        "WHERE warehouseAddress='"+address+"'";
-                       
+
         try {
-        statement = DbConnection.getConnection().createStatement();
-        ResultSet rs = statement.executeQuery(query);
-        while (rs.next()) {
-            String StockItem = rs.getString("StockItem");
-            int Quantity = rs.getInt("quantity");
-            System.out.println(StockItem + ": " + Quantity);
-        }
-        } catch (SQLException e ) {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+
+                String stockItem = rs.getString("StockItem");
+                int quantity = rs.getInt("Quantity");
+
+                arrayEntryBuilder.add("stockItem", stockItem);
+                arrayEntryBuilder.add("quantity", quantity);
+
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+            }
+        } catch (SQLException e) {
+            ServerLog.writeLog("SQL exception occurred when executing query");
             e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
         } finally {
             if (statement != null) {
                 try {
@@ -44,7 +64,10 @@ public class Warehouse
                     ServerLog.writeLog("SQL exception occurred when closing SQL statement");
                 }
             }
-        }                 
+        }
+        JsonArray response = responseBuilder.build();
+
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
     /**
@@ -57,6 +80,7 @@ public class Warehouse
     @POST
     @Path("/update-stock")
     @Consumes("application/json")
+    @Produces("application/json")
     //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
     public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
@@ -137,14 +161,18 @@ public class Warehouse
             }
         }
 
-        return Response.status(Response.Status.OK).entity("STOCK_UPDATED").build();
+        JsonObject responseJson = Json.createObjectBuilder().add("message", "STOCK_UPDATED").build();
+
+        return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
     }
 
     @GET
     @Path("/send-order")
+    @Produces("application/json")
     //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
-    public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") int orderId)
+    public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
     {
+        int orderId = Integer.parseInt(_orderId);
         // fetch current db connection
         Connection connection = DbConnection.getConnection();
 
@@ -291,11 +319,12 @@ public class Warehouse
                 }
             }
         }
-        return Response.status(Response.Status.OK).entity("ORDER_SENT").build();
+        JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_SENT").build();
+        return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
     }
 
     @Path("/get-min-stock")
-    @POST
+    @GET
     @Consumes("application/json")
     public Response getMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address) {
         Response.ResponseBuilder res = null;
@@ -344,6 +373,7 @@ public class Warehouse
 
     @GET
     @Path("/min-stock-check")
+    @Produces("application/json")
     //Checks the warehouse stock is above the minimum level.
     public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
@@ -388,7 +418,7 @@ public class Warehouse
         }
 
         if (lackingStockArrayBuilder.build().toArray().length==0)
-            return Response.status(Response.Status.OK).entity("ENOUGH_STOCK").build();
+            return Response.status(Response.Status.OK).entity("{}").build(); // produce empty json if enough stock
 
         return updateStock(idToken, address, lackingStockArrayBuilder.build().toString());
     }
@@ -397,6 +427,7 @@ public class Warehouse
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
+    @Produces("application/json")
     public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
         // fetch db connection
@@ -431,13 +462,17 @@ public class Warehouse
             }
         }
 
-        return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
+        JsonObject responseJson = Json.createObjectBuilder().add("message", "MIN_STOCK_VALUE_UPDATED").build();
+
+        return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
     }
 
     @GET
     @Path("/assign-to-driver")
+    @Produces("application/json")
     //Assigns an order to a driver(basic) may require expanding based on driver class.
-    public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") int orderId, @HeaderParam("driverId") String driverId){
+    public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId, @HeaderParam("driverId") String driverId){
+        int orderId = Integer.parseInt(_orderId);
         Response.ResponseBuilder res = null;
 
         // fetch current dbConnection
@@ -464,13 +499,15 @@ public class Warehouse
                 }
             }
         }
-    	res = Response.status(Response.Status.OK).entity("ORDER_ASSIGNED");
+    	JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_ASSIGNED").build();
+    	res = Response.status(Response.Status.OK).entity(responseJson.toString());
 
     	return res.build();
     }
 
     @GET
     @Path("/get-pending-orders")
+    @Produces("application/json")
     //Method to get currently pending orders.
     public Response getCurrentPendingOrders(@HeaderParam("Authorization") String idToken) {
         Response.ResponseBuilder res = null;
