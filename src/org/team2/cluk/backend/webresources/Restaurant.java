@@ -77,7 +77,9 @@ public class Restaurant {
     @GET
     @Path("/receive-order")
 	//this method updates the stock for a restaurant when it has received an order.
-    public Response receiveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
+    public Response receiveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("orderId") String _orderId) {
+    	// HTTP header in Angular needs to be string, thus parsing added
+    	int orderId = Integer.parseInt(_orderId);
     	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
 
     	boolean processedCorrectly = true;
@@ -267,7 +269,9 @@ public class Restaurant {
 
 		if (processedCorrectly) {
 			ServerLog.writeLog("Order " + orderId + " received in full by restaurant " + restaurantAddress);
-			response = Response.status(Response.Status.OK).entity("ORDER_RECEIVED");
+
+			JsonObject responseJson= Json.createObjectBuilder().add("message", "ORDER_RECEIVED").build();
+			response = Response.status(Response.Status.OK).entity(responseJson.toString());
 		}
 
     	return response.build();
@@ -412,7 +416,8 @@ public class Restaurant {
     	}
 
     	ServerLog.writeLog("Order " + orderId + " has been accepted");
-    	return Response.status(Response.Status.ACCEPTED).entity("ORDER_ACCEPTED").build();
+    	JsonObject responseJson = Json.createObjectBuilder().add("orderId", orderId).build();
+    	return Response.status(Response.Status.ACCEPTED).entity(responseJson).build();
     }
 
 
@@ -558,7 +563,8 @@ public class Restaurant {
                 }
             }
 
-            return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
+            JsonObject responseJson = Json.createObjectBuilder().add("message", "MIN_STOCK_VALUE_UPDATED").build();
+            return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
         }
 
     //Allows a restaurant to use stock by creating meal items.
@@ -658,12 +664,15 @@ public class Restaurant {
 		}
 		ServerLog.writeLog("Item: "+meal+" created.\n");
 
-		return Response.status(Response.Status.OK).entity("MEAL_CREATED").build();
+		JsonObject responseJson = Json.createObjectBuilder().add("message", "MEAL_CREATED").build();
+		return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 
 	}
 
 	@POST
 	@Path("/update-stock")
+	@Consumes("application/json")
+	@Produces("application/json")
 	//Method to update restaurant stock allowing for manual adjustment of stock levels.
 	public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String requestBody)
 	{
@@ -717,7 +726,9 @@ public class Restaurant {
 			statement = connection.createStatement();
 			statement.executeUpdate(query);
 			ServerLog.writeLog("Updated stock of "+stockItem + ": " + newQuantity);
-			res = Response.status(Response.Status.OK).entity("STOCK_UPDATED");
+
+			JsonObject responseJson = Json.createObjectBuilder().add("message", "STOCK_UPDATED").build();
+			res = Response.status(Response.Status.OK).entity(responseJson.toString());
 		} catch (SQLException e ) {
 			res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_UPDATING_STOCK");
 			e.printStackTrace();
@@ -736,6 +747,7 @@ public class Restaurant {
 
 	@GET
 	@Path("/get-price")
+	@Produces("application/json")
 	//Method to get price of meal item.
 	public Response getPrice(@HeaderParam("Authorization") String idToken, @HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
@@ -766,6 +778,12 @@ public class Restaurant {
 			}
 		}
 
-		return Response.status(Response.Status.OK).entity(String.format("%2.f", price)).build();
+		JsonObjectBuilder mealPriceBuilder = Json.createObjectBuilder();
+		mealPriceBuilder.add("meal", meal);
+		mealPriceBuilder.add("price", price);
+
+		JsonObject mealPrice = mealPriceBuilder.build();
+
+		return Response.status(Response.Status.OK).entity(mealPrice.toString()).build();
 	}
 }     
