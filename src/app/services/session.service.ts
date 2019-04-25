@@ -6,6 +6,9 @@ import { IdToken } from '../classes/id-token';
 import { Message } from '../classes/message';
 import {StaffMember} from '../classes/staff-member';
 import {UserPermissions} from '../classes/user-permissions';
+import {StockItem} from '../classes/stock-item';
+import {OrderId} from '../classes/order-id';
+import {MealPrice} from '../classes/meal-price';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +19,7 @@ export class SessionService {
 
   constructor(private http: HttpClient) { }
 
-  // methods for authorization
+  // methods for authorization and account management
   login(_username: string, _password: string): Observable<IdToken> {
     const reqHeader = new HttpHeaders().append('Content-Type', 'application/json');
     const reqBody = {username: _username, password: _password};
@@ -81,11 +84,74 @@ export class SessionService {
     return this.http.get<StaffMember[]>(this.BACKEND_URL + '/accounts/info', {headers: reqHeader} );
   }
 
-  // call for stock available to order list
-  // call for stock available at restaurant list
-  // call for submitting the order
-  // call for deducting stock
-  
+  // methods for restaurant stock management
+  getTotalStockRest(_address: string): Observable<StockItem[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken).append('address', _address);
+
+    return this.http.get<StockItem[]>(this.BACKEND_URL + '/restaurant/get-total-stock', {headers: reqHeader});
+  }
+
+  receiveOrder(_address: string, _orderId: number): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address)
+      .append('orderId', _orderId.toString());
+
+    return this.http.get<Message>(this.BACKEND_URL + '/restaurant/receive-order', {headers: reqHeader});
+  }
+
+  requestCustomOrder(_address: string, _orderContents: StockItem[]): Observable<OrderId> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.post<OrderId>(this.BACKEND_URL + '/restaurant/request-order/custom', _orderContents, {headers: reqHeader});
+  }
+
+  requestStandardOrder(_address: string): Observable<OrderId> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.get<OrderId>(this.BACKEND_URL + '/restaurant/request-order', {headers: reqHeader});
+  }
+
+
+  minStockCheckRest(_address: string): Observable<StockItem[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.get<StockItem[]>(this.BACKEND_URL + '/restaurant/min-stock-check', {headers: reqHeader});
+  }
+
+  updateMinStockRest(_address: string, newStockLvl: StockItem): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.post<Message>(this.BACKEND_URL + '/restaurant/update-min-stock', newStockLvl, {headers: reqHeader});
+  }
+
+  createMeal(_address: string, _meal: string): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.get<Message>(this.BACKEND_URL + '/restaurant/create-meal', {headers: reqHeader});
+  }
+
+  updateStockRest(_address: string, newStockLvl: StockItem): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address);
+
+    return this.http.post<Message>(this.BACKEND_URL + '/restaurant/update-stock', newStockLvl, {headers: reqHeader});
+  }
+
+  getPrice(_meal: string): Observable<MealPrice> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('meal', _meal);
+
+    return this.http.get<MealPrice>(this.BACKEND_URL + '/restaurant/get-price', {headers: reqHeader});
+  }
+
+  // methods for handling warehouse management
+
+
   /* private handleError<T> (operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
    
