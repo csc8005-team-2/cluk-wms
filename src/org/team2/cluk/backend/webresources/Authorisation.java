@@ -165,6 +165,8 @@ public class Authorisation {
 
     @Path("/accounts/add")
     @POST
+    @Consumes("application/json")
+    @Produces("application/json")
     public Response addAccount(@HeaderParam("Authorization") String idToken, String requestBody) {
         Connection connection = DbConnection.getConnection();
 
@@ -202,7 +204,8 @@ public class Authorisation {
             }
         }
 
-        return Response.status(Response.Status.OK).entity("ACCOUNT_CREATED").build();
+        JsonObject response = Json.createObjectBuilder().add("message", "ACCOUNT_CREATED").build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
     public synchronized void refreshPermissions(String username) {
@@ -259,6 +262,7 @@ public class Authorisation {
     @POST
     @Path("/accounts/set-permission")
     @Consumes("application/json")
+    @Produces("application/json")
     //Method to set account permissions.
     public Response setPermissions(@HeaderParam("Authorization") String idToken, String requestBody) {
         Connection connection = DbConnection.getConnection();
@@ -300,7 +304,8 @@ public class Authorisation {
 
         refreshPermissions(username);
 
-        return Response.status(Response.Status.OK).entity("PERMISSIONS_UPDATED").build();
+        JsonObject response = Json.createObjectBuilder().add("message", "PERMISSIONS_UPDATED").build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
     @Path("/accounts/remove")
@@ -333,7 +338,8 @@ public class Authorisation {
             statement = connection.createStatement();
             statement.executeUpdate(query);
             ServerLog.writeLog("Account for employee "+ username + " removed.");
-            res = Response.status(Response.Status.OK).entity("ACCOUNT_REMOVED");
+            JsonObject resJson = Json.createObjectBuilder().add("message", "ACCOUNT_REMOVED").build();
+            res = Response.status(Response.Status.OK).entity(resJson.toString());
 
         } catch (SQLException e ) {
             ServerLog.writeLog("Cannot delete user account " + username);
