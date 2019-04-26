@@ -21,9 +21,9 @@ export class SessionService {
   constructor(private http: HttpClient) { }
 
   // methods for authorization and account management
-  login(_username: string, _password: string): Observable<IdToken> {
+  login(username: string, password: string): Observable<IdToken> {
     const reqHeader = new HttpHeaders().append('Content-Type', 'application/json');
-    const reqBody = {username: _username, password: _password};
+    const reqBody = {username, password};
 
     return this.http.post<IdToken>(this.BACKEND_URL + '/login', reqBody, {headers: reqHeader} ).pipe(
       tap ((res: IdToken) => {
@@ -60,56 +60,56 @@ export class SessionService {
   }
 
   // methods for accounts management
-  addAccount(_username: string, _password: string, _name: string): Observable<Message> {
+  addAccount(username: string, password: string, name: string): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
-    const reqBody = {username: _username, password: _password, name: _name}
+    const reqBody = {username, password, name};
 
     return this.http.post<Message>(this.BACKEND_URL + '/accounts/add', reqBody, {headers: reqHeader});
   }
 
-  setPermission(_username: string, _restaurant: boolean, _warehouse: boolean, _driver: boolean): Observable<Message> {
+  setPermission(username: string, restaurant: boolean, warehouse: boolean, driver: boolean): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
-    const reqBody = {username: _username, restaurant: _restaurant, warehouse: _warehouse, driver: _driver}
+    const reqBody = {username, restaurant, warehouse, driver};
     return this.http.post<Message>(this.BACKEND_URL + '/accounts/set-permission', reqBody, {headers: reqHeader});
   }
 
-  removeAccount(_username: string): Observable<Message> {
-    const reqHeader = new HttpHeaders().append('Authorization', this.idToken).append('username', _username);
+  removeAccount(username: string): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken).append('username', username);
 
     return this.http.get<Message>(this.BACKEND_URL + '/accounts/remove', {headers: reqHeader} );
   }
 
   getStaffInfo(): Observable<StaffMember[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
-    
+
     return this.http.get<StaffMember[]>(this.BACKEND_URL + '/accounts/info', {headers: reqHeader} );
   }
 
   // methods for restaurant stock management
-  getTotalStockRest(_address: string): Observable<StockItem[]> {
-    const reqHeader = new HttpHeaders().append('Authorization', this.idToken).append('address', _address);
+  getTotalStockRest(address: string): Observable<StockItem[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken).append('address', address);
 
     return this.http.get<StockItem[]>(this.BACKEND_URL + '/restaurant/get-total-stock', {headers: reqHeader});
   }
 
-  receiveOrder(_address: string, _orderId: number): Observable<Message> {
+  receiveOrder(address: string, orderId: number): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address)
-      .append('orderId', _orderId.toString());
+      .append('address', address)
+      .append('orderId', orderId.toString());
 
     return this.http.get<Message>(this.BACKEND_URL + '/restaurant/receive-order', {headers: reqHeader});
   }
 
-  requestCustomOrder(_address: string, _orderContents: StockItem[]): Observable<OrderId> {
+  requestCustomOrder(address: string, orderContents: StockItem[]): Observable<OrderId> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', address);
 
-    return this.http.post<OrderId>(this.BACKEND_URL + '/restaurant/request-order/custom', _orderContents, {headers: reqHeader});
+    return this.http.post<OrderId>(this.BACKEND_URL + '/restaurant/request-order/custom', orderContents, {headers: reqHeader});
   }
 
-  requestStandardOrder(_address: string): Observable<OrderId> {
+  requestStandardOrder(address: string): Observable<OrderId> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', address);
 
     return this.http.get<OrderId>(this.BACKEND_URL + '/restaurant/request-order', {headers: reqHeader});
   }
