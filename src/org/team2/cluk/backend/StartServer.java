@@ -87,6 +87,9 @@ public class StartServer {
         if (config.containsKey("keystore"))
             useSsl = true;
 
+        final String hostname = (config.containsKey("hostname")) ? config.getString("hostname") : "localhost";
+        final int port = (config.containsKey("port")) ? config.getInt("port") : ((useSsl) ? 443 : 80);
+
         // set up database connection
         if (config.containsKey("dbURI") && config.containsKey("dbUsername") && config.containsKey("dbPassword")) {
             String userName = config.getString("dbUsername");
@@ -104,12 +107,12 @@ public class StartServer {
 
         // build base URI based on whether SSL connection desired
         if (!useSsl) {
-            listeningUri = "http://localhost/"; // server will be accessible under this URI
-            listeningPort = 80; // server will be listening on this port
+            listeningUri = "http://" + hostname + "/"; // server will be accessible under this URI
+            listeningPort = port; // server will be listening on this port
         } else {
             // by default, launch ssl server
-            listeningUri = "https://localhost/"; // server will be accessible under this URI
-            listeningPort = 443; // server will be listening on this port
+            listeningUri = "https://" + hostname + "/"; // server will be accessible under this URI
+            listeningPort = port; // server will be listening on this port
         }
         final URI baseUri = UriBuilder.fromUri(listeningUri).port(listeningPort).build();
 
