@@ -14,6 +14,48 @@ import java.util.Map;
 @Path("/warehouse")
 public class Warehouse
 {
+	
+	@GET
+    @Path("/get-stock-names")
+    @Produces("application/json")
+    //Outputs the names of the stock items.
+    public Response GetStockNames(@HeaderParam("Authorization") String idToken)
+    {
+        ServerLog.writeLog("Requested names of stock items.");
+
+        JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+        // fetch current database connection
+        Connection connection = DbConnection.getConnection();
+
+        Statement statement = null;
+        String query = "SELECT stockItem FROM Stock";
+
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+                String stockItem = rs.getString("StockItem");
+                arrayEntryBuilder.add("stockItem", stockItem);
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+            }
+        } catch (SQLException e) {
+            ServerLog.writeLog("SQL exception occurred when executing query");
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+        JsonArray response = responseBuilder.build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
+    }
 
     @GET
     @Path("/get-total-stock")
