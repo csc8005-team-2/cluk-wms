@@ -1,10 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-
-export interface StockObject {
-  stockNumber: string;
-  stockItem: string;
-  quantity: number;
-}
+import {StockItem} from '../../../classes/stock-item';
+import {SessionService} from '../../../services/session.service';
+import {MatTableDataSource} from '@angular/material';
 
 @Component({
   selector: 'app-total-stock',
@@ -13,21 +10,22 @@ export interface StockObject {
 })
 export class TotalStockComponent implements OnInit {
   // Stock Object table
-  availableIngredients: StockObject[] = [
-    {stockNumber: 'Let-539', stockItem: 'Shredded Iceberg Lettuce', quantity: 123434},
-    {stockNumber: 'Chsl-157', stockItem: 'Cheese Slices', quantity: 123434},
-    {stockNumber: 'CKP-754', stockItem: 'Chicken Pieces', quantity: 123434},
-    {stockNumber: 'SSB-279', stockItem: 'Sesame seed buns', quantity: 123434},
-    {stockNumber: 'CKF-412', stockItem: 'Chicken Brest Fillets', quantity: 123434},
-    {stockNumber: 'CKS-367', stockItem: 'Chicken Strips', quantity: 123434}
-  ];
+  availableStock: MatTableDataSource<StockItem>;
 
   // displayed columns format
-  displayedColumns: string[] = ['stockNumber', 'stockItem', 'quantity'];
-  availableItems: any;
+  displayedColumns: string[] = ['stockItem', 'quantity'];
 
-  
-  constructor(private cdRef: ChangeDetectorRef) { }
+  applyFilter(filterValue: string) {
+    this.availableStock.filter = filterValue.trim().toLowerCase();
+  }
+
+  constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
+    this.session.getTotalStockRest(this.session.getVenueAddress()).subscribe(res => {
+      this.availableStock = new MatTableDataSource(res);
+    }, err => {
+      console.log(err);
+    });
+  }
 
   ngOnInit() {
   }
