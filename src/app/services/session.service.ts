@@ -17,6 +17,7 @@ import {OrderEntry} from '../classes/order-entry';
 export class SessionService {
   private BACKEND_URL = 'http://localhost:9998';
   private idToken: string;
+  private venueAddress: string;
 
   constructor(private http: HttpClient) { }
 
@@ -57,6 +58,10 @@ export class SessionService {
   isLoggedIn(): boolean {
     if (this.idToken) {return true; }
     return false;
+  }
+
+  getVenueAddress(): string {
+    return this.venueAddress;
   }
 
   // methods for accounts management
