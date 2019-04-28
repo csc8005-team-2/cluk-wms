@@ -1,11 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-
-export interface RestaurantOrdersObject {
-  restaurantID: string;
-  restaurantName: string;
-  orderDate: string;
-}
-
+import {SessionService} from '../../../services/session.service';
+import {OrderEntry} from '../../../classes/order-entry';
 @Component({
   selector: 'app-restaurant-orders',
   templateUrl: './restaurant-orders.component.html',
@@ -13,20 +8,19 @@ export interface RestaurantOrdersObject {
 })
 export class RestaurantOrdersComponent implements OnInit {
   // Restaurant Orders table
-  availableIngredients: RestaurantOrdersObject[] = [
-    {restaurantID: 'SSB-01', restaurantName: 'Seaton Burn Services', orderDate: '02/04/19'},
-    {restaurantID: 'ATC-02', restaurantName: 'Alnwick Town Centre', orderDate: '02/04/19'},
-    {restaurantID: 'NA-03', restaurantName: 'Newton Aycliffe', orderDate: '03/04/19'},
-    {restaurantID: 'TTC-04', restaurantName: 'Thirsk Town Centre', orderDate: '03/04/19'},
-    {restaurantID: 'WTC-05', restaurantName: 'Whitby Town Centre', orderDate: '04/04/19'}
-  ];
+  pendingOrders: OrderEntry[];
 
   // displayed columns format
-  displayedColumns: string[] = ['restaurantID', 'restaurantName', 'orderDate' , 'viewOrder'];
-  availableItems: any;
+  displayedColumns: string[] = ['orderId', 'dateTime', 'address'];
 
   
-  constructor(private cdRef: ChangeDetectorRef) { }
+  constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
+    this.session.getPendingOrders().subscribe(res => {
+      this.pendingOrders = res;
+    }, err => {
+      console.log(err);
+    });
+  }
 
   ngOnInit() {
   }
