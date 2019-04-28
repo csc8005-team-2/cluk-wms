@@ -7,7 +7,7 @@ import {SessionService} from "../../services/session.service";
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  private wrongCredentials: boolean = false;
+  private wrongCredentials = false;
 
   constructor(private session: SessionService) { }
 
@@ -19,7 +19,7 @@ export class LoginComponent implements OnInit {
     this.session.login(_username, _password).subscribe(res => {
 
     }, err => {
-      if (err.error == 'WRONG_CREDENTIALS')
+      if (err.error === 'WRONG_CREDENTIALS')
         this.wrongCredentials = true;
     });
   }

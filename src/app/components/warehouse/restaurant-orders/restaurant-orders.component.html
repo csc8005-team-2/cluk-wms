@@ -1,18 +1,18 @@
-<table id="RestaurantOrders" mat-table [dataSource]="availableIngredients">
+<table id="RestaurantOrders" mat-table [dataSource]="pendingOrders">
 
-<ng-container matColumnDef="restaurantID">
-  <th mat-header-cell *matHeaderCellDef>Restaurant ID</th>
-  <td mat-cell *matCellDef="let element">{{element.restaurantID}}</td>
+<ng-container matColumnDef="orderID">
+  <th mat-header-cell *matHeaderCellDef>Order ID</th>
+  <td mat-cell *matCellDef="let element">{{element.orderId}}</td>
 </ng-container>
 
-<ng-container matColumnDef="restaurantName">
-  <th mat-header-cell *matHeaderCellDef>Restaurant Name</th>
-  <td mat-cell *matCellDef="let element">{{element.restaurantName}}</td>
+<ng-container matColumnDef="restaurantAddress">
+  <th mat-header-cell *matHeaderCellDef>Restaurant Address</th>
+  <td mat-cell *matCellDef="let element">{{element.address}}</td>
 </ng-container>
 
 <ng-container matColumnDef="orderDate">
   <th mat-header-cell *matHeaderCellDef>Order Date</th>
-  <td mat-cell *matCellDef="let element">{{element.orderDate}}</td>
+  <td mat-cell *matCellDef="let element">{{element.dateTime}}</td>
 </ng-container>
 
 <ng-container matColumnDef="viewOrder">
