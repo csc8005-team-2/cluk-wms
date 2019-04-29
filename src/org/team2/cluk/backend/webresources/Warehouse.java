@@ -21,6 +21,9 @@ public class Warehouse
     //Outputs the names of the stock items.
     public Response GetStockNames(@HeaderParam("Authorization") String idToken)
     {
+	    
+	    if (checkAccess(warehousePermissions) {
+		    
         ServerLog.writeLog("Requested names of stock items.");
 
         JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
@@ -55,6 +58,10 @@ public class Warehouse
         }
         JsonArray response = responseBuilder.build();
         return Response.status(Response.Status.OK).entity(response.toString()).build();
+		   
+	    } else {
+		    ServerLog.writeLog(“Cannot get permission”);
+	    }
     }
 
     @GET
@@ -63,6 +70,8 @@ public class Warehouse
     //Outputs total stock held at the warehouse(units).
     public Response GetTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
+	    if (checkAccess(warehousePermissions) {
+	
         ServerLog.writeLog("Requested information on total stock in the warehouse at "+address);
 
         if (address.isBlank()) {
@@ -110,6 +119,11 @@ public class Warehouse
         JsonArray response = responseBuilder.build();
 
         return Response.status(Response.Status.OK).entity(response.toString()).build();
+		    
+	    } else {
+			    ServerLog.writeLog(“Cannot get permission”);
+		    }
+
     }
 
     /**
@@ -126,6 +140,8 @@ public class Warehouse
     //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
     public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
+	    if (checkAccess(managerPermissions) {
+	    
         ServerLog.writeLog("Updating warehouse stock at " + address);
         // fetch db connection
         Connection connection = DbConnection.getConnection();
@@ -177,7 +193,8 @@ public class Warehouse
                         ServerLog.writeLog("SQL exception occurred when closing SQL statement");
                     }
                 }
-            }
+	 
+	}
 
             // update stock to the new level
             int newQuantity = currentQuantity + requestedQuantity;
@@ -201,11 +218,16 @@ public class Warehouse
                     }
                 }
             }
+	
         }
 
         JsonObject responseJson = Json.createObjectBuilder().add("message", "STOCK_UPDATED").build();
 
         return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+		    
+		      } else {
+		    ServerLog.writeLog(“Cannot get permission”);
+	    }
     }
 
     @GET
@@ -214,6 +236,8 @@ public class Warehouse
     //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
     public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
     {
+	    if (checkAccess(warehousePermissions) {
+	    
         int orderId = Integer.parseInt(_orderId);
         // fetch current db connection
         Connection connection = DbConnection.getConnection();
@@ -363,6 +387,11 @@ public class Warehouse
         }
         JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_SENT").build();
         return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+		    
+		    } else {
+ServerLog.writeLog(“Cannot get permission”);
+	    }
+		
     }
 
     @Path("/get-min-stock")
@@ -371,9 +400,9 @@ public class Warehouse
     public Response getMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address) {
         Response.ResponseBuilder res = null;
         Connection connection = DbConnection.getConnection();
-
-
-
+	    
+	    if (checkAccess(warehousePermissions) {
+		    
         Statement statement = null;
         String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddress ='"+address+"'";
         try {
@@ -411,6 +440,10 @@ public class Warehouse
         }
 
         return res.build();
+		    
+		    } else {
+		    ServerLog.writeLog(“Cannot get permission”);
+	    }
     }
 
     @GET
@@ -419,6 +452,9 @@ public class Warehouse
     //Checks the warehouse stock is above the minimum level.
     public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
+	    
+	    if (checkAccess(warehousePermissions) {
+	
         Connection connection = DbConnection.getConnection();
 
         JsonArrayBuilder lackingStockArrayBuilder = Json.createArrayBuilder();
@@ -463,6 +499,10 @@ public class Warehouse
             return Response.status(Response.Status.OK).entity("{}").build(); // produce empty json if enough stock
 
         return updateStock(idToken, address, lackingStockArrayBuilder.build().toString());
+		    
+		     } else {
+		    ServerLog.writeLog(“Cannot get permission”);
+	    }
     }
 
     //Allows the warehouse stock minimums to be set.
@@ -472,6 +512,8 @@ public class Warehouse
     @Produces("application/json")
     public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
+	    if (checkAccess(managerPermissions) {
+		    
         // fetch db connection
         Connection connection = DbConnection.getConnection();
 
@@ -507,6 +549,10 @@ public class Warehouse
         JsonObject responseJson = Json.createObjectBuilder().add("message", "MIN_STOCK_VALUE_UPDATED").build();
 
         return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+		    
+		    } else {
+		    ServerLog.writeLog(“Cannot get permission”);
+	    }
     }
 
     @GET
@@ -514,8 +560,12 @@ public class Warehouse
     @Produces("application/json")
     //Assigns an order to a driver(basic) may require expanding based on driver class.
     public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId, @HeaderParam("driverId") String driverId){
-        int orderId = Integer.parseInt(_orderId);
+        
+	    if (checkAccess(managerPermissions) {
+	    
+	int orderId = Integer.parseInt(_orderId);
         Response.ResponseBuilder res = null;
+	    
 
         // fetch current dbConnection
         Connection connection = DbConnection.getConnection();
@@ -545,6 +595,10 @@ public class Warehouse
     	res = Response.status(Response.Status.OK).entity(responseJson.toString());
 
     	return res.build();
+		    
+		    } else {
+		    ServerLog.writeLog(“Cannot get permission”);
+	    }
     }
 
     @GET
@@ -552,6 +606,9 @@ public class Warehouse
     @Produces("application/json")
     //Method to get currently pending orders.
     public Response getCurrentPendingOrders(@HeaderParam("Authorization") String idToken) {
+	    
+	    if (checkAccess(warehousePermissions) {
+
         Response.ResponseBuilder res = null;
 
         Connection connection = DbConnection.getConnection();
@@ -629,4 +686,7 @@ public class Warehouse
 
         return res.build();
     }
-}
+		 } else {
+			 ServerLog.writeLog(“Cannot get permission”);
+		 }
+		}
