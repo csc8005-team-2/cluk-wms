@@ -447,7 +447,7 @@ public class Authorisation {
     @Path("/account/check-work-location")
     @GET
     @Produces("application/json")
-    public Response checkAccess(@HeaderParam("Authorization") String idToken, @HeaderParam("name") String name) {
+    public Response checkWorkLocation(@HeaderParam("Authorization") String idToken, @HeaderParam("name") String name) {
     	
     	Connection connection = DbConnection.getConnection();
 
