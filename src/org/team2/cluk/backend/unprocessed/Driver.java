@@ -7,7 +7,6 @@ import org.team2.cluk.backend.tools.ServerLog;
 import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.rmi.ServerError;
 import java.sql.*;
 
 import java.time.LocalDate;
