@@ -442,4 +442,46 @@ public class Authorisation {
 
         return Response.status(Response.Status.OK).entity(permissionsTable.toString()).build();
     }
+    
+    
+    @Path("/account/check-work-location")
+    @GET
+    @Produces("application/json")
+    public Response checkAccess(@HeaderParam("Authorization") String idToken, @HeaderParam("name") String name) {
+    	
+    	Connection connection = DbConnection.getConnection();
+
+        JsonArrayBuilder workLocationBuilder = Json.createArrayBuilder();
+
+        Statement statement = null;
+        String query = "SELECT workLocation FROM Accounts WHERE name = '"+name+"'";
+
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+
+            while(rs.next()){
+                JsonObjectBuilder workEntryBuilder = Json.createObjectBuilder();
+
+                String workLocation = rs.getString("workLocation");
+                
+                workEntryBuilder.add("workLocation", workLocation);
+
+                workLocationBuilder.add(workEntryBuilder);
+            }
+        } catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+
+        JsonArray workLocation =  workLocationBuilder.build();
+        return Response.status(Response.Status.OK).entity(workLocation.toString()).build();
+    }   
 }
