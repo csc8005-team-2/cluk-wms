@@ -1,4 +1,4 @@
-package org.team2.cluk.backend.webresources;
+﻿package org.team2.cluk.backend.webresources;
 
 import org.team2.cluk.backend.tools.DbConnection;
 import org.team2.cluk.backend.tools.JsonTools;
@@ -230,6 +230,79 @@ public class Warehouse
 	    }
     }
 
+    
+    
+    //Approve order method. Unsure if correct json usage.
+    @GET
+    @Path("/approve-order")
+    @Produces("application/json")
+    public Response approveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
+    {
+    	int orderId = Integer.parseInt(_orderId);
+        // fetch current db connection
+        Connection connection = DbConnection.getConnection();
+
+        Statement statement = null;
+        String query = "UPDATE StockOrders Set orderStatus = 'Approved' WHERE orderId = " + orderId;
+        
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+            ServerLog.writeLog("Order: "+orderId +" Aprroved")
+            }
+        } catch (SQLException e) {
+            ServerLog.writeLog("SQL exception occurred when executing query");
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+        JsonArray response = responseBuilder.build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build()
+    }
+
+    //Decline order method. Unsure if correct json usage.
+	@GET
+	@Path("/decline-order")
+	@Produces("application/json")
+	public Response declineOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
+	{
+		int orderId = Integer.parseInt(_orderId);
+		// fetch current db connection
+		Connection connection = DbConnection.getConnection();
+		
+		Statement statement = null;
+		String query = "UPDATE StockOrders Set orderStatus = 'Declined' WHERE orderId = " + orderId;
+		
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(query);
+			ServerLog.writeLog("Order: "+orderId +" Declined")
+		
+		} catch (SQLException e) {
+			ServerLog.writeLog("SQL exception occurred when executing query");
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
+		
+		JsonArray response = responseBuilder.build();
+		return Response.status(Response.Status.OK).entity(response.toString()).build()
+	}
+    
     @GET
     @Path("/send-order")
     @Produces("application/json")
@@ -252,8 +325,8 @@ public class Warehouse
 			
     		rs.next();
     		String orderStatus = rs.getString("orderStatus");
-    		if(!orderStatus.equalsIgnoreCase("Pending")){
-    			ServerLog.writeLog("Order has already been fulfilled.");
+    		if(!orderStatus.equalsIgnoreCase("Approved")){
+    			ServerLog.writeLog("Order has not been approved or has already been fulfilled.");
     			orderFulfilled = true;
     		}
     	} catch (SQLException e ) {
