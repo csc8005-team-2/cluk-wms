@@ -26,7 +26,7 @@ public class Restaurant {
 	@Produces("application/json")
     public Response getTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
-	    if (checkAccess(restaurantPermissions) {
+	    if (checkAccess(restaurantPermissions)) {
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
 
@@ -85,7 +85,7 @@ public class Restaurant {
 	//this method updates the stock for a restaurant when it has received an order.
     public Response receiveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("orderId") String _orderId) {
     	
-	    if (checkAccess(restaurantPermissions) {
+	    if (checkAccess(restaurantPermissions)) {
 	    
 	// HTTP header in Angular needs to be string, thus parsing added
     	int orderId = Integer.parseInt(_orderId);
@@ -305,7 +305,7 @@ public class Restaurant {
     //Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
     public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strOrderContents) {
 
-	    if (checkAccess(restaurantPermissions) {
+	    if (checkAccess(restaurantPermissions)) {
 	
     	// fetch current db connection
     	Connection connection = DbConnection.getConnection();
@@ -451,7 +451,7 @@ public class Restaurant {
 	@GET
     public Response requestStandardOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
-	    if (checkAccess(restaurantPermissions) {
+	    if (checkAccess(restaurantPermissions)) {
 	
     	// fetch db connection
 		Connection connection = DbConnection.getConnection();
@@ -491,6 +491,10 @@ public class Restaurant {
     	JsonArray standardOrderArray = standardOrderArrayBuilder.build();
 
 		return requestCustomOrder(idToken, restaurantAddress, standardOrderArray.toString());
+		    
+		    } else {
+		    ServerLog.writeLog(“Cannot get permission”);
+    }
     }
 	    			    		   
 
@@ -500,7 +504,10 @@ public class Restaurant {
 	@GET
 	@Produces("application/json")
     public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
-		// fetch db connection
+		
+	    if (checkAccess(managerPermissions)) {
+	    
+	    // fetch db connection
 		Connection connection = DbConnection.getConnection();
 
 		// create JsonArrayBuilder
@@ -561,7 +568,7 @@ public class Restaurant {
     @Consumes("application/json")
     public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strStockObject)
         {
-		if (checkAccess(managerPermissions) {
+		if (checkAccess(managerPermissions)) {
 	
         	// fetch db connection
             Connection connection = DbConnection.getConnection();
@@ -607,7 +614,7 @@ public class Restaurant {
 	@GET
 	public Response createMeal(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
 
-		if (checkAccess(restaurantPermissions) {
+		if (checkAccess(restaurantPermissions)) {
 	
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
@@ -716,7 +723,7 @@ public class Restaurant {
 	//Method to update restaurant stock allowing for manual adjustment of stock levels.
 	public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String requestBody)
 	{
-		if (checkAccess(managerPermissions) {
+		if (checkAccess(managerPermissions)) {
 	
 		Response.ResponseBuilder res = null;
 		Connection connection = DbConnection.getConnection();
@@ -798,7 +805,7 @@ public class Restaurant {
 	public Response getPrice(@HeaderParam("Authorization") String idToken, @HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
 		
-		if (checkAccess(restaurantPermissions) {
+		if (checkAccess(restaurantPermissions)) {
 
 		double price = -1;
 
