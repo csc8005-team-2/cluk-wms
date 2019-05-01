@@ -442,7 +442,23 @@ public class Authorisation {
 
         return Response.status(Response.Status.OK).entity(permissionsTable.toString()).build();
     }
-    
+
+    /**
+     * Overloaded checkAccess method for internal backend use
+     * @param idToken   ID token of the user whose permissions are checked
+     * @param level     level of access user is checked against
+     * @return  true if user has this level of access, false otherwise or if level not specified
+     */
+    public boolean checkAccess(String idToken, String level) {
+        final Response webResponse = checkAccess(idToken);
+        if (webResponse.getEntity() instanceof String) {
+            final String webResponseEntity = (String) webResponse.getEntity();
+            final JsonObject permissionJson = JsonTools.parseObject(webResponseEntity);
+            if (permissionJson.containsKey(level))
+                return permissionJson.getBoolean(level);
+        }
+        return false;
+    }
     
     @Path("/account/check-work-location")
     @GET
