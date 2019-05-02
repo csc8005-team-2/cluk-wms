@@ -53,66 +53,64 @@ public class Driver {
 	@Path("/add-driver-info")
 	@Produces("application/json")
 	//method to add a driver's information to the driver table
-	public void addDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody) throws SQLException {
+	public void addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody) throws SQLException {
+
+		if (!Authorisation.checkAccess(idToken, "warehouse")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
+
+		ServerLog.writeLog("Adding driver info to driver table ");
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		// parse request body
+		JsonArray infoToAdd = JsonTools.parseArray(requestBody);
+
+		boolean infoAddition = false;
+
+		for (JsonValue entry : infoToAdd) {
+			// check if array entry is a JSON
+			if (!(entry instanceof JsonObject)) {
+				ServerLog.writeLog("Driver info entry misspecified. Skipping entry!");
+				continue;
+			}
+
+			JsonObject entryObj = (JsonObject) entry;
+
+			// check if JSON correctly specified
+			if (!(entryObj.containsKey("firstName") && entryObj.containsKey("lastName") && entryObj.containsKey("id") && entryObj.containsKey("phoneNumber") && entryObj.containsKey("workDuration") /*&& entryObj.containsKey("region")*/)) {
+				ServerLog.writeLog("Driver entry misspecified. Skipping entry!");
+				continue;
+			}
+
+			firstName = entryObj.getString("firstName");
+			lastName = entryObj.getString("lastName");
+			int driverId = entryObj.getInt("id");
+			phoneNumber = entryObj.getString("phoneNumber");
+			workDuration = entryObj.getInt("workDuration");
+			//region = entryObj.getString("region");
 
 
-		if (checkAccess(warehousePermissions)) {
+			Statement statement = null;
+			String query = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, availability) " +
+					"SELECT '" + firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber
+			"', '" + workDuration /*+ "', '" + region*/ "')";
+			try {
+				statement = this.connection.createStatement();
+				statement.executeQuery(query);
+				ServerLog.writeLog("Driver information " + id + "has been added to the database");
+				infoAddition = true;
 
-			ServerLog.writeLog("Adding driver info to driver table ");
-			// fetch db connection
-			Connection connection = DbConnection.getConnection();
-			// parse request body
-			JsonArray infoToAdd = JsonTools.parseArray(requestBody);
-
-			boolean infoAddition = false;
-
-			for (JsonValue entry : infoToAdd) {
-				// check if array entry is a JSON
-				if (!(entry instanceof JsonObject)) {
-					ServerLog.writeLog("Driver info entry misspecified. Skipping entry!");
-					continue;
-				}
-
-				JsonObject entryObj = (JsonObject) entry;
-
-				// check if JSON correctly specified
-				if (!(entryObj.containsKey("firstName") && entryObj.containsKey("lastName") && entryObj.containsKey("id") && entryObj.containsKey("phoneNumber") && entryObj.containsKey("workDuration") /*&& entryObj.containsKey("region")*/)) {
-					ServerLog.writeLog("Driver entry misspecified. Skipping entry!");
-					continue;
-				}
-
-				firstName = entryObj.getString("firstName");
-				lastName = entryObj.getString("lastName");
-				int driverId = entryObj.getInt("id");
-				phoneNumber = entryObj.getString("phoneNumber");
-				workDuration = entryObj.getInt("workDuration");
-				//region = entryObj.getString("region");
-
-
-				Statement statement = null;
-				String query = "INSERT INTO Driver (firstName, lastName, id, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, availability) " +
-						"SELECT '" + firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber
-				"', '" + workDuration /*+ "', '" + region*/ "')";
-				try {
-					statement = this.connection.createStatement();
-					statement.executeQuery(query);
-					ServerLog.writeLog("Driver information " + id + "has been added to the database");
-					infoAddition = true;
-
-				} catch (SQLException e) {
-					e.printStackTrace();
-				} finally {
-					if (statement != null) {
-						try {
-							statement.close();
-						} catch (SQLException e) {
-							ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-						}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 					}
 				}
 			}
-		}else {
-			ServerLog.writeLog("Cannot get persmission");
 		}
 	}
 
@@ -120,9 +118,11 @@ public class Driver {
 	@POST
 	@Path("/remove-driver-info")
 	//method to remove a driver's information from the table
-	public void removeDriverInfo(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, String requestBody) throws SQLException {
+	public void removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, String requestBody) throws SQLException {
 
-		if (checkAccess(warehousePermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse")){
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 
 			ServerLog.writeLog("Removing driver info from driver table ");
 			// fetch db connection
@@ -159,8 +159,6 @@ public class Driver {
 					}
 				}
 			}
-		}else {
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -172,9 +170,11 @@ public class Driver {
 	//method to print a driver's first name using the driver's id
 	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id) throws SQLException{
 
-		if (checkAccess(warehousePermissions || restaurantPermissions || driverPermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 
-			ServerLog.writeLog("Requested the first name of driver" + id);
+		ServerLog.writeLog("Requested the first name of driver" + id);
 
 			if (id.isBlank()) {
 				ServerLog.writeLog("Rejected request as driver id not specified");
@@ -224,10 +224,6 @@ public class Driver {
 			JsonArray response = responseBuilder.build();
 
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
-		}else{
-			ServerLog.writeLog("Cannot get permission");
-		}
-
 	}
 
 	// method to update a driver's first name using the id and new first name
@@ -236,7 +232,9 @@ public class Driver {
 	@Consumes("application/json")
 	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("firstName") String firstName, String firstNameObject) throws SQLException{
 
-		if (checkAccess(warehousePermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse")){
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 
 			ServerLog.writeLog("Requested an update of the first name of driver" + id);
 			// fetch db connection
@@ -263,8 +261,6 @@ public class Driver {
 					statement.close();
 				}
 			}
-		}else {
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -276,7 +272,9 @@ public class Driver {
 	//method to print a driver's last name using the driver's id
 	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id) throws SQLException{
 
-		if (checkAccess(warehousePermissions || restaurantPermissions || driverPermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 
 			ServerLog.writeLog("Requested the last name of driver" + id);
 
@@ -328,8 +326,6 @@ public class Driver {
 			JsonArray response = responseBuilder.build();
 
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
-		}else {
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -339,7 +335,9 @@ public class Driver {
 	@Consumes("application/json")
 	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("lastName") String lastName, String lastNameObject) throws SQLException{
 
-		if (checkAccess(warehousePermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 
 			ServerLog.writeLog("Requested an update of the last name of driver" + id);
 			// fetch db connection
@@ -366,8 +364,6 @@ public class Driver {
 					statement.close();
 				}
 			}
-		}else{
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -378,9 +374,11 @@ public class Driver {
 	@Produces("application/json")
 
 	//method to print a driver's phone number using id
-	public Response getPhoneNumber(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id) throws SQLException{
+	public Response getPhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id) throws SQLException{
 
-		if (checkAccess(warehousePermissions || restaurantPermissions || driverPermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 
 			ServerLog.writeLog("Requested the phone number of driver " + id);
 
@@ -429,8 +427,6 @@ public class Driver {
 			JsonArray response = responseBuilder.build();
 
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
-		}else{
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -440,7 +436,9 @@ public class Driver {
 	@Consumes("application/json")
 	public Response updatePhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, String phoneNumberObject) throws SQLException{
 
-		if (checkAccess(warehousePermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 			ServerLog.writeLog("Requested an update of the phone number of driver" + id);
 
 			// fetch db connection
@@ -467,8 +465,6 @@ public class Driver {
 					statement.close();
 				}
 			}
-		}else{
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -477,9 +473,11 @@ public class Driver {
 	@Produces("application/json")
 
 	//method to print a driver's current work duration
-	public Response getWorkDuration(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
+	public Response getWorkDuration(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
 
-		if (checkAccess(warehousePermissions || restaurantPermissions || driverPermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 			ServerLog.writeLog("Requested information on work duration of driver of " + id);
 
 			if (id.isBlank()) {
@@ -530,8 +528,6 @@ public class Driver {
 			JsonArray response = responseBuilder.build();
 
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
-		}else {
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -543,9 +539,11 @@ public class Driver {
 	//the max which means that the driver can only take one break per day which happens after the they have worked
 	//270 mins = 4.5 hours and obviosuly the driver cannot go on break unless their workDuration reaches 270 mins.
 
-	public Response goOnBreak(@HeaderParam("Authorization") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
+	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, @HeaderParam("w") WorkingHours w) throws SQLException{
 
-		if (checkAccess(warehousePermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 			// fetch current db connection
 			Connection connection = DbConnection.getConnection();
 
@@ -618,8 +616,6 @@ public class Driver {
 
 				return response.build();
 			}
-		}else {
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
@@ -630,9 +626,11 @@ public class Driver {
 	// getting the restaurantAddress from Restaurant table that matches the one in orders table where the region is north
 	//and south individually
 
-	public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, String requestBody) {
+	public Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken, String requestBody) {
 
-		if (checkAccess(warehousePermissions)) {
+		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		}
 
 			Response.ResponseBuilder res = null;
 			Connection connection = DbConnection.getConnection();
@@ -719,8 +717,6 @@ public class Driver {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		}else {
-			ServerLog.writeLog("Cannot get permission");
 		}
 	}
 
