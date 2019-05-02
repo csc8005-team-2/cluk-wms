@@ -42,6 +42,31 @@ import java.util.Scanner;
  * @version 27/04/2019
  */
 public class StartServer {
+    public static void printHelp() {
+        final String helpInfo = "CLUK Warehouse Management System\n" +
+                "Backend Module, version 1.0\n\n" +
+                "In order to start server, provide path to the configuration file after '--config' parameter.\n\n" +
+                "Structure of the config file:\n" +
+                "{\"hostname\": string /*optional, localhost by default*/,\n" +
+                "\"port\" number /*optional, 80 or 443 by default, depending whether keystore provided*/,\n" +
+                "\"keystore\": string /*optional*/,\n" +
+                "\"keystorePassword\": string /*optional*/,\n" +
+                "\"dbURI\": string,\n" +
+                "\"dbUsername\": string,\n" +
+                "\"dbPassword\": string}\n\n" +
+                "where:\n" +
+                "hostname - FQDN under which server will be available,\n" +
+                "port - port number under which server will be available,\n" +
+                "keystore - path to Java Keystore file containing SSL certificate; required for launching server in HTTPS mode,\n" +
+                "keystorePassword - password to the Java Keystore file provided above,\n" +
+                "dbURI - URI of the database in MySQL Connector/J format, e.g.: jdbc:mysql://example.com/cluk-schema,\n" +
+                "dbUsername - username for database access,\n" +
+                "dbPassword - password for database access.\n";
+
+        System.out.println(helpInfo);
+
+    }
+
     public static void main(String[] args) {
         boolean useSsl = false;
 
@@ -61,6 +86,7 @@ public class StartServer {
         // check if config file provided
         if (!arguments.contains("--config") || arguments.indexOf("--config") == arguments.size()-1) {
             ServerLog.writeLog("No configuration file provided");
+            printHelp();
             System.exit(0);
         }
 
@@ -174,5 +200,6 @@ public class StartServer {
             }
         }
         ServerLog.writeLog("Server running on " + listeningUri + " listening on port " + listeningPort);
+        ServerLog.writeLog("Press Ctrl+C to stop server.");
     }
 }
