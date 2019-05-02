@@ -30,7 +30,7 @@ import java.util.Scanner;
 /**
  * Class containing main class used to start the server. Server configuration provided as JSON file using --config parameter.
  * JSON format:
- *      {"hostname: string (optional), "port" number (optional), "keystore": string (optional), "keystorePassword": string (optional),
+ *      {"hostname": string (optional), "port" number (optional), "keystore": string (optional), "keystorePassword": string (optional),
  *      "dbURI": string, "dbUsername": string, "dbPassword": string}
  * <p><b>TO DO:</b></p>
  * <p><ol><li>
