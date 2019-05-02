@@ -208,7 +208,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
-    public synchronized void refreshPermissions(String username) {
+    public static synchronized void refreshPermissions(String username) {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
 
@@ -449,14 +449,18 @@ public class Authorisation {
      * @param level     level of access user is checked against
      * @return  true if user has this level of access, false otherwise or if level not specified
      */
-    public boolean checkAccess(String idToken, String level) {
-        final Response webResponse = checkAccess(idToken);
-        if (webResponse.getEntity() instanceof String) {
-            final String webResponseEntity = (String) webResponse.getEntity();
-            final JsonObject permissionJson = JsonTools.parseObject(webResponseEntity);
-            if (permissionJson.containsKey(level))
-                return permissionJson.getBoolean(level);
-        }
+    public static boolean checkAccess(String idToken, String level) {
+    	refreshPermissions(userTokens.get(idToken));
+
+        if (level.contentEquals("restaurant") && restaurantPermissions.contains(idToken))
+        	return true;
+        
+        if (level.contentEquals("warehouse") && warehousePermissions.contains(idToken))
+        	return true;
+        
+        if (level.contentEquals("driver") && driverPermissions.contains(idToken))
+        	return true;
+        
         return false;
     }
     

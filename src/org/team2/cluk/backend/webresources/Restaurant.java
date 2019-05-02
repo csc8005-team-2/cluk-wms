@@ -26,7 +26,9 @@ public class Restaurant {
 	@Produces("application/json")
     public Response getTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
-	    if (checkAccess(restaurantPermissions)) {
+	    if (!Authorisation.checkAccess(idToken, "restaurant")) {
+	    	return Response.status(Response.Status.UNAUTHORIZED).entity("").build();
+	    } 
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
 
