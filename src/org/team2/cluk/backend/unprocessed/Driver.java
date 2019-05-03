@@ -50,7 +50,7 @@ public class Driver {
 	@Path("/add-driver-info")
 	@Produces("application/json")
 	//method to add a driver's information to the driver table
-	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("driverId") int driverId, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody){
+	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("driverId") Integer driverId, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -115,7 +115,7 @@ public class Driver {
 	@POST
 	@Path("/remove-driver-info")
 	//method to remove a driver's information from the table
-	public Response removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId, String requestBody){
+	public Response removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, String requestBody){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -168,7 +168,7 @@ public class Driver {
 	@Produces("application/json")
 
 	//method to print a driver's first name using the driver's id
-	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId) throws SQLException{
+	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -176,7 +176,7 @@ public class Driver {
 
 		ServerLog.writeLog("Requested the first name of driver" + driverId);
 
-			if (driverId.isBlank()) {
+			if (driverId == null) {
 				ServerLog.writeLog("Rejected request as driver id not specified");
 				return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
 			}
@@ -230,7 +230,7 @@ public class Driver {
 	@Path("/update-first-name")
 	@POST
 	@Consumes("application/json")
-	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId, @HeaderParam("firstName") String firstName, String firstNameObject) throws SQLException{
+	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("firstName") String firstName, String firstNameObject){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -269,7 +269,7 @@ public class Driver {
 	@Produces("application/json")
 
 	//method to print a driver's last name using the driver's id
-	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId) throws SQLException{
+	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -277,7 +277,7 @@ public class Driver {
 
 			ServerLog.writeLog("Requested the last name of driver" + driverId);
 
-			if (driverId.isBlank()) {
+			if (driverId == null) {
 				ServerLog.writeLog("Rejected request as driverId not specified");
 				return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
 			}
@@ -331,7 +331,7 @@ public class Driver {
 	@Path("/update-last-name")
 	@POST
 	@Consumes("application/json")
-	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId, @HeaderParam("lastName") String lastName, String lastNameObject) throws SQLException{
+	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("lastName") String lastName, String lastNameObject){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -370,7 +370,7 @@ public class Driver {
 	@Produces("application/json")
 
 	//method to print a driver's phone number using driverId
-	public Response getPhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId) throws SQLException{
+	public Response getPhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -378,7 +378,7 @@ public class Driver {
 
 			ServerLog.writeLog("Requested the phone number of driver " + driverId);
 
-			if (driverId.isBlank()) {
+			if (driverId == null ) {
 				ServerLog.writeLog("Rejected request as driverId not specified");
 				return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
 			}
@@ -398,7 +398,7 @@ public class Driver {
 				while (rs.next()) {
 					JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
-					String PhoneNumber = rs.getString("phoneNumber");
+					String phoneNumber = rs.getString("phoneNumber");
 
 					arrayEntryBuilder.add("phoneNumber", phoneNumber);
 
@@ -429,7 +429,7 @@ public class Driver {
 	@Path("/update-phone-number")
 	@POST
 	@Consumes("application/json")
-	public Response updatePhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId, @HeaderParam("phoneNumber") String phoneNumber, String phoneNumberObject) throws SQLException{
+	public Response updatePhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("phoneNumber") String phoneNumber, String phoneNumberObject) throws SQLException{
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -467,14 +467,14 @@ public class Driver {
 	@Produces("application/json")
 
 	//method to print a driver's current work duration
-	public Response getWorkDuration(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId, @HeaderParam("w") WorkingHours w) throws SQLException{
+	public Response getWorkDuration(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 			ServerLog.writeLog("Requested information on work duration of driver of " + driverId);
 
-			if (driverId.isBlank()) {
+			if (driverId == null) {
 				ServerLog.writeLog("Rejected request as driverId not specified");
 				return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
 			}
@@ -532,7 +532,7 @@ public class Driver {
 	//the max which means that the driver can only take one break per day which happens after the they have worked
 	//270 mins = 4.5 hours and obviosuly the driver cannot go on break unless their workDuration reaches 270 mins.
 
-	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") int driverId, @HeaderParam("w") WorkingHours w) throws SQLException{
+	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w) throws SQLException{
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -634,7 +634,7 @@ public class Driver {
 			}
 
 			int orderId = requestJson.getInt("orderId");
-			int driverId = requestJson.getInt("driverId");
+			Integer driverId = requestJson.getInt("driverId");
 
 			//get today's date
 			LocalDate date = getLocalDate();
@@ -682,8 +682,7 @@ public class Driver {
 									Statement statement3 = null;
 									String query3 = "SELECT restaurantAddress" +
 											"FROM Restaurant " +
-											"WHERE restaurantAddress = '" + restaurantAddressOrdersTable /*+ " AND region= south*/
-									'";
+											"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + "'";
 									try {
 										statement3 = DbConnection.getConnection().createSatement();
 										ResultSet rs3 = statement3.executeQuery(query3);
@@ -887,7 +886,7 @@ public class Driver {
 
 		ServerLog.writeLog("Requested information on region of driver " + id);
 
-		if (id.isBlank()) {
+		if (id.equals(null)) {
 			ServerLog.writeLog("Rejected request as driver's id not specified");
 			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
 		}
