@@ -268,49 +268,43 @@ public class Warehouse
     }
 
     //Decline order method. Unsure if correct json usage.
-	@GET
-	@Path("/decline-order")
-	@Produces("application/json")
-	public Response declineOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
-	{
-		// if (checkAccess(managerPermissions)) {
-
-        JsonObjectBuilder responseBuilder = Json.createObjectBuilder();
-		
-		int orderId = Integer.parseInt(_orderId);
-		// fetch current db connection
-		Connection connection = DbConnection.getConnection();
-		
-		Statement statement = null;
-		String query = "UPDATE StockOrders Set orderStatus = 'Declined' WHERE orderId = " + orderId;
-		
-		try {
-			statement = connection.createStatement();
-			statement.executeUpdate(query);
-			responseBuilder.add("message", "DECLINE_SUCCESSFUL");
-			ServerLog.writeLog("Order: "+orderId +" Declined");
-		
-		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
-			}
-		}
-		
-		JsonObject response = responseBuilder.build();
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-			
-			
-		 
-	}
+    @GET
+    @Path("/decline-order")
+    @Produces("application/json")
+    public Response declineOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
+    {
+    	int orderId = Integer.parseInt(_orderId);
+   	Response.ResponseBuilder res = null;
+   	Connection connection = DbConnection.getConnection();
+   		
+   	Statement statement = null;
+   	String query = "UPDATE StockOrders Set orderStatus = 'Declined' WHERE orderId = " + orderId;
+   		
+   	try {
+   		statement = connection.createStatement();
+   		statement.executeUpdate(query);
+   		ServerLog.writeLog("Order: "+orderId +" Declined");
+   			
+   		res = Response.status(Response.Status.OK).entity("DECLINED_ORDER");
+   		
+   	 } catch (SQLException e) {
+   		ServerLog.writeLog("SQL exception occurred when executing query");
+   		e.printStackTrace();
+   		res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query");
+   	 } finally {
+   		if (statement != null) {
+   			try {
+   				statement.close();
+   			} catch (SQLException e) {
+   				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+   			}
+   		}
+   	}
+  	return res.build();  		 
+    }
     
+	
+	
     @GET
     @Path("/send-order")
     @Produces("application/json")
