@@ -3,7 +3,7 @@
 
 <mat-form-field>
   <mat-select #itemInput placeholder="Stock Item">
-    <mat-option *ngFor="let item of availableIngredients" [value]="item.stockItem" required>
+    <mat-option *ngFor="let item of availableStock" [value]="item.stockItem" required>
       {{item.stockItem}}
     </mat-option>
   </mat-select>

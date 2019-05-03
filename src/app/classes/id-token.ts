@@ -1,3 +1,4 @@
 export interface IdToken {
-    idToken: string
-  }
+    idToken: string;
+    location: string;
+}
