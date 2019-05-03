@@ -226,91 +226,80 @@ public class Warehouse
 
     
     
-    //Approve order method. Unsure if correct json usage.
+    //Decline order method. Unsure if correct json usage.
     @GET
     @Path("/approve-order")
     @Produces("application/json")
     public Response approveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
     {
-	    
-	    // if (checkAccess(managerPermissions)) {
-        JsonObjectBuilder responseBuilder = Json.createObjectBuilder();
-
     	int orderId = Integer.parseInt(_orderId);
-        // fetch current db connection
-        Connection connection = DbConnection.getConnection();
-
-        Statement statement = null;
-        String query = "UPDATE StockOrders Set orderStatus = 'Approved' WHERE orderId = " + orderId;
-        
-        try {
-            statement = connection.createStatement();
-            statement.executeUpdate(query);
-            responseBuilder.add("message", "APPROVAL_SUCCESSFUL");
-            ServerLog.writeLog("Order: "+orderId +" Approved");
-        } catch (SQLException e) {
-            ServerLog.writeLog("SQL exception occurred when executing query");
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-                }
-            }
-        }
-        JsonObject response = responseBuilder.build();
-        return Response.status(Response.Status.OK).entity(response.toString()).build();
-		
-		 
+   	Response.ResponseBuilder res = null;
+   	Connection connection = DbConnection.getConnection();
+   		
+   	Statement statement = null;
+   	String query = "UPDATE StockOrders Set orderStatus = 'Approved' WHERE orderId = " + orderId;
+   		
+   	try {
+   		statement = connection.createStatement();
+   		statement.executeUpdate(query);
+   		ServerLog.writeLog("Order: "+orderId +" Approved");
+   			
+   		res = Response.status(Response.Status.OK).entity("APPROVED_ORDER");
+   		
+   	 } catch (SQLException e) {
+   		ServerLog.writeLog("SQL exception occurred when executing query");
+   		e.printStackTrace();
+   		res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query");
+   	 } finally {
+   		if (statement != null) {
+   			try {
+   				statement.close();
+   			} catch (SQLException e) {
+   				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+   			}
+   		}
+   	}
+  	return res.build();  		 
     }
 
     //Decline order method. Unsure if correct json usage.
-	@GET
-	@Path("/decline-order")
-	@Produces("application/json")
-	public Response declineOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
-	{
-		// if (checkAccess(managerPermissions)) {
-
-        JsonObjectBuilder responseBuilder = Json.createObjectBuilder();
-		
-		int orderId = Integer.parseInt(_orderId);
-		// fetch current db connection
-		Connection connection = DbConnection.getConnection();
-		
-		Statement statement = null;
-		String query = "UPDATE StockOrders Set orderStatus = 'Declined' WHERE orderId = " + orderId;
-		
-		try {
-			statement = connection.createStatement();
-			statement.executeUpdate(query);
-			responseBuilder.add("message", "DECLINE_SUCCESSFUL");
-			ServerLog.writeLog("Order: "+orderId +" Declined");
-		
-		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
-			}
-		}
-		
-		JsonObject response = responseBuilder.build();
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-			
-			
-		 
-	}
+    @GET
+    @Path("/decline-order")
+    @Produces("application/json")
+    public Response declineOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
+    {
+    	int orderId = Integer.parseInt(_orderId);
+   	Response.ResponseBuilder res = null;
+   	Connection connection = DbConnection.getConnection();
+   		
+   	Statement statement = null;
+   	String query = "UPDATE StockOrders Set orderStatus = 'Declined' WHERE orderId = " + orderId;
+   		
+   	try {
+   		statement = connection.createStatement();
+   		statement.executeUpdate(query);
+   		ServerLog.writeLog("Order: "+orderId +" Declined");
+   			
+   		res = Response.status(Response.Status.OK).entity("DECLINED_ORDER");
+   		
+   	 } catch (SQLException e) {
+   		ServerLog.writeLog("SQL exception occurred when executing query");
+   		e.printStackTrace();
+   		res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query");
+   	 } finally {
+   		if (statement != null) {
+   			try {
+   				statement.close();
+   			} catch (SQLException e) {
+   				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+   			}
+   		}
+   	}
+  	return res.build();  		 
+    }
     
+	
+	
     @GET
     @Path("/send-order")
     @Produces("application/json")
@@ -755,4 +744,121 @@ public class Warehouse
 
         return res.build();
 		}
+	
+	
+	
+	
+	
+	@GET
+	@Path("/warehouse-graph")
+	@Produces("application/json")
+	//Outputs data to plot graphs for stock sent by warehouse
+	public Response warehouseGraph(@HeaderParam("Authorization") String idToken, @HeaderParam("stockItem") String stockItem, @HeaderParam("type") String type)
+        {
+		ServerLog.writeLog("Requested warehouse graphing data.");
+		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+		Connection connection = DbConnection.getConnection();
+		
+        Statement statement = null;
+        String query = "SELECT restaurantAddress FROM Restaurants";
+                       
+        try {
+        	statement = connection.createStatement();
+        	ResultSet rs = statement.executeQuery(query);
+        	
+        	while (rs.next()) {
+        		String restaurant = rs.getString("restaurantAddress");
+        		
+        		Statement statement2 = null;
+                String query2 = "SELECT orderId FROM Orders where restaurantAddress ='"+restaurant+"'";
+                int total=0;
+                
+                try {
+                	statement2 = connection.createStatement();
+                	ResultSet rs2 = statement2.executeQuery(query2);
+                	
+                	while (rs2.next()) {
+                		int orderId = rs2.getInt("orderId");
+                		
+                		java.util.Date orderDate = new java.util.Date();
+                    	java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                    	String currentTime = sdf.format(orderDate);
+                    	
+                    	Calendar cal = Calendar.getInstance();
+                    	
+                    	if(type.equalsIgnoreCase("year")) {
+                    		cal.add(Calendar.YEAR, -1);
+                    	}else if (type.equalsIgnoreCase("month")) {
+                    		cal.add(Calendar.MONTH, -1);
+                    	}else if (type.equalsIgnoreCase("week")) {
+                    		cal.add(Calendar.DAY_OF_MONTH, -7);
+                    	}else if (type.equalsIgnoreCase("day")) {
+                    		cal.add(Calendar.DAY_OF_MONTH, -1);
+                    	}
+                    	
+                    	Date result = cal.getTime();
+                    	String timeBack = sdf.format(result);
+                    		
+                    	
+                		Statement statement3 = null;
+                        String query3 = "SELECT orderId FROM StockOrders where orderId ="+orderId+" AND (orderDeliveryDate BETWEEN '"+timeBack+"' AND '"+currentTime+"')";
+               
+                        try {
+                        	statement3 = connection.createStatement();
+                        	ResultSet rs3 = statement3.executeQuery(query3);
+        		
+                        	while (rs3.next()) {
+                        		orderId = rs3.getInt("orderId");
+                        		
+                        		
+                        		Statement statement4 = null;
+                                String query4 = "SELECT quantity FROM Contains where orderId ="+orderId+" AND stockItem = '"+stockItem+"'";
+                        		
+                                try {
+                                	statement4 = connection.createStatement();
+                                	ResultSet rs4 = statement4.executeQuery(query4);
+                                	int quantity=0;
+                                	
+                                	while (rs4.next()) {
+                                		quantity = rs4.getInt("quantity");
+                                		total=total+quantity;	
+                                	}
+                                	
+                                } catch (SQLException e ) {
+                                    e.printStackTrace();
+                                } finally {
+                                    if (statement4 != null) {statement4.close();}
+                                }
+                        	}
+                        } catch (SQLException e ) {
+                            e.printStackTrace();
+                        } finally {
+                            if (statement3 != null) {statement3.close();}
+                        }
+                	}
+                } catch (SQLException e ) {
+                    e.printStackTrace();
+                } finally {
+                    if (statement2 != null) {statement2.close();}
+                }
+                
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+                arrayEntryBuilder.add("Quantity", total);
+                arrayEntryBuilder.add("Restaurant", restaurant);
+                
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+                   
+        	}
+        }catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {statement.close();}
+        } 
+        
+        JsonArray response = responseBuilder.build();
+
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
+        
+    }
 }

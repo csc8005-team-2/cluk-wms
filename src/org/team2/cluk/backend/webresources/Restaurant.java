@@ -673,6 +673,7 @@ public class Restaurant {
 			try {
 				statement = connection.createStatement();
 				statement.executeUpdate(query);
+				
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
@@ -684,6 +685,25 @@ public class Restaurant {
 					}
 				}
 			}
+			
+			java.util.Date mealDate = new java.util.Date();
+			statement2 = null
+			query2 = "INSERT INTO purchaseHistory(mealId, dateTime, restaurantAddress) VALUES("+meal+", "+mealDate+", "restaurantAddress);
+			try {
+				statement2 = connection.createStatement();
+				statement2.executeUpdate(query2);
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement2 != null) {
+					try {
+						statement2.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}	
 		}
 		ServerLog.writeLog("Item: "+meal+" created.\n");
 
