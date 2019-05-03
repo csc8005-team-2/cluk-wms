@@ -6,7 +6,6 @@ export interface OrderStockObject {
   orderAmount: number;
 }
 
-
 @Component({
   selector: 'app-order-stock',
   templateUrl: './order-stock.component.html',

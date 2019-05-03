@@ -18,7 +18,7 @@ import { WarehouseManagerComponent } from './components/warehouse/warehouse-mana
 import { WarehouseStockRemoveComponent } from './components/warehouse/warehouse-stock-remove/warehouse-stock-remove.component';
 import { QueryStockComponent } from './components/restaurant/query-stock/query-stock.component';
 import { ReceiveStockComponent } from './components/restaurant/receive-stock/receive-stock.component';
-import { OrderStockComponent } from './components/restaurant/order-stock/order-stock.component';
+//import { OrderStockComponent } from './components/restaurant/order-stock/order-stock.component';
 import { RestaurantManagerComponent } from './components/restaurant/restaurant-manager/restaurant-manager.component';
 import { RestaurantStockRemoveComponent } from './components/restaurant/restaurant-stock-remove/restaurant-stock-remove.component';
 
