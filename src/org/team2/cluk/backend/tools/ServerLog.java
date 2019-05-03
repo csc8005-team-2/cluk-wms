@@ -11,7 +11,9 @@ import java.util.Date;
  */
 public class ServerLog {
     private static ArrayList<String> log = new ArrayList<>();
-
+/*
+ * This method can use to add log for the system.This class can ensure logs are working for the system.
+ */
     public static void writeLog(String msg) {
         Date currentDateTime = new Date();
         String logEntry = "[" + currentDateTime + "] " + msg;
