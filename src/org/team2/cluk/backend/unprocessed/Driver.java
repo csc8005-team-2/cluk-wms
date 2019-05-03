@@ -3,6 +3,7 @@ package org.team2.cluk.backend.unprocessed;
 import org.team2.cluk.backend.tools.DbConnection;
 import org.team2.cluk.backend.tools.JsonTools;
 import org.team2.cluk.backend.tools.ServerLog;
+import org.team2.cluk.backend.webresources.Authorisation;
 
 import javax.json.*;
 import javax.ws.rs.*;
@@ -13,8 +14,6 @@ import java.time.LocalDate;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.sql.*;
-import java.util.HashMap;
 
 @Path("/driver")
 
@@ -53,7 +52,7 @@ public class Driver {
 	@Path("/add-driver-info")
 	@Produces("application/json")
 	//method to add a driver's information to the driver table
-	public void addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody) throws SQLException {
+	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("id") int id, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody) throws SQLException {
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -95,7 +94,7 @@ public class Driver {
 					"SELECT '" + firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber
 			"', '" + workDuration /*+ "', '" + region*/ "')";
 			try {
-				statement = this.connection.createStatement();
+				statement = DbConnection.getConnection().createStatement();
 				statement.executeQuery(query);
 				ServerLog.writeLog("Driver information " + id + "has been added to the database");
 				infoAddition = true;
@@ -112,13 +111,14 @@ public class Driver {
 				}
 			}
 		}
+		///return null;
 	}
 
 
 	@POST
 	@Path("/remove-driver-info")
 	//method to remove a driver's information from the table
-	public void removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, String requestBody) throws SQLException {
+	public Response removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("id") int id, String requestBody) throws SQLException {
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -142,7 +142,7 @@ public class Driver {
 				String query = "DELETE FROM Driver WHERE id = '" + id + "'";
 
 				try {
-					statement = this.connection.createStatement();
+					statement = DbConnection.getConnection().createStatement();
 					statement.executeUpdate(query);
 					ServerLog.writeLog("Driver information id " + id + "has been removed from the database");
 					infoRemoval = true;
@@ -160,6 +160,7 @@ public class Driver {
 				}
 			}
 		}
+		// return Response OK if everything is alright
 	}
 
 
@@ -191,7 +192,7 @@ public class Driver {
 					"WHERE id ='" + id + "'";
 
 			try {
-				statement = Dbconnection.getConnection().createStatement();
+				statement = DbConnection.getConnection().createStatement();
 				ResultSet rs = statement.executeQuery(query);
 				while (rs.next()) {
 					JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
@@ -262,7 +263,6 @@ public class Driver {
 				}
 			}
 		}
-	}
 
 
 	@GET
@@ -327,7 +327,6 @@ public class Driver {
 
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 		}
-	}
 
 	// method to update a driver's phone number
 	@Path("/update-last-name")
@@ -365,8 +364,6 @@ public class Driver {
 				}
 			}
 		}
-	}
-
 
 
 	@GET
@@ -428,7 +425,6 @@ public class Driver {
 
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 		}
-	}
 
 	// method to update a driver's phone number
 	@Path("/update-phone-number")
@@ -466,8 +462,6 @@ public class Driver {
 				}
 			}
 		}
-	}
-
 	@GET
 	@Path("/get-work-duration")
 	@Produces("application/json")
@@ -529,7 +523,6 @@ public class Driver {
 
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 		}
-	}
 
 	@POST
 	@Path("go-on-break")
@@ -554,7 +547,7 @@ public class Driver {
 
 			//check if driver has worked 4.5 hours before going on break
 			boolean goOnBreak = false;
-			while (goOnBreak == false && workDuration < maxWorkDuration) {
+			while (!goOnBreak && workDuration < maxWorkDuration) {
 				//4.5hours = 270mins
 				if (workDuration == 270) {
 
@@ -581,7 +574,7 @@ public class Driver {
 
 						try {
 							statement = DbConnection.getConnection();
-							statement.executeUpdate(query14);
+							statement.executeUpdate(query);
 							ServerLog.writeLog("Updated work Duration for Driver " + id + "is" + newWorkDuration + " after going on break");
 							goOnBreak = true;
 
@@ -617,7 +610,6 @@ public class Driver {
 				return response.build();
 			}
 		}
-	}
 
 	@Path("/assign-order-to-driver")
 	@POST
