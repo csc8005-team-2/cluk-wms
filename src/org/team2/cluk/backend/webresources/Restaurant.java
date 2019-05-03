@@ -670,9 +670,6 @@ public class Restaurant {
 
 			statement = null;
 			query = "UPDATE Within set quantity =quantity-" + quantity + " WHERE stockItem='" + stockItem + "' AND restaurantAddress ='" + restaurantAddress + "'";
-			java.util.Date mealDate = new java.util.Date();
-			statement2 = null
-			query2 = "INSERT INTO purchaseHistory(mealId, dateTime, restaurantAddress) VALUES("+meal+", "+mealDate+", "restaurantAddress);
 			try {
 				statement = connection.createStatement();
 				statement.executeUpdate(query);
