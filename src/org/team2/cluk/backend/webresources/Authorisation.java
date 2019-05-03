@@ -418,7 +418,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(staffInfo.toString()).build();
     }
 
-    @Path("/account/check-access")
+    @Path("/accounts/check-access")
     @GET
     @Produces("application/json")
     public Response checkAccess(@HeaderParam("Authorization") String idToken) {
@@ -464,7 +464,7 @@ public class Authorisation {
         return false;
     }
     
-    @Path("/account/check-work-location")
+    @Path("/accounts/check-work-location")
     @GET
     @Produces("application/json")
     public Response checkWorkLocation(@HeaderParam("Authorization") String idToken, @HeaderParam("name") String name) {
@@ -485,7 +485,7 @@ public class Authorisation {
 
                 String workLocation = rs.getString("workLocation");
                 
-                workEntryBuilder.add("workLocation", workLocation);
+                workEntryBuilder.add("message", workLocation);
 
                 workLocationBuilder.add(workEntryBuilder);
             }
