@@ -128,7 +128,7 @@ public class Authorisation {
             outputJsonBuilder.add("idToken", newIdToken);
             JsonObject outputJson = outputJsonBuilder.build();
             // return token to the user on successful login
-            res = Response.status(Response.Status.OK).entity(outputJson);
+            res = Response.status(Response.Status.OK).entity(outputJson.toString());
         } else res = Response.status(Response.Status.UNAUTHORIZED).entity("WRONG_CREDENTIALS");
 
         return res.build();
