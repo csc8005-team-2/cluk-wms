@@ -796,7 +796,6 @@ public class Warehouse
                     		cal.add(Calendar.DAY_OF_MONTH, -1);
                     	}
                     	
-                    	cal.add(Calendar.MONTH, -1);
                     	Date result = cal.getTime();
                     	String timeBack = sdf.format(result);
                     		
