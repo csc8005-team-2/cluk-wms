@@ -85,8 +85,11 @@ public class Authorisation {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
 
+        // initialise variable for storing work location
+        String location = "";
+
         Statement statement = null;
-        String query = "SELECT username, password " +
+        String query = "SELECT username, password, workLocation " +
                 "FROM Accounts " +
                 "WHERE username ='" + username + "'";
         try {
@@ -94,8 +97,10 @@ public class Authorisation {
             ResultSet rs = statement.executeQuery(query);
             if (rs.next()) {
                 String storedHash = rs.getString("password");
-                if (passwordHash.equals(storedHash))
+                if (passwordHash.equals(storedHash)) {
                     loginSuccessful = true;
+                    location = rs.getString("workLocation");
+                }
             }
         } catch (SQLException e) {
             ServerLog.writeLog("Error verifying user " + username + "credentials");
@@ -126,6 +131,7 @@ public class Authorisation {
             // generate output JSON
             JsonObjectBuilder outputJsonBuilder = Json.createObjectBuilder();
             outputJsonBuilder.add("idToken", newIdToken);
+            outputJsonBuilder.add("location", location);
             JsonObject outputJson = outputJsonBuilder.build();
             // return token to the user on successful login
             res = Response.status(Response.Status.OK).entity(outputJson.toString());
