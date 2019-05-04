@@ -8,6 +8,7 @@ import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -796,7 +797,7 @@ public class Warehouse
                     		cal.add(Calendar.DAY_OF_MONTH, -1);
                     	}
                     	
-                    	Date result = cal.getTime();
+                    	java.util.Date result = cal.getTime();
                     	String timeBack = sdf.format(result);
                     		
                     	
@@ -853,7 +854,13 @@ public class Warehouse
         }catch (SQLException e ) {
             e.printStackTrace();
         } finally {
-            if (statement != null) {statement.close();}
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
         } 
         
         JsonArray response = responseBuilder.build();
