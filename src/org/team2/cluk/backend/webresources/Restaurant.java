@@ -687,8 +687,8 @@ public class Restaurant {
 			}
 			
 			java.util.Date mealDate = new java.util.Date();
-			statement2 = null
-			query2 = "INSERT INTO purchaseHistory(mealId, dateTime, restaurantAddress) VALUES("+meal+", "+mealDate+", "restaurantAddress);
+			Statement statement2 = null;
+			String query2 = "INSERT INTO purchaseHistory(mealId, dateTime, restaurantAddress) VALUES("+meal+", "+mealDate+", "+restaurantAddress+")";
 			try {
 				statement2 = connection.createStatement();
 				statement2.executeUpdate(query2);
