@@ -1,8 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { DataSourceFromTable } from '../../../classes/table-data-source';
 import {StockItem} from '../../../classes/stock-item';
 import {SessionService} from '../../../services/session.service';
 import {StockName} from '../../../classes/stock-name';
+import {MatTableDataSource} from '@angular/material';
 
 @Component({
   selector: 'app-new-order',
@@ -21,7 +21,7 @@ export class AddStockComponent implements OnInit {
   // could be done simply using an array 'order' but then it would not be dynamic
   // and won't refresh on table change
   order: StockItem[] = [];
-  orderDataSource: DataSourceFromTable = new DataSourceFromTable(this.order);
+  orderDataSource: MatTableDataSource<StockItem> = new MatTableDataSource(this.order);
   incorrectSelection = false;
 
   addItem(stockItem: string, qtyStr: string) {
@@ -29,7 +29,7 @@ export class AddStockComponent implements OnInit {
       const qty: number = +qtyStr;
       this.incorrectSelection = false;
       this.order.push({stockItem, quantity: qty});
-      this.orderDataSource = new DataSourceFromTable(this.order);
+      this.orderDataSource = new MatTableDataSource(this.order);
       this.cdRef.detectChanges();
     } else {
       this.incorrectSelection = true;
@@ -49,7 +49,7 @@ export class AddStockComponent implements OnInit {
     this.session.updateStockWar(this.session.getVenueAddress(), this.order).subscribe(res => {
       if (res.message === 'STOCK_UPDATED') {
         this.order = [];
-        this.orderDataSource = new DataSourceFromTable(this.order);
+        this.orderDataSource = new MatTableDataSource(this.order);
         window.alert('Stock updated!');
       }
     }, err => {
