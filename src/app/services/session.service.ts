@@ -10,16 +10,50 @@ import {StockItem} from '../classes/stock-item';
 import {OrderId} from '../classes/order-id';
 import {MealPrice} from '../classes/meal-price';
 import {OrderEntry} from '../classes/order-entry';
+import {StockName} from '../classes/stock-name';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SessionService {
-  private BACKEND_URL = 'http://localhost:9998';
+  private BACKEND_URL = 'http://api.chickenlovers.ml';
   private idToken: string;
   private venueAddress: string;
+  private viewedOrder: OrderEntry[];
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // check for cookies to avoid mess on refreshing
+    this.idToken = this.getCookie('token');
+    this.venueAddress = this.getCookie('address');
+  }
+
+  // methods for storing cookies.. yummy!
+  private getCookie(name: string) {
+    const ca: Array<string> = document.cookie.split(';');
+    const caLen: number = ca.length;
+    const cookieName = `${name}=`;
+    let c: string;
+
+    for (let i = 0; i < caLen; i += 1) {
+      c = ca[i].replace(/^\s+/g, '');
+      if (c.indexOf(cookieName) === 0) {
+        return c.substring(cookieName.length, c.length);
+      }
+    }
+    return '';
+  }
+
+  private deleteCookie(name) {
+    this.setCookie(name, '', -1);
+  }
+
+  private setCookie(name: string, value: string, expireDays: number, path: string = '') {
+    const d: Date = new Date();
+    d.setTime(d.getTime() + expireDays * 24 * 60 * 60 * 1000);
+    const expires = `expires=${d.toUTCString()}`;
+    const cookiePath = path ? `; path=${path}` : '';
+    document.cookie = `${name}=${value}; ${expires}${cookiePath}`;
+  }
 
   /*
   * Methods for authorization and account management
@@ -33,23 +67,35 @@ export class SessionService {
     return this.http.post<IdToken>(this.BACKEND_URL + '/login', reqBody, {headers: reqHeader} ).pipe(
       tap ((res: IdToken) => {
         this.idToken = res.idToken;
+        this.venueAddress = res.location;
+        // set cookies for better refresh
+        this.setCookie('token', this.idToken, 90);
+        this.setCookie('address', this.venueAddress, 90)
       }) /* ,
       catchError(this.handleError<IdToken>('login')) */
     );
   }
 
 
+  getStockNames(): Observable<StockName[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+
+    return this.http.get<StockName[]>(this.BACKEND_URL + '/warehouse/get-stock-names', {headers: reqHeader} );
+  }
+
   /*
-  * Methods for authorization and account management
-  * @param none
-  * @returns http.get<Message>
-  */ 
+* Methods for authorization and account management
+* @param none
+* @returns http.get<Message>
+*/
   logout(): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
 
     return this.http.get<Message>(this.BACKEND_URL + '/logout', {headers: reqHeader} ).pipe(
       tap ((res: Message) => {
         this.idToken = null;
+        this.deleteCookie('token');
+        this.deleteCookie('address');
       }) /* ,
       catchError(this.handleError<Message>('logout')) */
     );
@@ -348,6 +394,14 @@ export class SessionService {
 
     return this.http.get<OrderEntry[]>(this.BACKEND_URL + '/warehouse/get-pending-orders', {headers: reqHeader});
   }
+
+  /* setOrderView(orderContents: OrderEntry[]) {
+    this.viewedOrder = orderContents;
+  }
+
+  getOrderView(): OrderEntry[] {
+    return this.viewedOrder;
+  } */
 
   /* private handleError<T> (operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {

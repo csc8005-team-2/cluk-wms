@@ -20,7 +20,7 @@ export class TotalStockComponent implements OnInit {
   }
 
   constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
-    this.session.getTotalStockRest(this.session.getVenueAddress()).subscribe(res => {
+    this.session.getTotalStockWar(this.session.getVenueAddress()).subscribe(res => {
       this.availableStock = new MatTableDataSource(res);
     }, err => {
       console.log(err);
