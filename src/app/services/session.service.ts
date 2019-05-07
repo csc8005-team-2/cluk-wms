@@ -66,7 +66,7 @@ export class SessionService {
         this.venueAddress = res.location;
         // set cookies for better refresh
         this.setCookie('token', this.idToken, 90);
-        this.setCookie('address', this.venueAddress, 90)
+        this.setCookie('address', this.venueAddress, 90);
       }) /* ,
       catchError(this.handleError<IdToken>('login')) */
     );
