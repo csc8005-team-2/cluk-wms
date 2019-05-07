@@ -10,9 +10,9 @@ import { RestaurantOrdersComponent } from './components/warehouse/restaurant-ord
 const routes: Routes = [
   { path: '', component: LoginComponent},
   { path: 'new-order', component: NewOrderComponent },
-  { path: 'total-stock', component: TotalStockComponent},
-  { path: 'add-stock', component: AddStockComponent},
-  { path: 'restaurant-orders', component: RestaurantOrdersComponent}];
+  { path: 'warehouse/total-stock', component: TotalStockComponent},
+  { path: 'warehouse/add-stock', component: AddStockComponent},
+  { path: 'warehouse/restaurant-orders', component: RestaurantOrdersComponent}];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

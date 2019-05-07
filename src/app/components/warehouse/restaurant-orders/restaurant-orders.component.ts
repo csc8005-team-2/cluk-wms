@@ -1,22 +1,28 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import {SessionService} from '../../../services/session.service';
 import {OrderEntry} from '../../../classes/order-entry';
+import {MatDialog, MatTableDataSource} from '@angular/material';
+import {StockItem} from '../../../classes/stock-item';
+
 @Component({
   selector: 'app-restaurant-orders',
   templateUrl: './restaurant-orders.component.html',
   styleUrls: ['./restaurant-orders.component.css']
 })
 export class RestaurantOrdersComponent implements OnInit {
-  // Restaurant Orders table
-  pendingOrders: OrderEntry[];
+  // restaurant orders table
+  availableStock: MatTableDataSource<OrderEntry>;
 
   // displayed columns format
-  displayedColumns: string[] = ['orderId', 'dateTime', 'address'];
+  displayedColumns: string[] = ['orderId', 'dateTime', 'address', 'viewOrder'];
 
-  
-  constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
+  applyFilter(filterValue: string) {
+    this.availableStock.filter = filterValue.trim().toLowerCase();
+  }
+
+  constructor(private cdRef: ChangeDetectorRef, private session: SessionService, private dialog: MatDialog) {
     this.session.getPendingOrders().subscribe(res => {
-      this.pendingOrders = res;
+      this.availableStock = new MatTableDataSource(res);
     }, err => {
       console.log(err);
     });

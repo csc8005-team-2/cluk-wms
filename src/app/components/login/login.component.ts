@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {SessionService} from "../../services/session.service";
+import {SessionService} from '../../services/session.service';
 import {Router} from '@angular/router';
 
 @Component({
@@ -15,9 +15,9 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
   }
 
-  login(_username: string, _password: string) {
+  login(username: string, password: string) {
     this.wrongCredentials = false;
-    this.session.login(_username, _password).subscribe(res => {
+    this.session.login(username, password).subscribe(res => {
       this.router.navigate(['total-stock']);
     }, err => {
       if (err.error === 'WRONG_CREDENTIALS') {
