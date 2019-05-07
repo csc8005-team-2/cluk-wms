@@ -9,7 +9,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
-import { NewOrderComponent } from './components/new-order/new-order.component';
 import { MainMenuComponent } from './components/main-menu/main-menu.component';
 import { TotalStockComponent } from './components/warehouse/total-stock/total-stock.component';
 import { AddStockComponent } from './components/warehouse/add-stock/add-stock.component';
@@ -20,7 +19,6 @@ import { ViewOrderComponent } from './components/warehouse/view-order/view-order
   declarations: [
     AppComponent,
     LoginComponent,
-    NewOrderComponent,
     MainMenuComponent,
     TotalStockComponent,
     AddStockComponent,
