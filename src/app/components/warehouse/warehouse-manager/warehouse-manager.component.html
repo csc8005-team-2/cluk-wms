@@ -1,0 +1,35 @@
+<table id="WarehouseManager" mat-table [dataSource]="availableIngredients">
+
+  <ng-container matColumnDef="stockNumber">
+    <th mat-header-cell *matHeaderCellDef>Stock Number</th>
+    <td mat-cell *matCellDef="let element">{{element.stockNumber}}</td>
+  </ng-container>
+  
+  <ng-container matColumnDef="stockItem">
+    <th mat-header-cell *matHeaderCellDef>Stock Item</th>
+    <td mat-cell *matCellDef="let element">{{element.stockItem}}</td>
+  </ng-container>
+  
+  <ng-container matColumnDef="currentThreshold">
+    <th mat-header-cell *matHeaderCellDef>Current Threshold</th>
+    <td mat-cell *matCellDef="let element">{{element.currentThreshold}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="newMinThreshold">
+    <th mat-header-cell *matHeaderCellDef>New Min Threshold</th>
+    <td mat-cell *matCellDef="let element">{{element.newMinThreshold}}</td>
+  </ng-container>
+  
+  <ng-container matColumnDef="select">
+    <th mat-header-cell *matHeaderCellDef>Select</th>
+    <td mat-cell *matCellDef="let element"><button mat-raised-button>Selectr</button></td>
+  </ng-container>
+  
+  <!-- <ng-container matColumnDef="viewOrder">
+    <th mat-header-cell *matHeaderCellDef>View Order</th>
+    <td class="text-center"><input type="checkbox"></td>
+  </ng-container> -->
+  
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
