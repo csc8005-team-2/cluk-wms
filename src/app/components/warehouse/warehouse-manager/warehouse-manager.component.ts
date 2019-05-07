@@ -54,8 +54,7 @@ export class WarehouseManagerComponent implements OnInit {
 
   submitChanges() {
     for (const element of this.newLevels) {
-      this.session.updateMinStockWar(this.session.getVenueAddress(), element).subscribe(res => {console.log(res); }, err => {
-        console.log(err);
+      this.session.updateMinStockWar(this.session.getVenueAddress(), element).subscribe(res => {}, err => {
         this.changeErrors.push(element);
       });
     }
