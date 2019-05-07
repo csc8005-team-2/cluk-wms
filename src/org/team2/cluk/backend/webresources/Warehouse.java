@@ -492,9 +492,8 @@ public class Warehouse
 		    
         Statement statement = null;
         String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddress ='"+address+"'";
+        JsonArrayBuilder minStockBuilder = Json.createArrayBuilder();
         try {
-            JsonArrayBuilder minStockBuilder = Json.createArrayBuilder();
-            JsonArray minStock = minStockBuilder.build();
 
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -511,7 +510,7 @@ public class Warehouse
 
                 ServerLog.writeLog("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity+"\n");
             }
-
+            JsonArray minStock = minStockBuilder.build();
             res = Response.status(Response.Status.OK).entity(minStock.toString());
         } catch (SQLException e ) {
             res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_QUERYING_MIN_STOCK_LEVEL");
