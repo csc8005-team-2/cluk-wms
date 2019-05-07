@@ -74,10 +74,10 @@ public class Authorisation {
         ServerLog.writeLog("User " + username + " tries to log in");
 
         // check if user already logged in
-        if (userTokens.containsValue(username)) {
+        /* if (userTokens.containsValue(username)) {
             ServerLog.writeLog("User " + username + " already logged in. Rejecting login attempt.");
             return Response.status(Response.Status.CONFLICT).entity("USER_ALREADY_LOGGED_IN").build();
-        }
+        } */
 
         String passwordHash = hashString(password, "SHA-256");
         // checking if authorisation successful
