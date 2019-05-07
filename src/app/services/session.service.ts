@@ -361,9 +361,9 @@ export class SessionService {
   * @param {string} address, {newStockLvl} StockItem.
   * @returns http.post<Message>
   */ 
-  updateMinStockWar(_address: string, newStockLvl: StockItem): Observable<Message> {
+  updateMinStockWar(address: string, newStockLvl: StockItem): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', address);
 
     return this.http.post<Message>(this.BACKEND_URL + '/warehouse/update-min-stock', newStockLvl, {headers: reqHeader});
   }
