@@ -11,7 +11,7 @@ export interface OrderStockObject {
   templateUrl: './order-stock.component.html',
   styleUrls: ['./order-stock.component.css']
 })
-export class TotalStockComponent implements OnInit {
+export class OrderStockComponent implements OnInit {
   // Stock Object table
   availableIngredients: OrderStockObject[] = [
     {stockNumber: 'Let-539', stockItem: 'Shredded Iceberg Lettuce', orderAmount: 123434},
