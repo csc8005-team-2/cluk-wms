@@ -19,6 +19,7 @@ export class SessionService {
   private BACKEND_URL = 'http://api.chickenlovers.ml';
   private idToken: string;
   private venueAddress: string;
+  private viewedOrder: OrderEntry[];
 
   constructor(private http: HttpClient) {
     // check for cookies to avoid mess on refreshing
@@ -260,6 +261,14 @@ export class SessionService {
 
     return this.http.get<OrderEntry[]>(this.BACKEND_URL + '/warehouse/get-pending-orders', {headers: reqHeader});
   }
+
+  /* setOrderView(orderContents: OrderEntry[]) {
+    this.viewedOrder = orderContents;
+  }
+
+  getOrderView(): OrderEntry[] {
+    return this.viewedOrder;
+  } */
 
   /* private handleError<T> (operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {

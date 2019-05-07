@@ -14,6 +14,7 @@ import { MainMenuComponent } from './components/main-menu/main-menu.component';
 import { TotalStockComponent } from './components/warehouse/total-stock/total-stock.component';
 import { AddStockComponent } from './components/warehouse/add-stock/add-stock.component';
 import { RestaurantOrdersComponent } from './components/warehouse/restaurant-orders/restaurant-orders.component';
+import { ViewOrderComponent } from './components/warehouse/view-order/view-order.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { RestaurantOrdersComponent } from './components/warehouse/restaurant-ord
     MainMenuComponent,
     TotalStockComponent,
     AddStockComponent,
-    RestaurantOrdersComponent
+    RestaurantOrdersComponent,
+    ViewOrderComponent
   ],
   imports: [
     BrowserModule,
@@ -33,6 +35,9 @@ import { RestaurantOrdersComponent } from './components/warehouse/restaurant-ord
     MaterialModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  entryComponents: [
+    ViewOrderComponent
+  ]
 })
 export class AppModule { }

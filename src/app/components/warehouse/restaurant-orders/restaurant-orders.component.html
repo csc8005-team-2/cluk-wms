@@ -21,7 +21,7 @@
 
   <ng-container matColumnDef="viewOrder">
     <th mat-header-cell *matHeaderCellDef></th>
-    <td mat-cell *matCellDef="let element"><button mat-raised-button>View Order</button></td>
+    <td mat-cell *matCellDef="let element"><button mat-raised-button (click)="viewOrder(element)">View Order</button></td>
   </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

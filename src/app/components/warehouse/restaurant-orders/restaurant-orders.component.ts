@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import {SessionService} from '../../../services/session.service';
 import {OrderEntry} from '../../../classes/order-entry';
 import {MatDialog, MatTableDataSource} from '@angular/material';
-import {StockItem} from '../../../classes/stock-item';
+import {ViewOrderComponent} from '../view-order/view-order.component';
 
 @Component({
   selector: 'app-restaurant-orders',
@@ -26,6 +26,15 @@ export class RestaurantOrdersComponent implements OnInit {
     }, err => {
       console.log(err);
     });
+  }
+
+  viewOrder(order: OrderEntry[]) {
+    // this.session.setOrderView(orderContents);
+    const dialogRef = this.dialog.open(ViewOrderComponent, {
+      width: '600px',
+      data: order
+    });
+
   }
 
   ngOnInit() {
