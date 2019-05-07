@@ -1,4 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import {SessionService} from '../../../services/session.service';
+import {StockItem} from '../../../classes/stock-item';
+import {MatDialog, MatTableDataSource} from '@angular/material';
+import {ChangeMinThresholdComponent} from '../../change-min-threshold/change-min-threshold.component';
 
 export interface WarehouseManagerObject {
   stockNumber: string;
@@ -14,21 +18,62 @@ export interface WarehouseManagerObject {
 })
 export class WarehouseManagerComponent implements OnInit {
   // Restaurant Orders table
-  availableIngredients: WarehouseManagerObject[] = [
-    {stockNumber: 'Let-539', stockItem: 'Shredded Iceberg Lettuce', currentThreshold: '10', newMinThreshold: '5'},
-    {stockNumber: 'Chsl-157', stockItem: 'Cheese Slices', currentThreshold: '200', newMinThreshold: '150'},
-    {stockNumber: 'CKP-754', stockItem: 'Chicken Pieces', currentThreshold: '100', newMinThreshold: '100'},
-    {stockNumber: 'SSB-279', stockItem: 'Sesame seed buns', currentThreshold: '10', newMinThreshold: '5'},
-    {stockNumber: 'CKF-412', stockItem: 'Chicken Brest Fillets', currentThreshold: '100', newMinThreshold: '100'},
-    {stockNumber: 'CKS-367', stockItem: 'Chicken Strips', currentThreshold: '100', newMinThreshold: '80'}
-  ];
+  currentLevel: MatTableDataSource<StockItem>;
+  newLevels: StockItem[] = [];
+  changeErrors: StockItem[] = [];
 
   // displayed columns format
-  displayedColumns: string[] = ['stockNumber', 'stockItem', 'currentThreshold' , 'newMinThreshold'];
-  availableItems: any;
-
+  displayedColumns: string[] = ['stockItem', 'quantity', 'change'];
   
-  constructor(private cdRef: ChangeDetectorRef) { }
+  constructor(private cdRef: ChangeDetectorRef, private session: SessionService, private dialog: MatDialog) {
+    this.session.getMinStockWar(this.session.getVenueAddress()).subscribe(res => {
+      this.currentLevel = new MatTableDataSource(res);
+    });
+
+  }
+
+  changeQuantity(element: StockItem) {
+    const dialogRef = this.dialog.open(ChangeMinThresholdComponent, {
+      width: '250px',
+      data: element
+    });
+
+    dialogRef.afterClosed().subscribe(newThresholdQty => {
+      // create JSON
+      const newThreshold = {stockItem: element.stockItem, quantity: newThresholdQty}
+      // push to the array with changes pending
+      this.newLevels.push(newThreshold);
+      // update displayed table
+      const currentLevelsArr = this.currentLevel.data;
+      const elementIndex = currentLevelsArr.indexOf(element);
+      currentLevelsArr[elementIndex] = newThreshold;
+      this.currentLevel = new MatTableDataSource(currentLevelsArr);
+      this.cdRef.detectChanges();
+    });
+  }
+
+  submitChanges() {
+    for (const element of this.newLevels) {
+      this.session.updateMinStockWar(this.session.getVenueAddress(), element).subscribe(res => {console.log(res); }, err => {
+        console.log(err);
+        this.changeErrors.push(element);
+      });
+    }
+
+    if (this.changeErrors.length === 0) {
+      this.newLevels = [];
+      this.changeErrors = [];
+      window.alert('Change successful!');
+    } else if (this.changeErrors.length === this.newLevels.length) {
+      window.alert('Unknown error encountered. No changes made to the minimum stock levels. Try again later');
+    } else {
+      let errItems: string = '\n';
+      for (const element of this.changeErrors) {
+        errItems += element.stockItem + '\n';
+      }
+      window.alert('Unknown error encountered when changing stock levels of following items: ' + errItems + '\nPlease try again later!');
+    }
+  }
 
   ngOnInit() {
   }

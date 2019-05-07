@@ -21,6 +21,7 @@ import { OrderStockComponent } from './components/restaurant/order-stock/order-s
 import { RestaurantManagerComponent } from './components/restaurant/restaurant-manager/restaurant-manager.component';
 import { RestaurantStockRemoveComponent } from './components/restaurant/restaurant-stock-remove/restaurant-stock-remove.component';
 import { ViewOrderComponent } from './components/warehouse/view-order/view-order.component';
+import { ChangeMinThresholdComponent } from './components/change-min-threshold/change-min-threshold.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import { ViewOrderComponent } from './components/warehouse/view-order/view-order
     OrderStockComponent,
     RestaurantManagerComponent,
     RestaurantStockRemoveComponent,
-    ViewOrderComponent
+    ViewOrderComponent,
+    ChangeMinThresholdComponent
   ],
   imports: [
     BrowserModule,
@@ -49,7 +51,8 @@ import { ViewOrderComponent } from './components/warehouse/view-order/view-order
   providers: [],
   bootstrap: [AppComponent],
   entryComponents: [
-    ViewOrderComponent
+    ViewOrderComponent,
+    ChangeMinThresholdComponent
   ]
 })
 export class AppModule { }
