@@ -17,9 +17,9 @@ import {StockName} from '../classes/stock-name';
 })
 export class SessionService {
   private BACKEND_URL = 'http://api.chickenlovers.ml';
-  private idToken: string;
+  private idToken = '';
   private venueAddress: string;
-  private viewedOrder: OrderEntry[];
+  public permissions = {restaurant: false, warehouse: false, driver: false};
 
   constructor(private http: HttpClient) {
     // check for cookies to avoid mess on refreshing
@@ -43,8 +43,8 @@ export class SessionService {
     return '';
   }
 
-  private deleteCookie(name) {
-    this.setCookie(name, '', -1);
+  private deleteCookie(name, path) {
+    this.setCookie(name, '', -1, path);
   }
 
   private setCookie(name: string, value: string, expireDays: number, path: string = '') {
@@ -69,13 +69,21 @@ export class SessionService {
         this.idToken = res.idToken;
         this.venueAddress = res.location;
         // set cookies for better refresh
-        this.setCookie('token', this.idToken, 90);
-        this.setCookie('address', this.venueAddress, 90);
+        this.setCookie('token', this.idToken, 90, '/');
+        this.setCookie('address', this.venueAddress, 90, '/');
+
+        // establish permissions
+        this.getPermissions().subscribe(res => {this.permissions = res; }, err => {console.log(err); });
       }) /* ,
       catchError(this.handleError<IdToken>('login')) */
     );
   }
 
+  getPermissions(): Observable<UserPermissions> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+
+    return this.http.get<UserPermissions>(this.BACKEND_URL + '/accounts/check-access', {headers: reqHeader} );
+  }
 
   getStockNames(): Observable<StockName[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
@@ -93,9 +101,9 @@ export class SessionService {
 
     return this.http.get<Message>(this.BACKEND_URL + '/logout', {headers: reqHeader} ).pipe(
       tap ((res: Message) => {
-        this.idToken = null;
-        this.deleteCookie('token');
-        this.deleteCookie('address');
+        this.idToken = '';
+        this.deleteCookie('token', '/');
+        this.deleteCookie('address', '/');
       }) /* ,
       catchError(this.handleError<Message>('logout')) */
     );
@@ -122,13 +130,13 @@ export class SessionService {
   }
 
   /*
-  * Method to check if user is loggedin to the system
+  * Method to check if user is logged in to the system
   * @param none
   * @returns boolean
   */ 
   isLoggedIn(): boolean {
-    if (this.idToken) {return true; }
-    return false;
+    if (this.idToken === '') {return false; }
+    return true;
   }
 
   /*
@@ -238,9 +246,9 @@ export class SessionService {
   * @param {string} address
   * @returns http.get<StockItem[]>
   */ 
-  minStockCheckRest(_address: string): Observable<StockItem[]> {
+  minStockCheckRest(address: string): Observable<StockItem[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', address);
 
     return this.http.get<StockItem[]>(this.BACKEND_URL + '/restaurant/min-stock-check', {headers: reqHeader});
   }
@@ -274,9 +282,9 @@ export class SessionService {
   * @param {string} address, {StockItem} newStockLvl
   * @returns http.post<Message>
   */ 
-  updateStockRest(_address: string, newStockLvl: StockItem): Observable<Message> {
+  updateStockRest(address: string, newStockLvl: StockItem[]): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', address);
 
     return this.http.post<Message>(this.BACKEND_URL + '/restaurant/update-stock', newStockLvl, {headers: reqHeader});
   }
@@ -286,9 +294,9 @@ export class SessionService {
   * @param {string} _meal
   * @returns http.get<MealPrice>
   */ 
-  getPrice(_meal: string): Observable<MealPrice> {
+  getPrice(meal: string): Observable<MealPrice> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('meal', _meal);
+      .append('meal', meal);
 
     return this.http.get<MealPrice>(this.BACKEND_URL + '/restaurant/get-price', {headers: reqHeader});
   }
@@ -336,12 +344,24 @@ export class SessionService {
   * Getter method for the minimum stock at a warehouse
   * @param {string} address
   * @returns http.get<StockItem[]>
-  */ 
-  getMinStockWar(_address: string): Observable<StockItem[]> {
+  */
+  getMinStockWar(address: string): Observable<StockItem[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', address);
 
     return this.http.get<StockItem[]>(this.BACKEND_URL + '/warehouse/get-min-stock', {headers: reqHeader});
+  }
+
+  /*
+  * Getter method for the minimum stock at a warehouse
+  * @param {string} address
+  * @returns http.get<StockItem[]>
+  */
+  getMinStockRest(address: string): Observable<StockItem[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', address);
+
+    return this.http.get<StockItem[]>(this.BACKEND_URL + '/restaurant/get-min-stock', {headers: reqHeader});
   }
 
   /*
@@ -349,9 +369,9 @@ export class SessionService {
   * @param {string} address
   * @returns http.get<StockItem[]>
   */ 
-  minStockCheckWar(_address: string): Observable<StockItem[]> {
+  minStockCheckWar(address: string): Observable<StockItem[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', address);
 
     return this.http.get<StockItem[]>(this.BACKEND_URL + '/warehouse/min-stock-check', {headers: reqHeader});
   }

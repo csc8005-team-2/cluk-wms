@@ -4,13 +4,6 @@ import {StockItem} from '../../../classes/stock-item';
 import {MatDialog, MatTableDataSource} from '@angular/material';
 import {ChangeMinThresholdComponent} from '../../change-min-threshold/change-min-threshold.component';
 
-export interface WarehouseManagerObject {
-  stockNumber: string;
-  stockItem: string;
-  currentThreshold: string;
-  newMinThreshold: string;
-}
-
 @Component({
   selector: 'app-warehouse-manager',
   templateUrl: './warehouse-manager.component.html',

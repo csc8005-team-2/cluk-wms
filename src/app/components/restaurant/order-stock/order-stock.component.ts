@@ -1,4 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import {StockName} from '../../../classes/stock-name';
+import {StockItem} from '../../../classes/stock-item';
+import {DataSourceFromTable} from '../../../classes/table-data-source';
+import {SessionService} from '../../../services/session.service';
 
 export interface OrderStockObject {
   stockNumber: string;
@@ -13,25 +17,49 @@ export interface OrderStockObject {
 })
 export class OrderStockComponent implements OnInit {
   // Stock Object table
-  availableIngredients: OrderStockObject[] = [
-    {stockNumber: 'Let-539', stockItem: 'Shredded Iceberg Lettuce', orderAmount: 123434},
-    {stockNumber: 'Chsl-157', stockItem: 'Cheese Slices', orderAmount: 123434},
-    {stockNumber: 'CKP-754', stockItem: 'Chicken Pieces', orderAmount: 123434},
-    {stockNumber: 'SSB-279', stockItem: 'Sesame seed buns', orderAmount: 123434},
-    {stockNumber: 'CKF-412', stockItem: 'Chicken Brest Fillets',orderAmount: 123434},
-    {stockNumber: 'CKS-367', stockItem: 'Chicken Strips', orderAmount: 123434}
-  ];
+  availableStock: StockName[];
+
 
   // displayed columns format
-  displayedColumns: string[] = ['stockNumber', 'stockItem', 'orderAmount'];
-  availableItems: any;
+  displayedColumns: string[] = ['stockItem', 'quantity'];
 
-  
-  constructor(private cdRef: ChangeDetectorRef) { }
+  // defining data source for the table
+  // could be done simply using an array 'order' but then it would not be dynamic
+  // and won't refresh on table change
+  order: StockItem[] = [];
+  orderDataSource: DataSourceFromTable = new DataSourceFromTable(this.order);
+  incorrectSelection = false;
+
+  addItem(stockItem: string, qtyStr: string) {
+    if (stockItem && qtyStr) {
+      const qty: number = +qtyStr;
+      this.incorrectSelection = false;
+      this.order.push({stockItem, quantity: qty});
+      this.orderDataSource = new DataSourceFromTable(this.order);
+      this.cdRef.detectChanges();
+    } else {
+      this.incorrectSelection = true;
+    }
+  }
+
+  constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
+    this.session.getStockNames().subscribe(res => {
+      this.availableStock = res;
+    });
+  }
 
   ngOnInit() {
   }
 
+  orderStock() {
+    this.session.requestCustomOrder(this.session.getVenueAddress(), this.order).subscribe(res => {
+        this.order = [];
+        this.orderDataSource = new DataSourceFromTable(this.order);
+        window.alert('Order has been sent to the warehouse! Order number: ' + res.orderId);
+    }, err => {
+      console.log(err);
+    });
+  }
 }
 
 

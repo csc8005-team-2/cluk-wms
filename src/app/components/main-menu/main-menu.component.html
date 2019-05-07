@@ -1,6 +1,7 @@
 <button *ngIf="isLoggedIn()" mat-raised-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
 <mat-menu #menu="matMenu">
-  <button mat-menu-item [matMenuTriggerFor]="warehouseMenu">Warehouse</button>
+  <button mat-menu-item [matMenuTriggerFor]="warehouseMenu" *ngIf="this.session.permissions.warehouse">Warehouse</button>
+  <button mat-menu-item [matMenuTriggerFor]="restaurantMenu" *ngIf="this.session.permissions.restaurant">Restaurant</button>
   <!-- <a mat-menu-item routerLink="/restaurant-orders">Restaurant Orders</a> -->
   <mat-divider></mat-divider>
   <button mat-menu-item (click)="logout()">Log Out</button>
@@ -14,9 +15,12 @@
   <a mat-menu-item routerLink="/warehouse/warehouse-stock-remove">Remove Stock</a>
 </mat-menu>
 
-<mat-menu #restaruantMenu="matMenu">
-  <a mat-menu-item routerLink="/restaurant/total-stock">Total Stock</a>
-  <a mat-menu-item routerLink="/restaurant/add-stock">Add Stock</a>
+<mat-menu #restaurantMenu="matMenu">
+  <a mat-menu-item routerLink="/restaurant/query-stock">Total Stock</a>
+  <a mat-menu-item routerLink="/restaurant/receive-stock">Receive Stock</a>
+  <a mat-menu-item routerLink="/restaurant/order-stock">Order Stock</a>
+  <a mat-menu-item routerLink="/restaurant/restaurant-manager">Restaurant Manager</a>
+  <a mat-menu-item routerLink="/restaurant/restaurant-stock-remove">Remove Stock</a>
 </mat-menu>
 
 <mat-menu #driverMenu="matMenu">
