@@ -27,8 +27,8 @@ public class Restaurant {
     public Response getTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
 	    if (!Authorisation.checkAccess(idToken, "restaurant")) {
-	    	return Response.status(Response.Status.UNAUTHORIZED).entity("").build();
-	    } 
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
 
@@ -83,7 +83,9 @@ public class Restaurant {
 	//this method updates the stock for a restaurant when it has received an order.
     public Response receiveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("orderId") String _orderId) {
     	
-	    // if (checkAccess(restaurantPermissions)) {
+	   if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 	    
 	// HTTP header in Angular needs to be string, thus parsing added
     	int orderId = Integer.parseInt(_orderId);
@@ -300,7 +302,9 @@ public class Restaurant {
     //Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
     public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strOrderContents) {
 
-	    // if (checkAccess(restaurantPermissions)) {
+	  if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 	
     	// fetch current db connection
     	Connection connection = DbConnection.getConnection();
@@ -442,7 +446,9 @@ public class Restaurant {
 	@GET
     public Response requestStandardOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
-	    // if (checkAccess(restaurantPermissions)) {
+	    if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 	
     	// fetch db connection
 		Connection connection = DbConnection.getConnection();
@@ -492,7 +498,10 @@ public class Restaurant {
 	@Produces("application/json")
     public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 		
-	    // if (checkAccess(managerPermissions)) {
+	    if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
+
 	    
 	    // fetch db connection
 		Connection connection = DbConnection.getConnection();
@@ -551,7 +560,9 @@ public class Restaurant {
     @Consumes("application/json")
     public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strStockObject)
         {
-		// if (checkAccess(managerPermissions)) {
+		if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 	
         	// fetch db connection
             Connection connection = DbConnection.getConnection();
@@ -593,8 +604,9 @@ public class Restaurant {
 	@GET
 	public Response createMeal(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
 
-		// if (checkAccess(restaurantPermissions)) {
-	
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+				return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+			}
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 
@@ -718,7 +730,9 @@ public class Restaurant {
 	//Method to update restaurant stock allowing for manual adjustment of stock levels.
 	public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String requestBody)
 	{
-		// if (checkAccess(managerPermissions)) {
+		if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse")) {
+				return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+			}
 	
 		Response.ResponseBuilder res = null;
 		Connection connection = DbConnection.getConnection();
@@ -796,7 +810,9 @@ public class Restaurant {
 	public Response getPrice(@HeaderParam("Authorization") String idToken, @HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
 		
-		// if (checkAccess(restaurantPermissions)) {
+			if (!Authorisation.checkAccess(idToken, "restaurant")) {
+					return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+				}
 
 		double price = -1;
 
