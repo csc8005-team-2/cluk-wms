@@ -53,7 +53,7 @@ public class Driver {
 	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("driverId") Integer driverId, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody){
 
 		if (!Authorisation.checkAccess(idToken, "warehouse")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
 		}
 
 		ServerLog.writeLog("Adding driver info to driver table ");
