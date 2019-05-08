@@ -26,6 +26,9 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  isLoggedIn(): boolean {
+    return this.session.isLoggedIn();
+  }
   
   areCredentialsWrong(): boolean {
     return this.wrongCredentials;

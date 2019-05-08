@@ -1,4 +1,4 @@
-<div class="container" *ngIf="!this.session.isLoggedIn()">
+<div class="container" *ngIf="!isLoggedIn()">
   <div class="login">
     <p class="error" *ngIf="areCredentialsWrong()">Username or password are incorrect</p>
     <mat-form-field>
