@@ -10,19 +10,22 @@ import {SessionService} from '../../services/session.service';
 })
 export class ViewPermissionsComponent implements OnInit {
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: StaffMember, private session: SessionService, private dialogRef: MatDialogRef<ViewPermissionsComponent>) { }
+  constructor(@Inject(MAT_DIALOG_DATA) public data: StaffMember, private session: SessionService, private dialogRef: MatDialogRef<ViewPermissionsComponent>) {}
 
   ngOnInit() {
   }
 
-  updatePermissions(warehousePermStr: string, restaurantPermStr: string, driverPermStr: string) {
-    const warehousePerm: boolean = (warehousePermStr.toLowerCase() === 'true') ? true : false;
-    const restaurantPerm: boolean = (restaurantPermStr.toLowerCase() === 'true') ? true : false;
-    const driverPerm: boolean = (driverPermStr.toLowerCase() === 'true') ? true : false;
-
+  updatePermissions(warehousePerm: boolean, restaurantPerm: boolean, driverPerm: boolean) {
     this.session.setPermission(this.data.username, restaurantPerm, warehousePerm, driverPerm).subscribe(res => {
       window.alert('Permissions successfully changed!');
-      this.dialogRef.close();
+
+      // build output object for updating the table instantly
+      const outputElement = this.data;
+      outputElement.driver = driverPerm;
+      outputElement.restaurant = restaurantPerm;
+      outputElement.warehouse = warehousePerm;
+
+      this.dialogRef.close(outputElement);
     }, err => {
       window.alert('Error encountered when changing permissions! Try again later!');
     });

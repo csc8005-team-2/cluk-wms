@@ -13,6 +13,7 @@ import {ViewPermissionsComponent} from '../view-permissions/view-permissions.com
 export class AccountManagerComponent implements OnInit {
   // Stock Object table
   staffList: MatTableDataSource<StaffMember>;
+  staffListSub: any;
 
   // displayed columns format
   displayedColumns: string[] = ['name', 'login', 'permissions', 'delete'];
@@ -22,7 +23,7 @@ export class AccountManagerComponent implements OnInit {
   }
 
   constructor(private cdRef: ChangeDetectorRef, private session: SessionService, private dialog: MatDialog) {
-    this.session.getStaffInfo().subscribe(res => {
+    this.staffListSub = this.session.getStaffInfo().subscribe(res => {
       this.staffList = new MatTableDataSource(res);
     }, err => {
       console.log(err);
@@ -47,12 +48,31 @@ export class AccountManagerComponent implements OnInit {
     const dialogRef = this.dialog.open(CreateAccountComponent, {
       width: '300px'
     });
+
+    dialogRef.afterClosed().subscribe(accCreated => {
+      if (accCreated) {
+        this.staffListSub.unsubscribe();
+        this.staffListSub = this.session.getStaffInfo().subscribe(res => {
+          this.staffList = new MatTableDataSource(res);
+        }, err => {
+          console.log(err);
+        });
+      }
+    });
   }
 
   viewPermissions(element: StaffMember) {
     const dialogRef = this.dialog.open(ViewPermissionsComponent, {
       width: '300px',
       data: element
+    });
+
+    dialogRef.afterClosed().subscribe(newEntry => {
+      // update table
+      const staffListArray = this.staffList.data;
+      staffListArray[staffListArray.indexOf(element)] = newEntry;
+      this.staffList = new MatTableDataSource(staffListArray);
+      this.cdRef.detectChanges();
     });
   }
 

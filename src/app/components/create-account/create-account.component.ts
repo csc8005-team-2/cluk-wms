@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {MatDialogRef} from '@angular/material';
 import {SessionService} from '../../services/session.service';
+import {StaffMember} from '../../classes/staff-member';
 
 @Component({
   selector: 'app-create-account',
@@ -17,7 +18,9 @@ export class CreateAccountComponent implements OnInit {
   submitAccountData(name: string, username: string, password: string) {
     this.session.addAccount(username, password, name).subscribe(res => {
       window.alert('Account successfully created!');
-      this.dialogRef.close();
+
+      // prepare new entry in the table
+      this.dialogRef.close(true);
     }, err => {
       window.alert('Error when creating an account! Please try again later');
     });

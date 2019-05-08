@@ -1,11 +1,5 @@
 <p>User: {{data.name}}</p>
-<mat-form-field>
-  <mat-checkbox #warehousePerm value="{{data.warehouse}}">Warehouse</mat-checkbox>
-</mat-form-field>
-<mat-form-field>
-  <mat-checkbox #restaurantPerm value="{{data.restaurant}}">Restaurant</mat-checkbox>
-</mat-form-field>
-<mat-form-field>
-  <mat-checkbox #driverPerm value="{{data.driver}}">Driver</mat-checkbox>
-</mat-form-field>
-<button mat-raised-button (click)="updatePermissions(warehousePerm.value, restaurantPerm.value, driverPerm.value)">Update permissions</button>
+  <mat-checkbox #warehousePerm [checked]="data.warehouse">Warehouse</mat-checkbox>
+  <mat-checkbox #restaurantPerm [checked]="data.restaurant">Restaurant</mat-checkbox>
+  <mat-checkbox #driverPerm [checked]="data.driver">Driver</mat-checkbox>
+<button mat-raised-button (click)="updatePermissions(warehousePerm.checked, restaurantPerm.checked, driverPerm.checked)">Update permissions</button>
