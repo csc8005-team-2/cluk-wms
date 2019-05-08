@@ -458,13 +458,13 @@ public class Authorisation {
     public static boolean checkAccess(String idToken, String level) {
     	refreshPermissions(userTokens.get(idToken));
 
-        if (level.contentEquals("restaurant") && restaurantPermissions.contains(idToken))
+        if (level.equals("restaurant") && restaurantPermissions.contains(idToken))
         	return true;
         
-        if (level.contentEquals("warehouse") && warehousePermissions.contains(idToken))
+        if (level.equals("warehouse") && warehousePermissions.contains(idToken))
         	return true;
         
-        if (level.contentEquals("driver") && driverPermissions.contains(idToken))
+        if (level.equals("driver") && driverPermissions.contains(idToken))
         	return true;
         
         return false;
