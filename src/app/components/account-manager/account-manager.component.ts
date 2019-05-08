@@ -54,6 +54,7 @@ export class AccountManagerComponent implements OnInit {
         this.staffListSub.unsubscribe();
         this.staffListSub = this.session.getStaffInfo().subscribe(res => {
           this.staffList = new MatTableDataSource(res);
+          this.cdRef.detectChanges();
         }, err => {
           console.log(err);
         });
