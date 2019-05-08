@@ -1,0 +1,10 @@
+<mat-form-field>
+  <input matInput #name placeholder="Employee's name" />
+</mat-form-field>
+<mat-form-field>
+  <input matInput #username placeholder="Username" />
+</mat-form-field>
+<mat-form-field>
+  <input matInput #password type="password" placeholder="Password" />
+</mat-form-field>
+<button mat-raised-button (click)="submitAccountData(name.value, username.value, password.value)">Submit</button>
