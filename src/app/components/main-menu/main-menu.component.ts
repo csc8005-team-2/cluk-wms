@@ -23,6 +23,10 @@ export class MainMenuComponent implements OnInit {
     return this.session.isLoggedIn();
   }
 
+  checkPermissions() {
+    return this.session.permissions;
+  }
+
   
   ngOnInit() {
   }

@@ -1,7 +1,8 @@
 <button *ngIf="isLoggedIn()" mat-raised-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
 <mat-menu #menu="matMenu">
-  <button mat-menu-item [matMenuTriggerFor]="warehouseMenu" *ngIf="this.session.permissions.warehouse">Warehouse</button>
-  <button mat-menu-item [matMenuTriggerFor]="restaurantMenu" *ngIf="this.session.permissions.restaurant">Restaurant</button>
+  <button mat-menu-item [matMenuTriggerFor]="warehouseMenu" *ngIf="this.checkPermissions().warehouse">Warehouse</button>
+  <button mat-menu-item [matMenuTriggerFor]="restaurantMenu" *ngIf="this.checkPermissions().restaurant">Restaurant</button>
+  <button mat-menu-item routerLink="/accounts">Account Manager</button>
   <!-- <a mat-menu-item routerLink="/restaurant-orders">Restaurant Orders</a> -->
   <mat-divider></mat-divider>
   <button mat-menu-item (click)="logout()">Log Out</button>

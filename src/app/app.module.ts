@@ -22,6 +22,9 @@ import { RestaurantManagerComponent } from './components/restaurant/restaurant-m
 import { RestaurantStockRemoveComponent } from './components/restaurant/restaurant-stock-remove/restaurant-stock-remove.component';
 import { ViewOrderComponent } from './components/warehouse/view-order/view-order.component';
 import { ChangeMinThresholdComponent } from './components/change-min-threshold/change-min-threshold.component';
+import { AccountManagerComponent } from './components/account-manager/account-manager.component';
+import { CreateAccountComponent } from './components/create-account/create-account.component';
+import { ViewPermissionsComponent } from './components/view-permissions/view-permissions.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +42,10 @@ import { ChangeMinThresholdComponent } from './components/change-min-threshold/c
     RestaurantManagerComponent,
     RestaurantStockRemoveComponent,
     ViewOrderComponent,
-    ChangeMinThresholdComponent
+    ChangeMinThresholdComponent,
+    AccountManagerComponent,
+    CreateAccountComponent,
+    ViewPermissionsComponent
   ],
   imports: [
     BrowserModule,
@@ -52,7 +58,9 @@ import { ChangeMinThresholdComponent } from './components/change-min-threshold/c
   bootstrap: [AppComponent],
   entryComponents: [
     ViewOrderComponent,
-    ChangeMinThresholdComponent
+    ChangeMinThresholdComponent,
+    CreateAccountComponent,
+    ViewPermissionsComponent
   ]
 })
 export class AppModule { }
