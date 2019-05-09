@@ -911,4 +911,52 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity(response.toString()).build();
         
     }
+	
+	@GET
+        @Path("/get-Warehouse-List")
+        @Produces("application/json")
+        public Response getWarehouseList(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String warehouseAddress) {
+
+            if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+            }
+       
+
+            JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+            // fetch current database connection
+            Connection connection = DbConnection.getConnection();
+
+            Statement statement = null;
+            String query = "SELECT warehouseAddress " +
+                    "FROM Warehouse ";
+            try {
+                statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(query);
+                while (rs.next()) {
+                    JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+
+                    String warehouseAddress = rs.getString("WarehouseAddress");
+
+                    arrayEntryBuilder.add("warehouseaddress", warehouseAddress);
+
+                    JsonObject arrayEntry = arrayEntryBuilder.build();
+                    responseBuilder.add(arrayEntry);
+                }
+            } catch (SQLException e) {
+                ServerLog.writeLog("SQL exception occurred when executing query");
+                e.printStackTrace();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+            } finally {
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+            JsonArray response = responseBuilder.build();
+
+            return Response.status(Response.Status.OK).entity(response.toString()).build();
+	    }
 }
