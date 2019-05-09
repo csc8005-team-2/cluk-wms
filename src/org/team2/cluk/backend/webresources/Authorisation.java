@@ -52,7 +52,7 @@ public class Authorisation {
     @POST
     @Consumes("application/json")
     @Produces("application/json")
-    public synchronized Response loginUser(String loginData) {
+    public Response loginUser(String loginData) {
         // create variable to check whether login was successful
         boolean loginSuccessful = false;
 
