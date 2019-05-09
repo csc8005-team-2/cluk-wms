@@ -80,6 +80,7 @@ public class Authorisation {
             return Response.status(Response.Status.CONFLICT).entity("USER_ALREADY_LOGGED_IN").build();
         } */
 
+        ServerLog.writeLog("Generating password hash for " + username);
         String passwordHash = hashString(password, "SHA-256");
         // checking if authorisation successful
 
@@ -96,11 +97,13 @@ public class Authorisation {
         try {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
+            ServerLog.writeLog("Retrieved user's " + username + " data from database");
             if (rs.next()) {
                 String storedHash = rs.getString("password");
                 if (passwordHash.equals(storedHash)) {
                     loginSuccessful = true;
                     location = rs.getString("workLocation");
+                    ServerLog.writeLog("Login successful! User " + username + " works at " + location);
                 }
             }
         } catch (SQLException e) {
@@ -121,6 +124,7 @@ public class Authorisation {
         // generating token using Apache Common Lang library as per
         // https://www.baeldung.com/java-random-string
         if (loginSuccessful) {
+            ServerLog.writeLog("Preparing output JSON for login " + username);
             String newIdToken;
             // generate tokens until unique token generated
             do {
@@ -134,6 +138,7 @@ public class Authorisation {
             outputJsonBuilder.add("idToken", newIdToken);
             outputJsonBuilder.add("location", location);
             JsonObject outputJson = outputJsonBuilder.build();
+            ServerLog.writeLog("Output JSON for " + username + " ready");
             // return token to the user on successful login
             res = Response.status(Response.Status.OK).entity(outputJson.toString());
         } else res = Response.status(Response.Status.UNAUTHORIZED).entity("WRONG_CREDENTIALS");
