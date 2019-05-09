@@ -10,10 +10,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
 
+import java.text.ParseException;
 import java.time.LocalDate;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 @Path("/driver")
 
@@ -52,7 +54,7 @@ public class Driver {
 	//method to add a driver's information to the driver table
 	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("driverId") Integer driverId, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")) {
+		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
 		}
 
@@ -120,7 +122,7 @@ public class Driver {
 	//method to remove a driver's information from the table
 	public Response removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, String requestBody){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		if (!Authorisation.checkAccess(idToken, "manager")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
@@ -173,7 +175,7 @@ public class Driver {
 	//method to print a driver's first name using the driver's id
 	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
@@ -235,7 +237,7 @@ public class Driver {
 	@Consumes("application/json")
 	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("firstName") String firstName, String firstNameObject){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		if (!Authorisation.checkAccess(idToken, "manager")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
@@ -277,7 +279,7 @@ public class Driver {
 	//method to print a driver's last name using the driver's id
 	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
@@ -337,7 +339,7 @@ public class Driver {
 	@Consumes("application/json")
 	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("lastName") String lastName, String lastNameObject){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		if (!Authorisation.checkAccess(idToken, "manager")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
@@ -380,7 +382,7 @@ public class Driver {
 	//method to print a driver's phone number using driverId
 	public Response getPhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
@@ -439,7 +441,7 @@ public class Driver {
 	@Consumes("application/json")
 	public Response updatePhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("phoneNumber") String phoneNumber, String phoneNumberObject) throws SQLException{
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		if (!Authorisation.checkAccess(idToken, "manager")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 			ServerLog.writeLog("Requested an update of the phone number of driver" + driverId);
@@ -477,7 +479,7 @@ public class Driver {
 	//method to print a driver's current work duration
 	public Response getWorkDuration(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w){
 
-		if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")){
+		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 			ServerLog.writeLog("Requested information on work duration of driver of " + driverId);
@@ -542,7 +544,7 @@ public class Driver {
 
 	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w) throws SQLException{
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")){
+		if ((!Authorisation.checkAccess(idToken, "manager") || (!Authorisation.checkAccess(idToken, "driver"))){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 			// fetch current db connection
@@ -555,7 +557,7 @@ public class Driver {
 
 			//check if driver has worked 4.5 hours before going on break
 			boolean goOnBreak = false;
-			while (!goOnBreak && workDuration < maxWorkDuration) {
+			while (goOnBreak && workDuration < maxWorkDuration) {
 				//4.5hours = 270mins
 				if (workDuration == 270) {
 
@@ -589,7 +591,8 @@ public class Driver {
 						} catch (SQLException e) {
 							ServerLog.writeLog("Error when updating work duration of Driver: " + driverId);
 							e.printStackTrace();
-							response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("UPDATE_WORKDURATION_ERROR");
+							//JsonObject responseJson = Json.createObjectBuilder().add("message", "UPDATE_WORKDURATION_ERROR");
+							//return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 
 						} finally {
 							if (statement2 != null) {
@@ -613,13 +616,12 @@ public class Driver {
 					}
 				}
 			}
-        if (goOnBreak) {
-            ServerLog.writeLog("Driver" + driverId + " went on break today. ");
-            JsonObject responseJson= Json.createObjectBuilder().add("message", "ORDER_RECEIVED").build();
-            response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
+        if (!goOnBreak) {
+            //ServerLog.writeLog("Driver" + driverId + " went on break today. ");
+            JsonObject responseJson= Json.createObjectBuilder().add("message", "BREAK_TAKEN").build();
+            //response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
+			return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
         }
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
 	@Path("/assign-order-to-driver")
@@ -631,7 +633,7 @@ public class Driver {
 
 	public Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken, String requestBody) {
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")) {
+		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
@@ -648,14 +650,26 @@ public class Driver {
 		Integer driverId = requestJson.getInt("driverId");
 
 		//get today's date
-		LocalDate date = getLocalDate();
-		Date dateFormat = new DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date);
+		//Date date = new java.util.Date();
+		//Date dateFormat = new DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date);
+
+		//get today's date
+		java.util.Date orderDate = new java.util.Date();
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		Calendar c = Calendar.getInstance();
+		String currentDate = date.format(c.getTime());
+
+		try {
+			c.setTime(date.parse(currentDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 
 		//get orderId from stockOrders table where the orderDeliveryDate is today's date and orderSatatus is approved for delivery.
 		Statement statement = null;
 		String query = "SELECT orderId" +
 				"FROM StockOrders" +
-				"WHERE orderDeliveryDate='" + dateFormat + " AND orderStatus= approved'";
+				"WHERE orderDeliveryDate='" + currentDate + " AND orderStatus= approved'";
 		try {
 			statement = DbConnection.getConnection().createStatement();
 			ResultSet rs = statement.executeQuery(query);
