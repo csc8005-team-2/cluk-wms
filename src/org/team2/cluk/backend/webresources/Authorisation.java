@@ -518,4 +518,51 @@ public class Authorisation {
         JsonArray workLocation =  workLocationBuilder.build();
         return Response.status(Response.Status.OK).entity(workLocation.toString()).build();
     }   
+    
+    
+    /*unsure if this is correct - needs checked*/
+    
+//         @POST
+//     @Path("/accounts/set-work-location")
+//     @Consumes("application/json")
+//     @Produces("application/json")
+//     //Method to set work location for employees.
+//     public Response setWorkLocations(@HeaderParam("Authorization") String idToken, String requestBody) {
+//         Connection connection = DbConnection.getConnection();
+
+//         JsonObject requestJson = JsonTools.parseObject(requestBody);
+
+//         if (!(requestJson.containsKey("username") && requestJson.containsKey("workLocation") && requestJson.containsKey("restaurantAddress")))
+//             return Response.status(Response.Status.BAD_REQUEST).entity("PERMISSION_REQUEST_MISSPECIFIED").build();
+
+//         String username = requestJson.getString("username");
+//         String restaurantAddress = requestJson.getString("restaurantAddress");
+//         String workLocation = request.Json.getWorkLocation("workLocation");
+
+
+//         Statement statement = null;
+//         String query = "UPDATE Accounts SET workLocation='"+restaurantAddress+"' WHERE username ='"+username+"'";
+
+//         try {
+//             statement = connection.createStatement();
+//             statement.executeUpdate(query);
+//             ServerLog.writeLog("Updated work location for "+username);
+
+//         } catch (SQLException e ) {
+//             e.printStackTrace();
+//         } finally {
+//             if (statement != null) {
+//                 try {
+//                     statement.close();
+//                 } catch (SQLException e) {
+//                     ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+//                 }
+//             }
+//         }
+
+//         refreshPermissions(username);
+
+//         JsonObject response = Json.createObjectBuilder().add("message", "PERMISSIONS_UPDATED").build();
+//         return Response.status(Response.Status.OK).entity(response.toString()).build();
+//     }
 }
