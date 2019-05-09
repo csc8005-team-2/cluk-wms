@@ -63,7 +63,7 @@ public class WorkingHours {
 				"WHERE id ='" + id+"'";
 
 		try {
-			statement1 = DbConnection.getConnection().createStatement()
+			statement1 = DbConnection.getConnection().createStatement();
 			ResultSet rs = statement1.executeQuery(query1);
 
 			while (rs.next()) {

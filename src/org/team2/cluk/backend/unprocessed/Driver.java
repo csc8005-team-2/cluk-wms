@@ -247,7 +247,7 @@ public class Driver {
 			Statement statement = null;
 			JsonObject firstNameObject = JsonTools.parseObject(firstNameObject);
 
-			if (!(firstNameObject.containsKey("firstName")) {
+			if (!(firstNameObject.containsKey("firstName"))) {
 				return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
 			}
 
@@ -349,7 +349,7 @@ public class Driver {
 			Statement statement = null;
 			JsonObject lastNameObject = JsonTools.parseObject(lastNameObject);
 
-			if (!(lastNameObject.containsKey("lastName")) {
+			if (!(lastNameObject.containsKey("lastName"))) {
 				return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
 			}
 
@@ -451,7 +451,7 @@ public class Driver {
 			Statement statement = null;
 			JsonObject phoneNumberObject = JsonTools.parseObject(phoneNumberObject);
 
-			if (!(phoneNumberObject.containsKey("phoneNumber")) {
+			if (!(phoneNumberObject.containsKey("phoneNumber"))) {
 				return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
 			}
 
@@ -544,7 +544,7 @@ public class Driver {
 
 	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w) throws SQLException{
 
-		if ((!Authorisation.checkAccess(idToken, "manager") || (!Authorisation.checkAccess(idToken, "driver"))){
+		if ((!Authorisation.checkAccess(idToken, "manager") || (!Authorisation.checkAccess(idToken, "driver")))){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 			// fetch current db connection
