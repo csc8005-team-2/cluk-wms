@@ -1,6 +1,7 @@
 package org.team2.cluk.backend.unprocessed;
 
-import java.time.LocalDate;
+import org.team2.cluk.backend.tools.DbConnection;
+
 import java.time.format.DateTimeFormatter;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -11,20 +12,18 @@ import java.sql.*;
 
 public class WorkingHours {
 
-	private Connection connection;
-	private LocalDate date;
+	private Date date;
 	private Date startTime;
 	private Date endTime;
 	//private int workingHoursID;
-	private final int id;
+	private final Integer driverId;
 
 
-	public WorkingHours(Connection connection, LocalDate date, Date startTime, Date endTime, int id) {
-		this.connection = connection;
-		this.date = LocalDate.now();
+	public WorkingHours(Connection connection, Date date, Date startTime, Date endTime, Integer driverId) {
+		this.date = new Date();
 		this.startTime = new Date(startTime.getTime());
 		this.endTime = new Date(endTime.getTime());
-		this.id = id;
+		this.driverId = driverId;
 	}
 
 	public Date getStartTime() {
@@ -35,14 +34,28 @@ public class WorkingHours {
 		return endTime;
 	}
 
-	public LocalDate getLocalDate() { return date; }
+	public Date getDate() { return date; }
+
+	public Integer getDriverId(){ return driverId; }
 
 
 	//method to print out the current day and date in the format shown
 	public void printCurrentDate(int id) throws SQLException{
 
-		LocalDate date = getLocalDate();
-		System.out.println(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy").format(date));
+		java.util.Date orderDate = new java.util.Date();
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		Calendar c = Calendar.getInstance();
+		String currentDate = date.format(c.getTime());
+
+		try {
+			c.setTime(date.parse(currentDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		//System.out.println(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy").format(date));
+
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
 
 		Statement statement1 = null;
 		String query1 = "SELECT date " +
@@ -50,7 +63,7 @@ public class WorkingHours {
 				"WHERE id ='" + id+"'";
 
 		try {
-			statement1 = this.connection.createStatement();
+			statement1 = DbConnection.getConnection().createStatement()
 			ResultSet rs = statement1.executeQuery(query1);
 
 			while (rs.next()) {
@@ -115,13 +128,16 @@ public class WorkingHours {
 	//method to print a Driver's shift start time
 	public void printStartTime(int id) throws SQLException{
 
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
 			Statement statement3 = null;
 			String query3 = "SELECT startTime " +
 					"FROM WorkingHours " +
 					"WHERE id ='" + id + "'";
 
 			try {
-				statement3 = this.connection.createStatement();
+				statement3 = DbConnection.getConnection().createStatement();
 				ResultSet rs = statement3.executeQuery(query3);
 				while (rs.next()) {
 					String StartTime = rs.getString("startTime");
@@ -141,6 +157,9 @@ public class WorkingHours {
 	//method to update a driver's shift end time
 	public void updateStartTime(int hour1, int min1, int sec1, int id) throws SQLException {
 
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
 		Calendar c1 = Calendar.getInstance();
 
 		c1.set(Calendar.HOUR, hour1);
@@ -153,7 +172,7 @@ public class WorkingHours {
 			Date dateFormat = new SimpleDateFormat("HH:mm:ss").parse(startTime);
 			//System.out.println(dateFormat.format(startTime));
 			java.sql.Date sqlStartTime = new java.sql.Date(dateFormat.getTime());
-			PreparedStatement p = this.connection.prepareStatement("UPDATE WorkingHours " +
+			PreparedStatement p = connection.prepareStatement("UPDATE WorkingHours " +
 					"SET startTime ='" + sqlStartTime +
 					"'WHERE id ='" + id + "'");
 			p.setDate(1, sqlStartTime);
@@ -168,13 +187,16 @@ public class WorkingHours {
 	//method to print a driver's shift end time
 	public void printEndTime(int id) throws SQLException{
 
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
 		Statement statement3 = null;
 		String query3 = "SELECT endTime " +
 				"FROM WorkingHours " +
 				"WHERE id ='" + id + "'";
 
 		try {
-			statement3 = this.connection.createStatement();
+			statement3 = DbConnection.getConnection().createStatement();
 			ResultSet rs = statement3.executeQuery(query3);
 			while (rs.next()) {
 				String EndTime = rs.getString("endTime");
@@ -194,6 +216,9 @@ public class WorkingHours {
 	//method to update a driver's shift end time
 	public void updateEndTime(int hour2, int min2, int sec2, int id) throws SQLException{
 
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
 		Calendar c2 = Calendar.getInstance();
 
 		c2.set(Calendar.HOUR, hour2);
@@ -206,7 +231,7 @@ public class WorkingHours {
 			Date dateFormat = new SimpleDateFormat("HH:mm:ss").parse(endTime);
 			//System.out.println(dateFormat.format(endTime));
 			java.sql.Date sqlEndTime = new java.sql.Date(dateFormat.getTime());
-			PreparedStatement p = this.connection.prepareStatement("UPDATE WorkingHours " +
+			PreparedStatement p = connection.prepareStatement("UPDATE WorkingHours " +
 					"SET endTime ='" + sqlEndTime +
 					"'WHERE id ='" + id + "'");
 			p.setDate(1, sqlEndTime);
