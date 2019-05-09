@@ -150,14 +150,23 @@ public class Authorisation {
     @GET
     public synchronized Response logoutUser(@HeaderParam("Authorization") String idToken) {
         if (userTokens.containsKey(idToken)) {
+            // retrieve username only for logging purposes
+            String username = userTokens.get(idToken);
+            // log out
             userTokens.remove(idToken);
+            warehousePermissions.remove(idToken);
+            restaurantPermissions.remove(idToken);
+            driverPermissions.remove(idToken);
+            managerPermissions.remove(idToken);
+
+            ServerLog.writeLog("User " + username + " successfully logged out");
             JsonObject response = Json.createObjectBuilder().add("message", "LOGOUT_SUCCESSFUL").build();
             return Response.status(Response.Status.OK).entity(response.toString()).build();
         }
         return Response.status(Response.Status.BAD_REQUEST).entity("USER_NEVER_LOGGED_IN").build();
     }
 
-    public static boolean checkAuthHeader(String authHeader) {
+    /* public static boolean checkAuthHeader(String authHeader) {
         if (userTokens.containsKey(authHeader))
             return true;
         return false;
@@ -173,7 +182,7 @@ public class Authorisation {
                 return true;
         }
         return false;
-    }
+    } */
 
     @Path("/accounts/add")
     @POST
