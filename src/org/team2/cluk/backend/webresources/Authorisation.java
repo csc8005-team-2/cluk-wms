@@ -414,7 +414,7 @@ public class Authorisation {
 
                 int mangr = rs.getInt("driver");
                 boolean bMangr = false;
-                if(driv == 1) {bMangr=true;}
+                if(mangr == 1) {bMangr=true;}
 
                 staffEntryBuilder.add("id", id);
                 staffEntryBuilder.add("name", name);
