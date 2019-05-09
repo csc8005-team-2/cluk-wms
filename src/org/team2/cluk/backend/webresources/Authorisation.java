@@ -28,6 +28,7 @@ public class Authorisation {
     private static HashSet<String> restaurantPermissions = new HashSet<>();
     private static HashSet<String> warehousePermissions = new HashSet<>();
     private static HashSet<String> driverPermissions = new HashSet<>();
+    private static HashSet<String> managerPermissions = new HashSet<>();
 
     // used code from https://stackoverflow.com/questions/3103652/hash-string-via-sha-256-in-java
     private static String hashString(String plainText, String hashAlgorithm) {
@@ -221,9 +222,10 @@ public class Authorisation {
         boolean restaurant = false;
         boolean warehouse = false;
         boolean driver = false;
+        boolean manager = false;
 
         Statement statement = null;
-        String query = "SELECT restaurant, warehouse, driver " +
+        String query = "SELECT restaurant, warehouse, driver, manager " +
                 "FROM Accounts " +
                 "WHERE username ='" + username + "'";
         try {
@@ -233,6 +235,7 @@ public class Authorisation {
                 restaurant = rs.getBoolean("restaurant");
                 warehouse = rs.getBoolean("warehouse");
                 driver = rs.getBoolean("driver");
+                manager = rs.getBoolean("manager");
             }
         } catch (SQLException e) {
             ServerLog.writeLog("Error verifying user " + username + " credentials");
@@ -262,6 +265,9 @@ public class Authorisation {
 
             if (driver)
                 driverPermissions.add(assignedToken);
+            
+            if (manager)
+                managerPermissions.add(assignedToken);
         }
     }
 
@@ -275,21 +281,23 @@ public class Authorisation {
 
         JsonObject requestJson = JsonTools.parseObject(requestBody);
 
-        if (!(requestJson.containsKey("username") && requestJson.containsKey("restaurant") && requestJson.containsKey("warehouse") && requestJson.containsKey("driver")))
+        if (!(requestJson.containsKey("username") && requestJson.containsKey("restaurant") && requestJson.containsKey("warehouse") && requestJson.containsKey("driver") && requestJson.containsKey("manager")))
             return Response.status(Response.Status.BAD_REQUEST).entity("PERMISSION_REQUEST_MISSPECIFIED").build();
 
         String username = requestJson.getString("username");
         boolean restaurant = requestJson.getBoolean("restaurant");
         boolean warehouse = requestJson.getBoolean("warehouse");
         boolean driver = requestJson.getBoolean("driver");
+        boolean manager = requestJson.getBoolean("manager");
 
-        int rest =0; int ware = 0; int driv =0;
+        int rest =0; int ware = 0; int driv =0; int man =0;
         if(restaurant == true) {rest=1;}
         if(warehouse == true) {ware=1;}
         if(driver == true) {driv=1;}
+        if(manager == true) {man=1;}
 
         Statement statement = null;
-        String query = "UPDATE Accounts SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+" WHERE username ='"+username+"'";
+        String query = "UPDATE Accounts SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+", manager ="+man+" WHERE username ='"+username+"'";
 
         try {
             statement = connection.createStatement();
