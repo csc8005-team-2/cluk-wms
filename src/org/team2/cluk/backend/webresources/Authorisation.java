@@ -28,6 +28,7 @@ public class Authorisation {
     private static HashSet<String> restaurantPermissions = new HashSet<>();
     private static HashSet<String> warehousePermissions = new HashSet<>();
     private static HashSet<String> driverPermissions = new HashSet<>();
+    private static HashSet<String> managerPermissions = new HashSet<>();
 
     // used code from https://stackoverflow.com/questions/3103652/hash-string-via-sha-256-in-java
     private static String hashString(String plainText, String hashAlgorithm) {
@@ -74,10 +75,10 @@ public class Authorisation {
         ServerLog.writeLog("User " + username + " tries to log in");
 
         // check if user already logged in
-        if (userTokens.containsValue(username)) {
+        /* if (userTokens.containsValue(username)) {
             ServerLog.writeLog("User " + username + " already logged in. Rejecting login attempt.");
             return Response.status(Response.Status.CONFLICT).entity("USER_ALREADY_LOGGED_IN").build();
-        }
+        } */
 
         String passwordHash = hashString(password, "SHA-256");
         // checking if authorisation successful
@@ -85,8 +86,11 @@ public class Authorisation {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
 
+        // initialise variable for storing work location
+        String location = "";
+
         Statement statement = null;
-        String query = "SELECT username, password " +
+        String query = "SELECT username, password, workLocation " +
                 "FROM Accounts " +
                 "WHERE username ='" + username + "'";
         try {
@@ -94,8 +98,10 @@ public class Authorisation {
             ResultSet rs = statement.executeQuery(query);
             if (rs.next()) {
                 String storedHash = rs.getString("password");
-                if (passwordHash.equals(storedHash))
+                if (passwordHash.equals(storedHash)) {
                     loginSuccessful = true;
+                    location = rs.getString("workLocation");
+                }
             }
         } catch (SQLException e) {
             ServerLog.writeLog("Error verifying user " + username + "credentials");
@@ -126,6 +132,7 @@ public class Authorisation {
             // generate output JSON
             JsonObjectBuilder outputJsonBuilder = Json.createObjectBuilder();
             outputJsonBuilder.add("idToken", newIdToken);
+            outputJsonBuilder.add("location", location);
             JsonObject outputJson = outputJsonBuilder.build();
             // return token to the user on successful login
             res = Response.status(Response.Status.OK).entity(outputJson.toString());
@@ -215,9 +222,10 @@ public class Authorisation {
         boolean restaurant = false;
         boolean warehouse = false;
         boolean driver = false;
+        boolean manager = false;
 
         Statement statement = null;
-        String query = "SELECT restaurant, warehouse, driver " +
+        String query = "SELECT restaurant, warehouse, driver, manager " +
                 "FROM Accounts " +
                 "WHERE username ='" + username + "'";
         try {
@@ -227,6 +235,7 @@ public class Authorisation {
                 restaurant = rs.getBoolean("restaurant");
                 warehouse = rs.getBoolean("warehouse");
                 driver = rs.getBoolean("driver");
+                manager = rs.getBoolean("manager");
             }
         } catch (SQLException e) {
             ServerLog.writeLog("Error verifying user " + username + " credentials");
@@ -256,6 +265,9 @@ public class Authorisation {
 
             if (driver)
                 driverPermissions.add(assignedToken);
+            
+            if (manager)
+                managerPermissions.add(assignedToken);
         }
     }
 
@@ -269,21 +281,23 @@ public class Authorisation {
 
         JsonObject requestJson = JsonTools.parseObject(requestBody);
 
-        if (!(requestJson.containsKey("username") && requestJson.containsKey("restaurant") && requestJson.containsKey("warehouse") && requestJson.containsKey("driver")))
+        if (!(requestJson.containsKey("username") && requestJson.containsKey("restaurant") && requestJson.containsKey("warehouse") && requestJson.containsKey("driver") && requestJson.containsKey("manager")))
             return Response.status(Response.Status.BAD_REQUEST).entity("PERMISSION_REQUEST_MISSPECIFIED").build();
 
         String username = requestJson.getString("username");
         boolean restaurant = requestJson.getBoolean("restaurant");
         boolean warehouse = requestJson.getBoolean("warehouse");
         boolean driver = requestJson.getBoolean("driver");
+        boolean manager = requestJson.getBoolean("manager");
 
-        int rest =0; int ware = 0; int driv =0;
+        int rest =0; int ware = 0; int driv =0; int man =0;
         if(restaurant == true) {rest=1;}
         if(warehouse == true) {ware=1;}
         if(driver == true) {driv=1;}
+        if(manager == true) {man=1;}
 
         Statement statement = null;
-        String query = "UPDATE Accounts SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+" WHERE username ='"+username+"'";
+        String query = "UPDATE Accounts SET restaurant ="+rest+", warehouse ="+ware+", driver ="+driv+", manager ="+man+" WHERE username ='"+username+"'";
 
         try {
             statement = connection.createStatement();
@@ -418,7 +432,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(staffInfo.toString()).build();
     }
 
-    @Path("/account/check-access")
+    @Path("/accounts/check-access")
     @GET
     @Produces("application/json")
     public Response checkAccess(@HeaderParam("Authorization") String idToken) {
@@ -452,19 +466,19 @@ public class Authorisation {
     public static boolean checkAccess(String idToken, String level) {
     	refreshPermissions(userTokens.get(idToken));
 
-        if (level.contentEquals("restaurant") && restaurantPermissions.contains(idToken))
+        if (level.equals("restaurant") && restaurantPermissions.contains(idToken))
         	return true;
         
-        if (level.contentEquals("warehouse") && warehousePermissions.contains(idToken))
+        if (level.equals("warehouse") && warehousePermissions.contains(idToken))
         	return true;
         
-        if (level.contentEquals("driver") && driverPermissions.contains(idToken))
+        if (level.equals("driver") && driverPermissions.contains(idToken))
         	return true;
         
         return false;
     }
     
-    @Path("/account/check-work-location")
+    @Path("/accounts/check-work-location")
     @GET
     @Produces("application/json")
     public Response checkWorkLocation(@HeaderParam("Authorization") String idToken, @HeaderParam("name") String name) {
@@ -485,7 +499,7 @@ public class Authorisation {
 
                 String workLocation = rs.getString("workLocation");
                 
-                workEntryBuilder.add("workLocation", workLocation);
+                workEntryBuilder.add("message", workLocation);
 
                 workLocationBuilder.add(workEntryBuilder);
             }
