@@ -57,6 +57,7 @@ public class Driver {
 		}
 
 		ServerLog.writeLog("Adding driver info to driver table ");
+        JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 		// parse request body
@@ -67,7 +68,7 @@ public class Driver {
 		for (JsonValue entry : infoToAdd) {
 			// check if array entry is a JSON
 			if (!(entry instanceof JsonObject)) {
-				ServerLog.writeLog("Driver info entry misidentified. Skipping entry!");
+				ServerLog.writeLog("Driver info entry misspecified. Skipping entry!");
 				continue;
 			}
 
@@ -75,7 +76,7 @@ public class Driver {
 
 			// check if JSON correctly specified
 			if (!(entryObj.containsKey("firstName") && entryObj.containsKey("lastName") && entryObj.containsKey("driverId") && entryObj.containsKey("phoneNumber") && entryObj.containsKey("workDuration") /*&& entryObj.containsKey("region")*/)) {
-				ServerLog.writeLog("Driver entry misidentified. Skipping entry!");
+				ServerLog.writeLog("Driver entry misspecified. Skipping entry!");
 				continue;
 			}
 
@@ -108,7 +109,9 @@ public class Driver {
 				}
 			}
 		}
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
+
+        JsonArray response = responseBuilder.build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
 
@@ -122,6 +125,7 @@ public class Driver {
 		}
 
 			ServerLog.writeLog("Removing driver info from driver table ");
+            JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
 			// fetch db connection
 			Connection connection = DbConnection.getConnection();
 			// parse request body
@@ -131,7 +135,7 @@ public class Driver {
 			for (JsonValue removal : infoToRemove) {
 				// check if array removal is a JSON
 				if (!(removal instanceof JsonObject)) {
-					ServerLog.writeLog("Driver info removal misidentified. Skipping removal!");
+					ServerLog.writeLog("Driver info removal misspecified. Skipping removal!");
 					continue;
 				}
 
@@ -158,7 +162,6 @@ public class Driver {
 			}
 
 		JsonArray response = responseBuilder.build();
-		// return Response OK if everything is alright
 		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
@@ -257,12 +260,15 @@ public class Driver {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
-				if (statement != null) {
-					statement.close();
-				}
-			}
-		}
-
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+    }
 
 	@GET
 	@Path("/get-last-name")
@@ -320,10 +326,8 @@ public class Driver {
 						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 					}
 				}
-
 			}
 			JsonArray response = responseBuilder.build();
-
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 		}
 
@@ -358,11 +362,15 @@ public class Driver {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
-				if (statement != null) {
-					statement.close();
-				}
-			}
-		}
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+    }
 
 
 	@GET
@@ -582,34 +590,37 @@ public class Driver {
 							ServerLog.writeLog("Error when updating work duration of Driver: " + driverId);
 							e.printStackTrace();
 							response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("UPDATE_WORKDURATION_ERROR");
+
 						} finally {
-							if (statement != null) {
+							if (statement2 != null) {
 								try {
-									statement.close();
-								} catch (SQLException e) {
-									ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-								}
-							}
-						} finally{
-							if (statement != null) {
-								try {
-									statement.close();
+									statement2.close();
 								} catch (SQLException e) {
 									ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 								}
 							}
 						}
+
+					}finally{
+                        if (statement != null) {
+                            try {
+                                statement.close();
+                            } catch (SQLException e) {
+                                ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                            }
+
+						}
 					}
 				}
-
-				if (goOnBreak) {
-					ServerLog.writeLog("Driver" + driverId + " went on break today. ");
-					response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
-				}
-
-				return response.build();
 			}
-		}
+        if (goOnBreak) {
+            ServerLog.writeLog("Driver" + driverId + " went on break today. ");
+            JsonObject responseJson= Json.createObjectBuilder().add("message", "ORDER_RECEIVED").build();
+            response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
+        }
+
+		return Response.status(Response.Status.OK).entity(response.toString()).build();
+	}
 
 	@Path("/assign-order-to-driver")
 	@POST
@@ -620,94 +631,93 @@ public class Driver {
 
 	public Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken, String requestBody) {
 
-		if (!Authorisation.checkAccess(idToken, "warehouse")){
-		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
+		if (!Authorisation.checkAccess(idToken, "warehouse")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 
-			Response.ResponseBuilder res = null;
-			Connection connection = DbConnection.getConnection();
+		Response.ResponseBuilder res = null;
+		Connection connection = DbConnection.getConnection();
 
-			JsonObject requestJson = JsonTools.parseObject(requestBody);
+		JsonObject requestJson = JsonTools.parseObject(requestBody);
 
-			if (!(requestJson.containsKey("orderId") || requestJson.containsKey("driverId"))) {
-				return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
-			}
+		if (!(requestJson.containsKey("orderId") || requestJson.containsKey("driverId"))) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+		}
 
-			int orderId = requestJson.getInt("orderId");
-			Integer driverId = requestJson.getInt("driverId");
+		int orderId = requestJson.getInt("orderId");
+		Integer driverId = requestJson.getInt("driverId");
 
-			//get today's date
-			LocalDate date = getLocalDate();
-			Date dateFormat = new DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date);
+		//get today's date
+		LocalDate date = getLocalDate();
+		Date dateFormat = new DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date);
 
-			//get orderId from stockOrders table where the orderDeliveryDate is today's date and orderSatatus is approved for delivery.
-			Statement statement = null;
-			String query = "SELECT orderId" +
-					"FROM StockOrders" +
-					"WHERE orderDeliveryDate='" + dateFormat + " AND orderStatus= approved'";
-			try {
-				statement = DbConnection.getConnection().createStatement();
-				ResultSet rs = statement.executeQuery(query);
+		//get orderId from stockOrders table where the orderDeliveryDate is today's date and orderSatatus is approved for delivery.
+		Statement statement = null;
+		String query = "SELECT orderId" +
+				"FROM StockOrders" +
+				"WHERE orderDeliveryDate='" + dateFormat + " AND orderStatus= approved'";
+		try {
+			statement = DbConnection.getConnection().createStatement();
+			ResultSet rs = statement.executeQuery(query);
 
-				while (rs.next()) {
-					int orderIdStockOrders = rs.getInt("orderId");
+			while (rs.next()) {
+				int orderIdStockOrders = rs.getInt("orderId");
 
-					//get the restaurantAddress where the orderId from orders table is equal to the orderId from stockOrders table.
-					Statement statement1 = null;
-					String query1 = "SELECT restaurantAddress " +
-							"FROM Orders " +
-							"WHERE orderid ='" + orderIdStockOrders + "'";
+				//get the restaurantAddress where the orderId from orders table is equal to the orderId from stockOrders table.
+				Statement statement1 = null;
+				String query1 = "SELECT restaurantAddress " +
+						"FROM Orders " +
+						"WHERE orderid ='" + orderIdStockOrders + "'";
 
-					try {
-						statement1 = DbConnection.getConnection().createStatement();
-						ResultSet rs1 = statement1.executeQuery(query1);
+				try {
+					statement1 = DbConnection.getConnection().createStatement();
+					ResultSet rs1 = statement1.executeQuery(query1);
 
-						while (rs.next()) {
-							String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
+					while (rs.next()) {
+						String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
 
-							//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is north
-							Statement statement2 = null;
-							String query2 = "SELECT restaurantAddress" +
-									"FROM Restaurant " +
-									"WHERE restaurantAddress = '" + restaurantAddressOrdersTable /*+ " AND region= north*/
-							'";
-							try {
-								statement2 = DbConnection.getConnection().createSatement();
-								ResultSet rs2 = statement2.executeQuery(query2);
+						//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is north
+						Statement statement2 = null;
+						String query2 = "SELECT restaurantAddress" +
+								"FROM Restaurant " +
+								"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + "'";
+						try {
+							statement2 = DbConnection.getConnection().createStatement();
+							ResultSet rs2 = statement2.executeQuery(query2);
 
-								while (rs2.next()) {
-									String restaurantAddressRestaurantTable = rs2.getString("restaurantAddress");
+							while (rs2.next()) {
+								String restaurantAddressRestaurantTable = rs2.getString("restaurantAddress");
 
-									//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is south
-									Statement statement3 = null;
-									String query3 = "SELECT restaurantAddress" +
-											"FROM Restaurant " +
-											"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + "'";
-									try {
-										statement3 = DbConnection.getConnection().createSatement();
-										ResultSet rs3 = statement3.executeQuery(query3);
+								//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is south
+								Statement statement3 = null;
+								String query3 = "SELECT restaurantAddress" +
+										"FROM Restaurant " +
+										"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + "'";
+								try {
+									statement3 = DbConnection.getConnection().createStatement();
+									ResultSet rs3 = statement3.executeQuery(query3);
 
-										while (rs3.next()) {
-											restaurantAddressRestaurantTable = rs3.getString("restaurantAddress");
-										}
-									} catch (SQLException e) {
-										e.printStackTrace();
+									while (rs3.next()) {
+										restaurantAddressRestaurantTable = rs3.getString("restaurantAddress");
 									}
-
+								} catch (SQLException e) {
+									e.printStackTrace();
 								}
-							} catch (SQLException e) {
-								e.printStackTrace();
+
 							}
-
+						} catch (SQLException e) {
+							e.printStackTrace();
 						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
 
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
-			} catch (SQLException e) {
-				e.printStackTrace();
+
 			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 
