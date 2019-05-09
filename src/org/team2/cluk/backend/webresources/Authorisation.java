@@ -396,7 +396,7 @@ public class Authorisation {
         JsonArrayBuilder staffInfoBuilder = Json.createArrayBuilder();
 
         Statement statement = null;
-        String query = "SELECT id, name, username, restaurant, warehouse, driver FROM Accounts";
+        String query = "SELECT id, name, username, restaurant, warehouse, driver, manager FROM Accounts";
 
         try {
             statement = connection.createStatement();
@@ -421,7 +421,7 @@ public class Authorisation {
                 boolean bDriv = false;
                 if(driv == 1) {bDriv=true;}
 
-                int mangr = rs.getInt("driver");
+                int mangr = rs.getInt("manager");
                 boolean bMangr = false;
                 if(mangr == 1) {bMangr=true;}
 
