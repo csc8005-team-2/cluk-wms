@@ -138,7 +138,6 @@ public class Driver {
 	*/
 	@POST
 	@Path("/remove-driver-info")
-
 	public Response removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, String requestBody){
 
 		if (!Authorisation.checkAccess(idToken, "manager")){
@@ -195,8 +194,6 @@ public class Driver {
 	@GET
 	@Path("/get-first-name")
 	@Produces("application/json")
-
-
 	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
@@ -267,7 +264,6 @@ public class Driver {
 	@POST
 	@Consumes("application/json")
 	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("firstName") String firstName, String firstNameObject){
-
 		if (!Authorisation.checkAccess(idToken, "manager")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
@@ -316,7 +312,6 @@ public class Driver {
 	* @return the drivers last name 
 	*/
 	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
-
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
@@ -384,7 +379,7 @@ public class Driver {
 	@POST
 	@Consumes("application/json")
 	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("lastName") String lastName, String lastNameObject){
-
+		
 		if (!Authorisation.checkAccess(idToken, "manager")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
@@ -546,7 +541,8 @@ public class Driver {
 
 	public Response getWorkDuration(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w){
 
-		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
+		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant") 
+		   || !Authorisation.checkAccess(idToken, "driver")){
 		return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 			ServerLog.writeLog("Requested information on work duration of driver of " + driverId);
