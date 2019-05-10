@@ -391,23 +391,31 @@ public class Authorisation {
     @Produces("application/json")
     //Method to see staff info
     public Response getStaffInfo(@HeaderParam("Authorization") String idToken) {
+        if (!Authorisation.checkAccess(idToken, "manager")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
         Connection connection = DbConnection.getConnection();
+
+        ServerLog.writeLog("Requested staff info");
 
         JsonArrayBuilder staffInfoBuilder = Json.createArrayBuilder();
 
         Statement statement = null;
-        String query = "SELECT id, name, username, restaurant, warehouse, driver, manager FROM Accounts";
+        String query = "SELECT id, name, username, restaurant, warehouse, driver, manager, workLocation FROM Accounts";
 
         try {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
-
+            ServerLog.writeLog("Staff info retrieved");
             while(rs.next()){
                 JsonObjectBuilder staffEntryBuilder = Json.createObjectBuilder();
 
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String username = rs.getString("username");
+                String locationString = rs.getString("workLocation");
+                String location = (locationString != null) ? locationString : "";
 
                 int rest = rs.getInt("restaurant");
                 boolean bRest = false;
@@ -432,6 +440,7 @@ public class Authorisation {
                 staffEntryBuilder.add("warehouse", bWare);
                 staffEntryBuilder.add("driver", bDriv);
                 staffEntryBuilder.add("manager", bMangr);
+                staffEntryBuilder.add("location", location);
 
                 staffInfoBuilder.add(staffEntryBuilder);
             }
@@ -556,11 +565,11 @@ public class Authorisation {
 
          JsonObject requestJson = JsonTools.parseObject(requestBody);
 
-         if (!(requestJson.containsKey("username") && requestJson.containsKey("workLocation")))
+         if (!(requestJson.containsKey("username") && requestJson.containsKey("address")))
              return Response.status(Response.Status.BAD_REQUEST).entity("SET_LOCATION_REQUEST_MISSPECIFIED").build();
 
          String username = requestJson.getString("username");
-         String restaurantAddress = requestJson.getString("restaurantAddress");
+         String restaurantAddress = requestJson.getString("address");
 
 
          Statement statement = null;
@@ -583,7 +592,7 @@ public class Authorisation {
              }
          }
 
-         JsonObject response = Json.createObjectBuilder().add("message", "PERMISSIONS_UPDATED").build();
+         JsonObject response = Json.createObjectBuilder().add("message", "LOCATION_SET").build();
          return Response.status(Response.Status.OK).entity(response.toString()).build();
      }
 }
