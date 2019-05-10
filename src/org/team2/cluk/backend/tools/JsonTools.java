@@ -6,15 +6,13 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import java.io.StringReader;
 
-/**
- * Simple class to provide other classes, in particular web resources, with possibility to parse String into JSON.
- *
- * @author Matt Grabara
- * @version 02/04/2019
+/*
+ * Simple class to provide other classes, in particular web resources, with possibility to parse String into JSON
  */
+
 public class JsonTools {
-    /**
-     * Converts String object (e.g. http request body) into JsonObject.
+    /*
+     * Converts String object (e.g. http request body) into JsonObject
      * @param inputJson stringified JSON
      * @return  parsed JSON
      */
@@ -27,8 +25,8 @@ public class JsonTools {
         return jsonObject;
     }
 
-    /**
-     * Converts String object (e.g. http request body) into JsonArray.
+    /*
+     * Converts String object (e.g. http request body) into JsonArray
      * @param inputJsonArray    stringified JSON array
      * @return  parsed JSON array
      */
