@@ -5,6 +5,11 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.ext.Provider;
 
+
+/*
+* CorsFilter class which implements the ContainerResponseFilter
+*/
+
 @Provider
 public class CorsFilter implements ContainerResponseFilter {
 
