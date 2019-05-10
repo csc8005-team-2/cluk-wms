@@ -32,7 +32,7 @@ export class ViewOrderComponent implements OnInit {
     this.session.sendOrder(this.orderAddress, this.orderId).subscribe(res => {
       if (res.message === 'ORDER_SENT') {
         window.alert('Order ' + this.orderId + ' has been accepted for dispatch to ' + this.orderAddress + '!');
-        this.dialogRef.close();
+        this.dialogRef.close(true);
       }
     }, err => console.log(err));
   }

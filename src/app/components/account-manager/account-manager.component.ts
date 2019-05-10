@@ -34,11 +34,13 @@ export class AccountManagerComponent implements OnInit {
     this.session.removeAccount(user.username).subscribe(res => {
       window.alert('Account ' + user.username + ' successfully removed!');
       // refresh table
-      const staffListArr = this.staffList.data;
-      staffListArr.splice(staffListArr.indexOf(user), 1);
-      this.staffList = new MatTableDataSource(staffListArr);
-      this.cdRef.detectChanges();
-
+      this.staffListSub.unsubscribe();
+      this.staffListSub = this.session.getStaffInfo().subscribe(res => {
+        this.staffList = new MatTableDataSource(res);
+        this.cdRef.detectChanges();
+      }, err => {
+        console.log(err);
+      });
     }, err => {
       window.alert('Error encountered when removing account! No changes made.');
     });
@@ -70,10 +72,13 @@ export class AccountManagerComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(newEntry => {
       // update table
-      const staffListArray = this.staffList.data;
-      staffListArray[staffListArray.indexOf(element)] = newEntry;
-      this.staffList = new MatTableDataSource(staffListArray);
-      this.cdRef.detectChanges();
+      this.staffListSub.unsubscribe();
+      this.staffListSub = this.session.getStaffInfo().subscribe(res => {
+        this.staffList = new MatTableDataSource(res);
+        this.cdRef.detectChanges();
+      }, err => {
+        console.log(err);
+      });
     });
   }
 

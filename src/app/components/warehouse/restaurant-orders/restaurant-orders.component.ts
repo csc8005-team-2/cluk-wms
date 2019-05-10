@@ -11,6 +11,7 @@ import {ViewOrderComponent} from '../view-order/view-order.component';
 })
 export class RestaurantOrdersComponent implements OnInit {
   // restaurant orders table
+  pendingOrdersSub: any;
   availableStock: MatTableDataSource<OrderEntry>;
 
   // displayed columns format
@@ -21,7 +22,7 @@ export class RestaurantOrdersComponent implements OnInit {
   }
 
   constructor(private cdRef: ChangeDetectorRef, private session: SessionService, private dialog: MatDialog) {
-    this.session.getPendingOrders().subscribe(res => {
+    this.pendingOrdersSub = this.session.getPendingOrders().subscribe(res => {
       this.availableStock = new MatTableDataSource(res);
     }, err => {
       console.log(err);
@@ -35,6 +36,17 @@ export class RestaurantOrdersComponent implements OnInit {
       data: order
     });
 
+    dialogRef.afterClosed().subscribe(orderAccepted => {
+      if (orderAccepted) {
+        this.pendingOrdersSub.unsubscribe();
+        this.pendingOrdersSub = this.session.getPendingOrders().subscribe(res => {
+          this.availableStock = new MatTableDataSource(res);
+          this.cdRef.detectChanges();
+        }, err => {
+          console.log(err);
+        });
+      }
+    });
   }
 
   ngOnInit() {

@@ -11,7 +11,7 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {MatSelectModule} from '@angular/material/select'; 
 import {MatTableModule} from '@angular/material/table';
 import {NgModule} from '@angular/core';
-import {MatCheckboxModule, MatDialogModule} from '@angular/material';
+import {MatCheckboxModule, MatDialogModule, MatRadioModule} from '@angular/material';
 
 @NgModule({
     imports: [

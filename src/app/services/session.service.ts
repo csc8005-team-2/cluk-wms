@@ -19,12 +19,19 @@ export class SessionService {
   private BACKEND_URL = 'http://api.chickenlovers.ml';
   private idToken = '';
   private venueAddress: string;
-  public permissions = {restaurant: false, warehouse: false, driver: false};
+  public permissions = {restaurant: false, warehouse: false, driver: false, manager: false};
 
   constructor(private http: HttpClient) {
     // check for cookies to avoid mess on refreshing
     this.idToken = this.getCookie('token');
     this.venueAddress = this.getCookie('address');
+
+    const restPerm = (this.getCookie('restaurant') === 'true') ? true: false;
+    const warPerm = (this.getCookie('warehouse') === 'true') ? true: false;
+    const drivPerm = (this.getCookie('driver') === 'true') ? true: false;
+    const manPerm = (this.getCookie('manager') === 'true') ? true: false;
+
+    this.permissions = {restaurant: restPerm, warehouse: warPerm, driver: drivPerm, manager: manPerm};
   }
 
   // methods for storing cookies.. yummy!
@@ -65,15 +72,21 @@ export class SessionService {
     const reqBody = {username, password};
 
     return this.http.post<IdToken>(this.BACKEND_URL + '/login', reqBody, {headers: reqHeader} ).pipe(
-      tap ((res: IdToken) => {
-        this.idToken = res.idToken;
-        this.venueAddress = res.location;
+      tap ((token: IdToken) => {
+        this.idToken = token.idToken;
+        this.venueAddress = token.location;
         // set cookies for better refresh
         this.setCookie('token', this.idToken, 90, '/');
         this.setCookie('address', this.venueAddress, 90, '/');
 
         // establish permissions
-        this.getPermissions().subscribe(res => {this.permissions = res; }, err => {console.log(err); });
+        this.getPermissions().subscribe(_permissions => {
+          this.permissions = _permissions;
+          this.setCookie('restaurant', (this.permissions.restaurant) ? 'true' : 'false', 90, '/');
+          this.setCookie('warehouse', (this.permissions.warehouse) ? 'true' : 'false', 90, '/');
+          this.setCookie('driver', (this.permissions.driver) ? 'true' : 'false', 90, '/');
+          this.setCookie('manager', (this.permissions.manager) ? 'true' : 'false', 90, '/');
+          }, err => {console.log(err); });
       }) /* ,
       catchError(this.handleError<IdToken>('login')) */
     );
@@ -99,11 +112,17 @@ export class SessionService {
   logout(): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
 
+    // Clean cookies. Even if remote request will fail, local machine is secure
+    this.deleteCookie('token', '/');
+    this.deleteCookie('address', '/');
+    this.deleteCookie('restaurant', '/');
+    this.deleteCookie('warehouse', '/');
+    this.deleteCookie('driver', '/');
+    this.deleteCookie('manager', '/');
+
     return this.http.get<Message>(this.BACKEND_URL + '/logout', {headers: reqHeader} ).pipe(
       tap ((res: Message) => {
         this.idToken = '';
-        this.deleteCookie('token', '/');
-        this.deleteCookie('address', '/');
       }) /* ,
       catchError(this.handleError<Message>('logout')) */
     );
@@ -148,6 +167,25 @@ export class SessionService {
     return this.venueAddress;
   }
 
+  getWarehouseLocations(): Observable<Location[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+
+    return this.http.get<Location[]>(this.BACKEND_URL + '/warehouse/get-list', {headers: reqHeader});
+  }
+
+  getRestaurantLocations(): Observable<Location[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+
+    return this.http.get<Location[]>(this.BACKEND_URL + '/restaurant/get-list', {headers: reqHeader});
+  }
+
+  setEmployeeLocation(username: string, address: string): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+    const reqBody = {username, address};
+
+    return this.http.post<Message>(this.BACKEND_URL + '/accounts/set-work-location', reqBody, {headers: reqHeader});
+  }
+
   /*
   * Methods for accounts management
   * @param {string} username, {string} password, {string} name.
@@ -165,9 +203,9 @@ export class SessionService {
   * @param {string} username, {boolean} restaurant, {boolean} warehouse, {boolean} driver
   * @returns http.post<Message>
   */ 
-  setPermission(username: string, restaurant: boolean, warehouse: boolean, driver: boolean): Observable<Message> {
+  setPermission(username: string, restaurant: boolean, warehouse: boolean, driver: boolean, manager: boolean): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
-    const reqBody = {username, restaurant, warehouse, driver};
+    const reqBody = {username, restaurant, warehouse, driver, manager};
     return this.http.post<Message>(this.BACKEND_URL + '/accounts/set-permission', reqBody, {headers: reqHeader});
   }
 

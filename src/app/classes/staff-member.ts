@@ -5,4 +5,6 @@ export interface StaffMember {
   restaurant: boolean;
   warehouse: boolean;
   driver: boolean;
+  manager: boolean;
+  location: string;
 }
