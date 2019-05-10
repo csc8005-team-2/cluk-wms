@@ -42,7 +42,7 @@ import java.util.Scanner;
  * @version 27/04/2019
  */
 public class StartServer {
-    public static void printHelp() {
+    private static void printHelp() {
         final String helpInfo = "CLUK Warehouse Management System\n" +
                 "Backend Module, version 1.0\n\n" +
                 "In order to start server, provide path to the configuration file after '--config' parameter.\n\n" +
