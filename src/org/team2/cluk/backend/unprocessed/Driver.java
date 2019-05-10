@@ -17,6 +17,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+/*
+* Driver class including information about driver schedules and assigning orders
+*/
+
+
 @Path("/driver")
 
 public class Driver {
@@ -48,10 +53,17 @@ public class Driver {
 	}
 
 
+	/*
+	* method to add driver information to the driver table
+	* @param idToken to check access for manager
+	* @param firstName, lastName, driverId, phoneNumber  driver information
+	* @param workDuration  the schedule of the driver 
+	* @param requestbody
+	* @return driver information
+	*/
 	@GET
 	@Path("/add-driver-info")
 	@Produces("application/json")
-	//method to add a driver's information to the driver table
 	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("driverId") Integer driverId, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody){
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
@@ -117,9 +129,16 @@ public class Driver {
 	}
 
 
+	/*
+	* method to remove a driver's information from the table 
+	* @param idToken to check access for a manager 
+	* @param driverId of the driver that will be removed
+	* @param requestBody
+	* @return driver information that has been removed 
+	*/
 	@POST
 	@Path("/remove-driver-info")
-	//method to remove a driver's information from the table
+
 	public Response removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, String requestBody){
 
 		if (!Authorisation.checkAccess(idToken, "manager")){
@@ -168,11 +187,16 @@ public class Driver {
 	}
 
 
+	/*
+	* method to get the driver's first name using the driver's id
+	* @param idToken to check access of manager or restaurant 
+	* @param driverId 
+	*/
 	@GET
 	@Path("/get-first-name")
 	@Produces("application/json")
 
-	//method to print a driver's first name using the driver's id
+
 	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
@@ -231,7 +255,14 @@ public class Driver {
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
-	// method to update a driver's first name using the driverId and new first name
+	/*
+	* method to update a driver's first name using the driverId and new first name
+	* @param idToken
+	* @param driverId
+	* @param firstName
+	* @param firstNameObject to get a new first name 
+	* @return updated first name of the driver
+	*/
 	@Path("/update-first-name")
 	@POST
 	@Consumes("application/json")
@@ -272,11 +303,18 @@ public class Driver {
             }
     }
 
+	
+
 	@GET
 	@Path("/get-last-name")
 	@Produces("application/json")
 
-	//method to print a driver's last name using the driver's id
+	/*
+	* method to print a driver's last name using the driver's id
+	* @param idToken
+	* @param driverId 
+	* @return the drivers last name 
+	*/
 	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
@@ -333,7 +371,15 @@ public class Driver {
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 		}
 
-	// method to update a driver's phone number
+	
+	/*
+	* method to update a driver's last name using the driverId and new last name
+	* @param idToken
+	* @param driverId
+	* @param lastName
+	* @param lastNameObject to get a new last name 
+	* @return updated last name of the driver
+	*/
 	@Path("/update-last-name")
 	@POST
 	@Consumes("application/json")
@@ -375,11 +421,17 @@ public class Driver {
     }
 
 
+	/*
+	* method to print a driver's phone number using driverId 
+	* @param idToken to check access to either manager or restaurant
+	* @param driverId
+	* @return phone number of the driver
+	*/
 	@GET
 	@Path("/get-phone-number")
 	@Produces("application/json")
 
-	//method to print a driver's phone number using driverId
+
 	public Response getPhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId){
 
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
@@ -435,7 +487,15 @@ public class Driver {
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 		}
 
-	// method to update a driver's phone number
+	
+	/*
+	* method to update a driver's phone number using the driverId and new phone number
+	* @param idToken
+	* @param driverId
+	* @param phoneNumber
+	* @param phoneNumberObject to get a new phone number
+	* @return updated phone number of the driver
+	*/
 	@Path("/update-phone-number")
 	@POST
 	@Consumes("application/json")
@@ -472,11 +532,18 @@ public class Driver {
 			}
 	}
 
+	
+	/*
+	* method to get the current work duration of the driver 
+	* @param idToken
+	* @param driverId
+	* @param WorkingHours
+	* @return work duration of a driver 
+	*/
 	@GET
 	@Path("/get-work-duration")
 	@Produces("application/json")
 
-	//method to print a driver's current work duration
 	public Response getWorkDuration(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w){
 
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")){
@@ -534,13 +601,19 @@ public class Driver {
 			return Response.status(Response.Status.OK).entity(response.toString()).build();
 		}
 
+	/*
+	* method to make drivers go on break, adding the break time to their work duration 
+	*this method would only update the workDuration field while goOnBreak is false and workDuration hasn't exceeded
+	*the max which means that the driver can only take one break per day which happens after the they have worked
+	*270 mins = 4.5 hours, the driver cannot go on break unless their workDuration reaches 270 mins
+	* @param idToken to check access for manager or driver
+	* @param driverId 
+	* @param WorkingHours 
+	* @return updated work duration for driver after they take a break
+	*/
 	@POST
 	@Path("go-on-break")
-	//method to make drivers go on break, adding the break time to their work duration
-	//basically updating the workDuration field
-	//this method would only update the workDuration field while goOnBreak is false and workDuration hasn't exceeded
-	//the max which means that the driver can only take one break per day which happens after the they have worked
-	//270 mins = 4.5 hours and obviosuly the driver cannot go on break unless their workDuration reaches 270 mins.
+	
 
 	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w) throws SQLException{
 
@@ -624,13 +697,19 @@ public class Driver {
         }
 	}
 
+	
+	/*
+	* method to assign order to driver 
+	* this is done by first checking for orders that are to be delivered today and the orderstatus
+	* is approved, then use the orderId to get the corresponding restaurantAddress in the orders table, thereafter
+	* getting the restaurantAddress from Restaurant table that matches the one in orders table where the region is north
+	* and south individually
+	* @param idToken to check access for manager
+	* @param requestBody 
+	* @return the order assigned to specific driver
+	*/
 	@Path("/assign-order-to-driver")
 	@POST
-	//method to assign order to driver by first checking for orders that are to be delivered today and the orderstatus
-	// is approved, then use the orderId to get the corresponding restaurantAddress in the orders table, thereafter
-	// getting the restaurantAddress from Restaurant table that matches the one in orders table where the region is north
-	//and south individually
-
 	public Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken, String requestBody) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
