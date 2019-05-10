@@ -3,12 +3,11 @@ package org.team2.cluk.backend.tools;
 import java.util.ArrayList;
 import java.util.Date;
 
-/**
- * Simple logging system for the backend. Static method used to ensure one log is running for one server instance.
- *
- * @author Matt Grabara
- * @version 31/03/2019
+/*
+ * Simple logging system for the backend
+ * Static method used to ensure one log is running for one server instance
  */
+
 public class ServerLog {
     private static ArrayList<String> log = new ArrayList<>();
 
