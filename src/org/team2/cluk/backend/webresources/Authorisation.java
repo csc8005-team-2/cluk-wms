@@ -21,6 +21,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+
+/*
+* Authorisation class that enables account permissions for Restaurant, Warehouse, Driver and Manager
+*/
+
 @Path("/")
 public class Authorisation {
     // initialise hashmap for storing currently authorised users
@@ -48,6 +53,11 @@ public class Authorisation {
         return returnHexHash;
     }
 
+    /*
+    * method to log in user with username and password 
+    * @param loginData   username and password 
+    * @return login user
+    */   
     @Path("/login")
     @POST
     @Consumes("application/json")
@@ -82,6 +92,7 @@ public class Authorisation {
 
         ServerLog.writeLog("Generating password hash for " + username);
         String passwordHash = hashString(password, "SHA-256");
+       
         // checking if authorisation successful
 
         // fetch current database connection
@@ -120,9 +131,10 @@ public class Authorisation {
         }
 
 
-        // if auth successful, generate token and add to hashmap
-        // generating token using Apache Common Lang library as per
-        // https://www.baeldung.com/java-random-string
+        /* if author successful, generate token and add to hashmap
+        * generating token using Apache Common Lang library as per
+        * https://www.baeldung.com/java-random-string
+        */
         if (loginSuccessful) {
             ServerLog.writeLog("Preparing output JSON for login " + username);
             String newIdToken;
@@ -145,7 +157,14 @@ public class Authorisation {
 
         return res.build();
     }
+    
+    
 
+    /*
+    * method to logout user
+    * @param idToken ID token of the user whose permissions are checked
+    * @return logout user
+    */
     @Path("/logout")
     @GET
     public synchronized Response logoutUser(@HeaderParam("Authorization") String idToken) {
@@ -184,6 +203,12 @@ public class Authorisation {
         return false;
     } */
 
+    /*
+    * method to add an account with a username and password
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param requestBody 
+    * @return  add account
+    */
     @Path("/accounts/add")
     @POST
     @Consumes("application/json")
@@ -229,6 +254,11 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
+    /*
+    * method to refresh permissions
+    * @param username of an account
+    * @return account permission details
+    */
     public static synchronized void refreshPermissions(String username) {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
@@ -263,6 +293,7 @@ public class Authorisation {
             }
         }
 
+        //add assigned tokens to permissions for Restaurant, Warehouse, Driver and Manager
         if (userTokens.containsValue(username)) {
             String assignedToken = "";
 
@@ -285,11 +316,16 @@ public class Authorisation {
         }
     }
 
+    /* 
+    * method to set account permissions
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param requestBody 
+    * @return permission settings
+    */
     @POST
     @Path("/accounts/set-permission")
     @Consumes("application/json")
     @Produces("application/json")
-    //Method to set account permissions.
     public Response setPermissions(@HeaderParam("Authorization") String idToken, String requestBody) {
         Connection connection = DbConnection.getConnection();
 
@@ -336,9 +372,14 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
+    /*
+    * method to remove account from the database
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param username of an account
+    * @return remove the account
+    */
     @Path("/accounts/remove")
     @GET
-    //Method to remove account from database.
     public Response removeAccount(@HeaderParam("Authorization") String idToken, @HeaderParam("username") String username) {
         Response.ResponseBuilder res = null;
 
@@ -358,7 +399,6 @@ public class Authorisation {
         }
 
         // delete user account
-
         Statement statement = null;
         String query = "DELETE FROM Accounts WHERE username ='"+username+"'";
 
@@ -386,10 +426,14 @@ public class Authorisation {
         return res.build();
     }
 
+    /*
+    * method to see the staff information
+    * @param idToken ID token of the user whose permissions are checked
+    * @return staff information
+    */
     @Path("/accounts/info")
     @GET
     @Produces("application/json")
-    //Method to see staff info
     public Response getStaffInfo(@HeaderParam("Authorization") String idToken) {
         if (!Authorisation.checkAccess(idToken, "manager")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
@@ -460,6 +504,11 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(staffInfo.toString()).build();
     }
 
+    /*
+    * method to check access for Warehouse, Restaurant, Driver and Manager 
+    * @param idToken   ID token of the user whose permissions are checked
+    * @return access of the account
+    */
     @Path("/accounts/check-access")
     @GET
     @Produces("application/json")
@@ -513,9 +562,16 @@ public class Authorisation {
         return false;
     }
     
+    /*
+    * method to check the work location for the accounts
+    * @param idToken ID token of the user whose permissions are checked
+    * @param name within Accounts
+    * @return work location
+    */
     @Path("/accounts/check-work-location")
     @GET
     @Produces("application/json")
+    
     public Response checkWorkLocation(@HeaderParam("Authorization") String idToken, @HeaderParam("name") String name) {
     	
     	Connection connection = DbConnection.getConnection();
@@ -555,11 +611,16 @@ public class Authorisation {
     }   
     
 
+    /*
+    * method to set the work location for employees
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param requestBody
+    * @return work location
+    */
     @POST
     @Path("/accounts/set-work-location")
     @Consumes("application/json")
     @Produces("application/json")
-    //Method to set work location for employees.
     public Response setWorkLocations(@HeaderParam("Authorization") String idToken, String requestBody) {
          Connection connection = DbConnection.getConnection();
 
