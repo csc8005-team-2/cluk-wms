@@ -875,15 +875,15 @@ public class Restaurant {
 	//Method to get price of meal item.
 	public Response getPrice(@HeaderParam("Authorization") String idToken, @HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
-		
-			if (!Authorisation.checkAccess(idToken, "restaurant")) {
-					return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
-				}
+
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 
 		double price = -1;
 
 		Statement statement = null;
-		String query = "SELECT price FROM Meals WHERE mealId ='"+meal+"'";
+		String query = "SELECT price FROM Meals WHERE mealId ='" + meal + "'";
 
 		try {
 			statement = connection.createStatement();
@@ -894,7 +894,7 @@ public class Restaurant {
 				ServerLog.writeLog("Item: " + meal + " Cost: " + price + "\n");
 			}
 
-		} catch (SQLException e ) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
 			if (statement != null) {
@@ -913,13 +913,14 @@ public class Restaurant {
 		JsonObject mealPrice = mealPriceBuilder.build();
 
 		return Response.status(Response.Status.OK).entity(mealPrice.toString()).build();
+	}
 
 	@GET
-        @Path("/get-Restaurant-List")
+        @Path("/get-list")
         @Produces("application/json")
-        public Response getRestaurantList(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
+        public Response getRestaurantList(@HeaderParam("Authorization") String idToken) {
 
-            if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
+            if (!Authorisation.checkAccess(idToken, "manager")) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
             }
        
@@ -939,7 +940,7 @@ public class Restaurant {
 
                     String restaurantAddress = rs.getString("RestaurantAddress");
 
-                    arrayEntryBuilder.add("restaurantaddress", restaurantAddress);
+                    arrayEntryBuilder.add("address", restaurantAddress);
 
                     JsonObject arrayEntry = arrayEntryBuilder.build();
                     responseBuilder.add(arrayEntry);

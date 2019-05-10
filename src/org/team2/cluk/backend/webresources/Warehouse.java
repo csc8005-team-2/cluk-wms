@@ -913,11 +913,11 @@ public class Warehouse
     }
 	
 	@GET
-        @Path("/get-Warehouse-List")
+        @Path("/get-list")
         @Produces("application/json")
-        public Response getWarehouseList(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String warehouseAddress) {
+        public Response getWarehouseList(@HeaderParam("Authorization") String idToken) {
 
-            if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
+            if (!Authorisation.checkAccess(idToken, "manager")) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
             }
        
@@ -937,7 +937,7 @@ public class Warehouse
 
                     String warehouseAddress = rs.getString("WarehouseAddress");
 
-                    arrayEntryBuilder.add("warehouseaddress", warehouseAddress);
+                    arrayEntryBuilder.add("address", warehouseAddress);
 
                     JsonObject arrayEntry = arrayEntryBuilder.build();
                     responseBuilder.add(arrayEntry);
