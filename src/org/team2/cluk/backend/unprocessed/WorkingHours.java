@@ -10,6 +10,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.sql.*;
 
+/*
+* WorkingHours class for the drivers
+* Shows the start time and end time of driver shifts
+*/
+
 public class WorkingHours {
 
 	private Date date;
@@ -26,6 +31,9 @@ public class WorkingHours {
 		this.driverId = driverId;
 	}
 
+	/*
+	* accessor methods to get start time, end time and date
+	*/
 	public Date getStartTime() {
 		return startTime;
 	}
@@ -39,7 +47,10 @@ public class WorkingHours {
 	public Integer getDriverId(){ return driverId; }
 
 
-	//method to print out the current day and date in the format shown
+	/*
+	*method to print out the current day and date in the format shown
+	*@param id of the driver
+	*/
 	public void printCurrentDate(int id) throws SQLException{
 
 		java.util.Date orderDate = new java.util.Date();
@@ -63,7 +74,7 @@ public class WorkingHours {
 				"WHERE id ='" + id+"'";
 
 		try {
-			statement1 = DbConnection.getConnection().createStatement()
+			statement1 = DbConnection.getConnection().createStatement();
 			ResultSet rs = statement1.executeQuery(query1);
 
 			while (rs.next()) {
@@ -125,7 +136,10 @@ public class WorkingHours {
 
 	}*/
 
-	//method to print a Driver's shift start time
+	/*
+         * method to print a driver's shift start time
+	 * @param id of the driver
+	 */
 	public void printStartTime(int id) throws SQLException{
 
 		// fetch db connection
@@ -154,7 +168,11 @@ public class WorkingHours {
 
 	}
 
-	//method to update a driver's shift end time
+	/*
+	* method to update a driver's shift start time
+	* @param hour1, min1, sec1 specific time for the shift start time 
+	* @param id of the driver
+	*/
 	public void updateStartTime(int hour1, int min1, int sec1, int id) throws SQLException {
 
 		// fetch db connection
@@ -184,7 +202,10 @@ public class WorkingHours {
 	}
 
 
-	//method to print a driver's shift end time
+	 /*
+         * method to print a driver's shift end time
+	 * @param id of the driver
+	 */
 	public void printEndTime(int id) throws SQLException{
 
 		// fetch db connection
@@ -213,7 +234,11 @@ public class WorkingHours {
 	}
 
 
-	//method to update a driver's shift end time
+	/*
+	* method to update a driver's shift end time
+	* @param hour1, min1, sec1 specific time for the shift end time 
+	* @param id of the driver
+	*/
 	public void updateEndTime(int hour2, int min2, int sec2, int id) throws SQLException{
 
 		// fetch db connection

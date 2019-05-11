@@ -13,12 +13,15 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+* Restaurant class which handles stocks and orders
+*/
+
 @Path("/restaurant")
 public class Restaurant {
 
-	/**
-	 * Handles request for total stock units at a given restaurant given as "address" in the request header
-	 *
+	/*
+	 * method handles request for total stock units at a given restaurant given as "address" in the request header
 	 * @param restaurantAddress address of the restaurant provided in the request header as "address"
 	 * @return JSON array with all stock stored in that restaurant
 	 */
@@ -79,9 +82,15 @@ public class Restaurant {
 		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
+	
+	/*
+	 * method that updates the stock for a restaurant when it has received an order 
+	 * @param restaurantAddress address of the restaurant that receives the order
+	 * @orderId orderId of the stock order
+	 * @return order that has been received
+	 */
 	@GET
 	@Path("/receive-order")
-	//this method updates the stock for a restaurant when it has received an order.
 	public Response receiveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("orderId") String _orderId) {
 
 		if (!Authorisation.checkAccess(idToken, "restaurant")) {
@@ -101,7 +110,7 @@ public class Restaurant {
 		// variable for logging purposes only
 		String restaurant = "";
 
-		//Checking order is being sent to the correct restaurant.
+		//Checking order is being sent to the correct restaurant
 		boolean correctRestaurant = false;
 		Statement statement = null;
 		String query = "SELECT restaurantAddress FROM Orders WHERE orderId ='" + orderId + "'";
@@ -289,10 +298,10 @@ public class Restaurant {
 	}
 
 	/**
-	 * Method executed when client requests custom order at the endpoint "/restaurant/request-order/custom".
+	 * method creates an order for any number of items. Numbers of each item required are passed as parameters. Parameters are in alphabetical order.
+	 * method executed when client requests custom order at the endpoint "/restaurant/request-order/custom".
 	 * Body of the request should be JSON array with each entry of form:
 	 * {stockItem: string, quantity: number}
-	 *
 	 * @param restaurantAddress value of address header specifying restaurant where order shall be delivered
 	 * @param strOrderContents  stringified JSON array containing order details
 	 * @return 202 ORDER_ACCEPTED - even if order contains entries not following the specification, they are removed from the order
@@ -300,7 +309,6 @@ public class Restaurant {
 	@Path("/request-order/custom")
 	@POST
 	@Consumes("application/json")
-	//Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
 	public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strOrderContents) {
 
 		if (!Authorisation.checkAccess(idToken, "restaurant")) {
@@ -313,7 +321,7 @@ public class Restaurant {
 		// parse request body to retrieve contents
 		JsonArray orderContents = JsonTools.parseArray(strOrderContents);
 
-		//added delivery date to stock orders.
+		//added delivery date to stock orders
 		java.util.Date orderDate = new java.util.Date();
 		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
@@ -338,7 +346,7 @@ public class Restaurant {
 
 		String deliveryDate = date.format(c.getTime());
 
-		// Creating Order in StockOrders Table.
+		// creating order in StockOrders table
 		String query = "INSERT INTO StockOrders (orderDateTime, orderStatus, orderDeliveryDate) VALUES (?, ?, ?)";
 
 		try {
@@ -352,7 +360,7 @@ public class Restaurant {
 			e.printStackTrace();
 		}
 
-		// Getting the orderId of the order we just created.
+		// getting the orderId of the order we just created
 		Statement statement = null;
 		query = "SELECT orderId FROM StockOrders WHERE orderDateTime ='" + currentTime + "'";
 
@@ -373,7 +381,7 @@ public class Restaurant {
 			}
 		}
 
-		// Add Order ID and restaurant address to orders table.
+		// add order ID and restaurant address to orders table
 		query = "INSERT INTO Orders (restaurantAddress, orderId) VALUES (?, ?)";
 		PreparedStatement pstmt = null;
 		try {
@@ -391,7 +399,7 @@ public class Restaurant {
 			}
 		}
 
-		//Getting stock items from Stock Table
+		//getting stock items from Stock table
 		pstmt = null;
 
 		for (JsonValue orderEntryValue : orderContents) {
@@ -438,9 +446,8 @@ public class Restaurant {
 
 
 	/**
-	 * Requests standard order for a restaurant. Fetches what are the standard order items and quantities and
+	 * method requests standard order for a restaurant. Fetches what are the standard order items and quantities and
 	 * calls requestCustomOrder to order them.
-	 *
 	 * @param restaurantAddress address of the destination restaurant, provided in "address" header parameter
 	 * @return same responses as for requestCustomOrder
 	 */
@@ -458,7 +465,7 @@ public class Restaurant {
 		// create JsonArrayBuilder to contain the contents of standard order
 		JsonArrayBuilder standardOrderArrayBuilder = Json.createArrayBuilder();
 
-		//Getting standard quantities from Stock Table
+		//Getting standard quantities from Stock table
 		Statement statement = null;
 		String query = "SELECT stockItem, typicalUnitsOrdered FROM Stock";
 		//selecting all the stock for a standard order
@@ -493,7 +500,12 @@ public class Restaurant {
 	}
 
 
-	//Checks stock at restaurant is above the minimum stock level.
+	/*
+	* method checks stock at restaurant is above the minimum stock level
+	* @param idToken in order to check access for restaurant
+	* @param restaurantAddress address of the restaurant, provided in "address" header parameter
+	* @return json stock array of stock that are below minimum quantity
+	*/
 	@Path("/min-stock-check")
 	@GET
 	@Produces("application/json")
@@ -554,6 +566,9 @@ public class Restaurant {
 
 	}
 
+	/*
+	* method that gets the minimum stock 
+	*/
 	@Path("/get-min-stock")
 	@GET
 	@Consumes("application/json")
@@ -605,7 +620,13 @@ public class Restaurant {
 
 	}
 
-    //Allows the minimum stock level to be changed.
+    /*
+    * method to update the minimum stock
+    * @param idToken in order to check access of restaurant and warehouse
+    * @param restaurantAddress 
+    * @param strStockObject for minimum quantity of stock 
+    * @return message saying the stock has been updated
+    */
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
@@ -650,7 +671,13 @@ public class Restaurant {
 
         }
 
-    //Allows a restaurant to use stock by creating meal items.
+	/*
+	* method to allow restaurant to use stock by creating meal items
+	* @param idToken to check access
+	* @param restaurantAddress of the restaurant the meal is created
+	* @param meal  the stock item and quantity involved to make the meal
+	* @return meal that has been created
+	*/
 	@Path("/create-meal")
 	@GET
 	public Response createMeal(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
@@ -691,7 +718,6 @@ public class Restaurant {
 		}
 
 		// check if enough ingredients in stock
-
 		for (Map.Entry<String, Integer> ingredient : mealIngredients.entrySet()) {
 			String stockItem = ingredient.getKey();
 			int quantity = ingredient.getValue();
@@ -726,7 +752,7 @@ public class Restaurant {
 		if (!enoughStock)
 			return Response.status(Response.Status.FORBIDDEN).entity("STOCK_TOO_LOW").build();
 
-		// otherwise, create meal... yay! food!
+		// otherwise, create meal
 		for (Map.Entry<String, Integer> ingredient: mealIngredients.entrySet()) {
 			String stockItem = ingredient.getKey();
 			int quantity = ingredient.getValue();
@@ -774,11 +800,18 @@ public class Restaurant {
 		return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 	}
 
+	
+	/*
+	* method to update restaurant stock allowing for manual adjustment of stock levels
+	* @param idToken to check access
+	* @param address of the restaurant
+	* @param requestBody request stock to update
+	* @return updated stock message
+	*/
 	@POST
 	@Path("/update-stock")
 	@Consumes("application/json")
 	@Produces("application/json")
-	//Method to update restaurant stock allowing for manual adjustment of stock levels.
 	public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
 	{
 		if (!Authorisation.checkAccess(idToken, "restaurant")) {
@@ -869,21 +902,26 @@ public class Restaurant {
 		return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 	}
 
+	/*
+	* method to get the price of a meal item
+	* @param idToken to check access
+	* @param meal 
+	* @return price of the meal
+	*/
 	@GET
 	@Path("/get-price")
 	@Produces("application/json")
-	//Method to get price of meal item.
 	public Response getPrice(@HeaderParam("Authorization") String idToken, @HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
-		
-			if (!Authorisation.checkAccess(idToken, "restaurant")) {
-					return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
-				}
+
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 
 		double price = -1;
 
 		Statement statement = null;
-		String query = "SELECT price FROM Meals WHERE mealId ='"+meal+"'";
+		String query = "SELECT price FROM Meals WHERE mealId ='" + meal + "'";
 
 		try {
 			statement = connection.createStatement();
@@ -894,7 +932,7 @@ public class Restaurant {
 				ServerLog.writeLog("Item: " + meal + " Cost: " + price + "\n");
 			}
 
-		} catch (SQLException e ) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
 			if (statement != null) {
@@ -913,13 +951,20 @@ public class Restaurant {
 		JsonObject mealPrice = mealPriceBuilder.build();
 
 		return Response.status(Response.Status.OK).entity(mealPrice.toString()).build();
+	}
 
+	
+	/*
+	* method to get a list of the restaurants 
+	* @param idToken to check access for manager
+	* @return the restaurant list
+	*/
 	@GET
-        @Path("/get-Restaurant-List")
+        @Path("/get-list")
         @Produces("application/json")
-        public Response getRestaurantList(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
+        public Response getRestaurantList(@HeaderParam("Authorization") String idToken) {
 
-            if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
+            if (!Authorisation.checkAccess(idToken, "manager")) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
             }
        
@@ -939,7 +984,7 @@ public class Restaurant {
 
                     String restaurantAddress = rs.getString("RestaurantAddress");
 
-                    arrayEntryBuilder.add("restaurantaddress", restaurantAddress);
+                    arrayEntryBuilder.add("address", restaurantAddress);
 
                     JsonObject arrayEntry = arrayEntryBuilder.build();
                     responseBuilder.add(arrayEntry);

@@ -12,14 +12,23 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/*
+* Warehouse class which handles stock 
+*/ 
+
 @Path("/warehouse")
 public class Warehouse
 {
 	
-	@GET
+    /*
+    * method to get the stock names
+    * @param idToken to check access for warehouse
+    * @return all stock within the warehouse
+    */
+    @GET
     @Path("/get-stock-names")
     @Produces("application/json")
-    //Outputs the names of the stock items.
     public Response GetStockNames(@HeaderParam("Authorization") String idToken)
     {
 	    
@@ -65,10 +74,15 @@ public class Warehouse
 	    
     }
 
+	/*
+	* method which gets the total stock
+	* @param idToken to check access for warehouse
+	* @param address of the warehouse
+	* @return total stock held in the warehouse (in units)
+	*/ 
     @GET
     @Path("/get-total-stock")
     @Produces("application/json")
-    //Outputs total stock held at the warehouse(units).
     public Response GetTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
 	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
@@ -127,18 +141,18 @@ public class Warehouse
 
     }
 
-    /**
-     * {stockItem: string, quantity: number}
+    /*
+     * method to update the stock within the warehouse - increases warehouse stock of item specified by quantity specified
+     * Takes parameters {stockItem: string, quantity: number}
      * @param address
      * @param requestBody
-     * @return
+     * @return updated stock
      * @throws SQLException
      */
     @POST
     @Path("/update-stock")
     @Consumes("application/json")
     @Produces("application/json")
-    //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
     public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
 	  if (!Authorisation.checkAccess(idToken, "warehouse")) {
@@ -233,7 +247,12 @@ public class Warehouse
 
     
     
-    //Decline order method. Unsure if correct json usage.
+    /*
+    * method to approve order from the warehouse to the restaurant
+    * @param idToken to check access to warehouse and restaurant
+    * @param orderId of the stock order
+    * @return approved order
+    */
     @GET
     @Path("/approve-order")
     @Produces("application/json")
@@ -274,7 +293,12 @@ public class Warehouse
   	return res.build();  		 
     }
 
-    //Decline order method. Unsure if correct json usage.
+    /*
+    * method to decline order. 
+    * @param idToken
+    * @param orderId
+    * @return declined order
+    */
     @GET
     @Path("/decline-order")
     @Produces("application/json")
@@ -317,10 +341,17 @@ public class Warehouse
     
 	
 	
+    /*
+    * method to send an order to the restaurant from the warehouse
+    * reduces warehouse stock levels determined by the stock requests in an order
+    * @param idToken
+    * @param address of the warehouse
+    * @param orderId 
+    * @return order sent and database updated
+    */
     @GET
     @Path("/send-order")
     @Produces("application/json")
-    //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
     public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
     {
 	     if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "driver")) {
@@ -429,7 +460,7 @@ public class Warehouse
     	if (!stockAvailable)
     	    return Response.status(Response.Status.FORBIDDEN).entity("STOCK_TOO_LOW").build();
 
-    	//If passed previous checks update stock levels.
+    	//if passed previous checks update stock levels
 
         for (Map.Entry<String, Integer> orderEntry: orderedStock.entrySet()) {
             String stockItem = orderEntry.getKey();
@@ -455,7 +486,7 @@ public class Warehouse
             }
         }
 
-        //Update database to mark order as out for delivery.
+        //update database to mark order as out for delivery
         statement = null;
         query = "UPDATE StockOrders "+
                 "SET orderStatus = 'Out for delivery' "+
@@ -479,6 +510,12 @@ public class Warehouse
 		
     }
 
+    /*
+    * method to get the stock in the warehouse that is below the minimum
+    * @param idToken to check access 
+    * @param address of the warehouse
+    * @return minimum stock and the quantitiy 
+    */
     @Path("/get-min-stock")
     @GET
     @Consumes("application/json")
@@ -530,10 +567,15 @@ public class Warehouse
 		    
     }
 
+    /*
+    * method to check the warehouse stock is above the minimum level
+    * @param idToken
+    * @param address
+    * @return stock which is below minimum level and its quantity
+    */
     @GET
     @Path("/min-stock-check")
     @Produces("application/json")
-    //Checks the warehouse stock is above the minimum level.
     public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
 	    
@@ -589,7 +631,13 @@ public class Warehouse
 		     
     }
 
-    //Allows the warehouse stock minimums to be set.
+    /*
+    * method that allows the warehouse stock minimums to be set
+    * @param idToken to check access to warehouse
+    * @param address of the warehouse
+    * @requestBody to request an update of minimum stock required at the warehouse
+    * @return updated minimum stock 
+    */
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
@@ -646,14 +694,19 @@ public class Warehouse
         JsonObject responseJson = Json.createObjectBuilder().add("message", "MIN_STOCK_VALUE_UPDATED").build();
 
         return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
-		    
-		    
+	    
     }
-
+ 
+    /*
+    * method to assign an order to the driver 
+    * @param idToken
+    * @param orderId 
+    * @param driverId of the driver 
+    * @return order that is assigned to a driver
+    */
     @GET
     @Path("/assign-to-driver")
     @Produces("application/json")
-    //Assigns an order to a driver(basic) may require expanding based on driver class.
     public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId, @HeaderParam("driverId") String driverId){
         
 	     if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
@@ -696,10 +749,14 @@ public class Warehouse
 		    
     }
 
+    /*
+    * method to get the currently pending orders
+    * @param idToken
+    * @return the current pending orders
+    */
     @GET
     @Path("/get-pending-orders")
     @Produces("application/json")
-    //Method to get currently pending orders.
     public Response getCurrentPendingOrders(@HeaderParam("Authorization") String idToken) {
 	    
 	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
@@ -784,14 +841,16 @@ public class Warehouse
         return res.build();
 		}
 	
-	
-	
-	
-	
+        /*
+	* method that outputs data to plot graphs for stock sent by warehouse
+	* @param idToken to check access for the warehouse
+	* @param stockItem which is then plotted on graph
+	* @param type 
+	* @return data to plot graphs 
+	*/
 	@GET
 	@Path("/warehouse-graph")
 	@Produces("application/json")
-	//Outputs data to plot graphs for stock sent by warehouse
 	public Response warehouseGraph(@HeaderParam("Authorization") String idToken, @HeaderParam("stockItem") String stockItem, @HeaderParam("type") String type)
         {
 		
@@ -912,12 +971,18 @@ public class Warehouse
         
     }
 	
-	@GET
-        @Path("/get-Warehouse-List")
-        @Produces("application/json")
-        public Response getWarehouseList(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String warehouseAddress) {
 
-            if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
+	/*
+	* method to get a warehouse list
+	* @param idToken check access for manager
+	* @return a list of all the warehouses
+	*/
+	@GET
+        @Path("/get-list")
+        @Produces("application/json")
+        public Response getWarehouseList(@HeaderParam("Authorization") String idToken) {
+
+            if (!Authorisation.checkAccess(idToken, "manager")) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
             }
        
@@ -937,7 +1002,7 @@ public class Warehouse
 
                     String warehouseAddress = rs.getString("WarehouseAddress");
 
-                    arrayEntryBuilder.add("warehouseaddress", warehouseAddress);
+                    arrayEntryBuilder.add("address", warehouseAddress);
 
                     JsonObject arrayEntry = arrayEntryBuilder.build();
                     responseBuilder.add(arrayEntry);

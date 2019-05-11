@@ -21,6 +21,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+
+/*
+* Authorisation class that enables account permissions for Restaurant, Warehouse, Driver and Manager
+*/
+
 @Path("/")
 public class Authorisation {
     // initialise hashmap for storing currently authorised users
@@ -48,11 +53,16 @@ public class Authorisation {
         return returnHexHash;
     }
 
+    /*
+    * method to log in user with username and password 
+    * @param loginData   username and password 
+    * @return login user
+    */   
     @Path("/login")
     @POST
     @Consumes("application/json")
     @Produces("application/json")
-    public synchronized Response loginUser(String loginData) {
+    public Response loginUser(String loginData) {
         // create variable to check whether login was successful
         boolean loginSuccessful = false;
 
@@ -80,7 +90,9 @@ public class Authorisation {
             return Response.status(Response.Status.CONFLICT).entity("USER_ALREADY_LOGGED_IN").build();
         } */
 
+        ServerLog.writeLog("Generating password hash for " + username);
         String passwordHash = hashString(password, "SHA-256");
+       
         // checking if authorisation successful
 
         // fetch current database connection
@@ -96,11 +108,13 @@ public class Authorisation {
         try {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
+            ServerLog.writeLog("Retrieved user's " + username + " data from database");
             if (rs.next()) {
                 String storedHash = rs.getString("password");
                 if (passwordHash.equals(storedHash)) {
                     loginSuccessful = true;
                     location = rs.getString("workLocation");
+                    ServerLog.writeLog("Login successful! User " + username + " works at " + location);
                 }
             }
         } catch (SQLException e) {
@@ -117,10 +131,12 @@ public class Authorisation {
         }
 
 
-        // if auth successful, generate token and add to hashmap
-        // generating token using Apache Common Lang library as per
-        // https://www.baeldung.com/java-random-string
+        /* if author successful, generate token and add to hashmap
+        * generating token using Apache Common Lang library as per
+        * https://www.baeldung.com/java-random-string
+        */
         if (loginSuccessful) {
+            ServerLog.writeLog("Preparing output JSON for login " + username);
             String newIdToken;
             // generate tokens until unique token generated
             do {
@@ -134,25 +150,42 @@ public class Authorisation {
             outputJsonBuilder.add("idToken", newIdToken);
             outputJsonBuilder.add("location", location);
             JsonObject outputJson = outputJsonBuilder.build();
+            ServerLog.writeLog("Output JSON for " + username + " ready");
             // return token to the user on successful login
             res = Response.status(Response.Status.OK).entity(outputJson.toString());
         } else res = Response.status(Response.Status.UNAUTHORIZED).entity("WRONG_CREDENTIALS");
 
         return res.build();
     }
+    
+    
 
+    /*
+    * method to logout user
+    * @param idToken ID token of the user whose permissions are checked
+    * @return logout user
+    */
     @Path("/logout")
     @GET
     public synchronized Response logoutUser(@HeaderParam("Authorization") String idToken) {
         if (userTokens.containsKey(idToken)) {
+            // retrieve username only for logging purposes
+            String username = userTokens.get(idToken);
+            // log out
             userTokens.remove(idToken);
+            warehousePermissions.remove(idToken);
+            restaurantPermissions.remove(idToken);
+            driverPermissions.remove(idToken);
+            managerPermissions.remove(idToken);
+
+            ServerLog.writeLog("User " + username + " successfully logged out");
             JsonObject response = Json.createObjectBuilder().add("message", "LOGOUT_SUCCESSFUL").build();
             return Response.status(Response.Status.OK).entity(response.toString()).build();
         }
         return Response.status(Response.Status.BAD_REQUEST).entity("USER_NEVER_LOGGED_IN").build();
     }
 
-    public static boolean checkAuthHeader(String authHeader) {
+    /* public static boolean checkAuthHeader(String authHeader) {
         if (userTokens.containsKey(authHeader))
             return true;
         return false;
@@ -168,8 +201,14 @@ public class Authorisation {
                 return true;
         }
         return false;
-    }
+    } */
 
+    /*
+    * method to add an account with a username and password
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param requestBody 
+    * @return  add account
+    */
     @Path("/accounts/add")
     @POST
     @Consumes("application/json")
@@ -215,6 +254,11 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
+    /*
+    * method to refresh permissions
+    * @param username of an account
+    * @return account permission details
+    */
     public static synchronized void refreshPermissions(String username) {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
@@ -249,6 +293,7 @@ public class Authorisation {
             }
         }
 
+        //add assigned tokens to permissions for Restaurant, Warehouse, Driver and Manager
         if (userTokens.containsValue(username)) {
             String assignedToken = "";
 
@@ -271,11 +316,16 @@ public class Authorisation {
         }
     }
 
+    /* 
+    * method to set account permissions
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param requestBody 
+    * @return permission settings
+    */
     @POST
     @Path("/accounts/set-permission")
     @Consumes("application/json")
     @Produces("application/json")
-    //Method to set account permissions.
     public Response setPermissions(@HeaderParam("Authorization") String idToken, String requestBody) {
         Connection connection = DbConnection.getConnection();
 
@@ -322,9 +372,14 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
+    /*
+    * method to remove account from the database
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param username of an account
+    * @return remove the account
+    */
     @Path("/accounts/remove")
     @GET
-    //Method to remove account from database.
     public Response removeAccount(@HeaderParam("Authorization") String idToken, @HeaderParam("username") String username) {
         Response.ResponseBuilder res = null;
 
@@ -344,7 +399,6 @@ public class Authorisation {
         }
 
         // delete user account
-
         Statement statement = null;
         String query = "DELETE FROM Accounts WHERE username ='"+username+"'";
 
@@ -372,28 +426,40 @@ public class Authorisation {
         return res.build();
     }
 
+    /*
+    * method to see the staff information
+    * @param idToken ID token of the user whose permissions are checked
+    * @return staff information
+    */
     @Path("/accounts/info")
     @GET
     @Produces("application/json")
-    //Method to see staff info
     public Response getStaffInfo(@HeaderParam("Authorization") String idToken) {
+        if (!Authorisation.checkAccess(idToken, "manager")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
         Connection connection = DbConnection.getConnection();
+
+        ServerLog.writeLog("Requested staff info");
 
         JsonArrayBuilder staffInfoBuilder = Json.createArrayBuilder();
 
         Statement statement = null;
-        String query = "SELECT id, name, username, restaurant, warehouse, driver FROM Accounts";
+        String query = "SELECT id, name, username, restaurant, warehouse, driver, manager, workLocation FROM Accounts";
 
         try {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
-
+            ServerLog.writeLog("Staff info retrieved");
             while(rs.next()){
                 JsonObjectBuilder staffEntryBuilder = Json.createObjectBuilder();
 
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String username = rs.getString("username");
+                String locationString = rs.getString("workLocation");
+                String location = (locationString != null) ? locationString : "";
 
                 int rest = rs.getInt("restaurant");
                 boolean bRest = false;
@@ -407,12 +473,18 @@ public class Authorisation {
                 boolean bDriv = false;
                 if(driv == 1) {bDriv=true;}
 
+                int mangr = rs.getInt("manager");
+                boolean bMangr = false;
+                if(mangr == 1) {bMangr=true;}
+
                 staffEntryBuilder.add("id", id);
                 staffEntryBuilder.add("name", name);
                 staffEntryBuilder.add("username", username);
                 staffEntryBuilder.add("restaurant", bRest);
                 staffEntryBuilder.add("warehouse", bWare);
                 staffEntryBuilder.add("driver", bDriv);
+                staffEntryBuilder.add("manager", bMangr);
+                staffEntryBuilder.add("location", location);
 
                 staffInfoBuilder.add(staffEntryBuilder);
             }
@@ -432,6 +504,11 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(staffInfo.toString()).build();
     }
 
+    /*
+    * method to check access for Warehouse, Restaurant, Driver and Manager 
+    * @param idToken   ID token of the user whose permissions are checked
+    * @return access of the account
+    */
     @Path("/accounts/check-access")
     @GET
     @Produces("application/json")
@@ -451,6 +528,10 @@ public class Authorisation {
         if (driverPermissions.contains(idToken))
             permissionsTableBuilder.add("driver", true);
         else permissionsTableBuilder.add("driver", false);
+
+        if (managerPermissions.contains(idToken))
+            permissionsTableBuilder.add("manager", true);
+        else permissionsTableBuilder.add("manager", false);
 
         JsonObject permissionsTable = permissionsTableBuilder.build();
 
@@ -474,13 +555,23 @@ public class Authorisation {
         
         if (level.equals("driver") && driverPermissions.contains(idToken))
         	return true;
-        
+
+        if (level.equals("manager") && managerPermissions.contains(idToken))
+            return true;
+
         return false;
     }
     
+    /*
+    * method to check the work location for the accounts
+    * @param idToken ID token of the user whose permissions are checked
+    * @param name within Accounts
+    * @return work location
+    */
     @Path("/accounts/check-work-location")
     @GET
     @Produces("application/json")
+    
     public Response checkWorkLocation(@HeaderParam("Authorization") String idToken, @HeaderParam("name") String name) {
     	
     	Connection connection = DbConnection.getConnection();
@@ -519,50 +610,50 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(workLocation.toString()).build();
     }   
     
-    
-    /*unsure if this is correct - needs checked*/
-    
-//         @POST
-//     @Path("/accounts/set-work-location")
-//     @Consumes("application/json")
-//     @Produces("application/json")
-//     //Method to set work location for employees.
-//     public Response setWorkLocations(@HeaderParam("Authorization") String idToken, String requestBody) {
-//         Connection connection = DbConnection.getConnection();
 
-//         JsonObject requestJson = JsonTools.parseObject(requestBody);
+    /*
+    * method to set the work location for employees
+    * @param idToken   ID token of the user whose permissions are checked
+    * @param requestBody
+    * @return work location
+    */
+    @POST
+    @Path("/accounts/set-work-location")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response setWorkLocations(@HeaderParam("Authorization") String idToken, String requestBody) {
+         Connection connection = DbConnection.getConnection();
 
-//         if (!(requestJson.containsKey("username") && requestJson.containsKey("workLocation") && requestJson.containsKey("restaurantAddress")))
-//             return Response.status(Response.Status.BAD_REQUEST).entity("PERMISSION_REQUEST_MISSPECIFIED").build();
+         JsonObject requestJson = JsonTools.parseObject(requestBody);
 
-//         String username = requestJson.getString("username");
-//         String restaurantAddress = requestJson.getString("restaurantAddress");
-//         String workLocation = request.Json.getWorkLocation("workLocation");
+         if (!(requestJson.containsKey("username") && requestJson.containsKey("address")))
+             return Response.status(Response.Status.BAD_REQUEST).entity("SET_LOCATION_REQUEST_MISSPECIFIED").build();
+
+         String username = requestJson.getString("username");
+         String restaurantAddress = requestJson.getString("address");
 
 
-//         Statement statement = null;
-//         String query = "UPDATE Accounts SET workLocation='"+restaurantAddress+"' WHERE username ='"+username+"'";
+         Statement statement = null;
+         String query = "UPDATE Accounts SET workLocation='"+restaurantAddress+"' WHERE username ='"+username+"'";
 
-//         try {
-//             statement = connection.createStatement();
-//             statement.executeUpdate(query);
-//             ServerLog.writeLog("Updated work location for "+username);
+         try {
+             statement = connection.createStatement();
+             statement.executeUpdate(query);
+             ServerLog.writeLog("Updated work location for "+username);
 
-//         } catch (SQLException e ) {
-//             e.printStackTrace();
-//         } finally {
-//             if (statement != null) {
-//                 try {
-//                     statement.close();
-//                 } catch (SQLException e) {
-//                     ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-//                 }
-//             }
-//         }
+         } catch (SQLException e ) {
+             e.printStackTrace();
+         } finally {
+             if (statement != null) {
+                 try {
+                     statement.close();
+                 } catch (SQLException e) {
+                     ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                 }
+             }
+         }
 
-//         refreshPermissions(username);
-
-//         JsonObject response = Json.createObjectBuilder().add("message", "PERMISSIONS_UPDATED").build();
-//         return Response.status(Response.Status.OK).entity(response.toString()).build();
-//     }
+         JsonObject response = Json.createObjectBuilder().add("message", "LOCATION_SET").build();
+         return Response.status(Response.Status.OK).entity(response.toString()).build();
+     }
 }
