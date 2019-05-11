@@ -29,7 +29,8 @@ public class Driver {
 
 	}
 
-	//method to add a driver's information to the driver table
+	/*method to add a driver's information to the driver table，users need to input their name,capacity and workDuration.If everything goes right,the system will show
+	"Driver information " + id + "has been added to the database"*/
 	public void addDriverInfo(String firstName, String lastName, int id, String phoneNumber,  int capacity, int workDuration) throws SQLException {
 
 		Statement statement1 = null;
@@ -50,7 +51,7 @@ public class Driver {
 		}
 	}
 
-	//method to remove a driver's information from the table
+	/*method to remove a driver's information from the table,user need to input their id.If everything goes right,the system will show "Driver information id " + id + "has been removed from the database"*/
 	public void removeDriverInfo(int id) throws SQLException{
 
 		Statement statement2 = null;
@@ -70,7 +71,7 @@ public class Driver {
 		}
 	}
 
-	//method to print a driver's first name using the driver's id
+	/*method to print a driver's first name using the driver's id. If everything goes right, the system will show "Driver " + id + "'s first name is " + firstName + ".*/
 	public void printFirstName(int id) throws SQLException{
 
 		Statement statement3 = null;
@@ -95,7 +96,8 @@ public class Driver {
 		}
 	}
 
-	// method to update a driver's first name using the id and new first name
+	/* method to update a driver's first name using the id and new first name.If everything goes right,the system will show
+	"Driver " + id + "'s first name has been updated to " + newFirstName*/
 	public void updateFirstName(int id, String firstName) throws SQLException{
 
 		Statement statement4 = null;
@@ -137,7 +139,8 @@ public class Driver {
 		}
 	}
 
-	//method to print a driver's last name using id as an input parameter
+	/*method to print a driver's last name using id as an input parameter.If everything goes right, the system will show 
+	"Driver " + id + "'s last name is " + lastName*/
 	public void printLastName(int id) throws SQLException{
 
 		Statement statement6 = null;
@@ -163,7 +166,8 @@ public class Driver {
 		}
 	}
 
-	//method to update driver's last name using the id and new last name
+	/*method to update driver's last name using the id and new last name.If everything goes right,the system will show 
+	"Driver " + id + "'s last name is " + lastName*/
 	public void updateLastName(int id, String lastName) throws SQLException{
 
 		Statement statement7 = null;
@@ -205,7 +209,8 @@ public class Driver {
 		}
 	}
 
-	//method to print a driver's phone number using id
+	/*method to print a driver's phone number using id.If everything goes right,the system will show
+	 * Driver " + id + "'s phone number is " + PhoneNumber */
 	public void printPhoneNumber(int id) throws SQLException{
 
 		Statement statement9 = null;
@@ -230,7 +235,8 @@ public class Driver {
 		}
 	}
 
-	//method to update a driver's phone number using the id and new phone number
+	/*method to update a driver's phone number using the id and new phone number.Users need to input their id and phonenumber.
+	 * If everything goes right,the system will show "Updated phone number for Driver " + id + "\t" + "is" + newPhoneNumber*/
 	public void UpdatePhoneNumber(int id, String phoneNumber) throws SQLException{
 
 		Statement statement10 = null;
@@ -302,7 +308,8 @@ public class Driver {
 		}
 	}
 
-	//method to make drivers go on break, applying the break time to their work duration
+	/*method to make drivers go on break, applying the break time to their work duration.User need to input the driver's id and the computer will show "Previous work duration of driver " + id + "\t" + "is" + WorkDuration
+	 * If everything goes right,the system will show "Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break"*/
 	public void goOnBreak(int id, WorkingHours w) throws SQLException{
 
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
@@ -359,7 +366,7 @@ public class Driver {
 		}
 
 	}
-
+/*This method is used to print the capacity of drivers.If everything goes right,the system will show "Driver " + id + "'s car capacity is " + Capacity*/
 	public void printCapacity() throws SQLException{
 
 		Statement statement15 = null;
@@ -383,7 +390,8 @@ public class Driver {
 			}
 		}
 	}
-
+/*This method is used to update the drivers' capacity.User need to input the driver's id and check the capacity.
+ * If everything goes right,the system will show "Updated capacity of Driver "+ id + " is " + newCapacity*/
 	public void UpdateCapacity(int id, int capacity) throws SQLException{
 
 		Statement statement16 = null;

@@ -22,6 +22,13 @@ public class Restaurant {
     @GET
     @Path("/get-total-stock")
 	@Produces("application/json")
+    /*
+     * This method is used to get the information about the total stock in the restaurant which the user input in.
+     * Users need to input a restaurant's address and the system will show the information about the total stock in the restaurant.
+     * At the start the system will let users to input a restaurant's name.
+     * If the restaurant's address is blank the system will show "ADDRESS_BLANK_OR_NOT_PROVIDED".
+     * If everything goes right the system will show  items that stocked in the restaurant and the quantity of the item.
+     */
     public Response getTotalStock(@HeaderParam("address") String restaurantAddress) {
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
@@ -74,7 +81,11 @@ public class Restaurant {
 
     @GET
     @Path("/receive-order")
-	//this method updates the stock for a restaurant when it has received an order.
+	/*This method updates the stock for a restaurant when it has received an order.
+	 * If there are something goes wrong,the system will show "ORDER_NOT_FOUND".
+	 * If everything goes right,the system will show "ORDER_RECEIVED".
+	 * User need to choose the item and quantity that the restaurant ordered and the address of the restaurant.
+	 */
     public Response receiveOrder(@HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
     	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
 
@@ -282,7 +293,10 @@ public class Restaurant {
     @Path("/request-order/custom")
 	@POST
 	@Consumes("application/json")
-    //Creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
+    /*This method is used to creates an order for any number of items. Numbers of each item required are passed as parameters.  Parameters are in alphabetical order.
+     * Users need to input the quantity and address of the restaurant.
+     * If some thing goes wrong,the system will show "Order entry misspecified. Skipping this entry"
+     * If everything goes right,the system will show "ORDER_ACCEPTED"*/
     public Response requestCustomOrder(@HeaderParam("address") String restaurantAddress, String strOrderContents) {
 
     	// fetch current db connection
@@ -401,6 +415,9 @@ public class Restaurant {
 	 */
 	@Path("/request-order")
 	@GET
+	/*This method is used to make some standard orders.
+	 * The system will show "SELECT stockItem, typicalUnitsOrdered FROM Stock" to tell user to select item
+	 */
     public Response requestStandardOrder(@HeaderParam("address") String restaurantAddress) {
 
     	// fetch db connection
@@ -445,7 +462,9 @@ public class Restaurant {
 	    			    		   
 
 
-    //Checks stock at restaurant is above the minimum stock level.
+    /*This method is used to check whether the stock at restaurant is above the minimum stock level.
+     * Users need to input the restaurant's address.
+     * If there is something below the minimum,the system will show "Current stock of "+ stockItem +" at "+ restaurantAddress + " is below minimum stock levels by "+deficit+"."*/
 	@Path("/min-stock-check")
 	@GET
 	@Produces("application/json")
@@ -499,7 +518,9 @@ public class Restaurant {
     	return Response.status(Response.Status.OK).entity(stockArray.toString()).build();
 	}
 
-    //Allows the minimum stock level to be changed.
+    /*This method is used to allow the minimum stock level to be changed.
+     * User need to choose the item which is wanted to change and input the quantity.
+     * If everything goes right,the system will show "Minimum stock levels updated to: " + min*/
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
@@ -538,7 +559,12 @@ public class Restaurant {
             return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
         }
 
-    //Allows a restaurant to use stock by creating meal items.
+    /*This method can help restaurant to create meal.
+     * User need to input the item and the quantity.
+     * The system will check whether the quantity of the item is below the minimum stock.
+     * If the quantity of one item is below the minimum stock,the system will show "STOCK_TOO_LOW"
+     * If everything goes right,the system will show "MEAL_CREATED"
+     * */
 	@Path("/create-meal")
 	@GET
 	public Response createMeal(@HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
