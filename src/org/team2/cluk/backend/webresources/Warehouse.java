@@ -704,10 +704,11 @@ public class Warehouse
     * @param driverId of the driver 
     * @return order that is assigned to a driver
     */
-    @GET
+
+    /*@GET
     @Path("/assign-to-driver")
     @Produces("application/json")
-    public Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId, @HeaderParam("driverId") String driverId){
+    public static Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId, @HeaderParam("driverId") String driverId){
         
 	     if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
@@ -748,6 +749,7 @@ public class Warehouse
 		    
 		    
     }
+    */
 
     /*
     * method to get the currently pending orders
