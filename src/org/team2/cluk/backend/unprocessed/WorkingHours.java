@@ -1,9 +1,6 @@
 package org.team2.cluk.backend.unprocessed;
 
 import org.team2.cluk.backend.tools.DbConnection;
-
-import java.time.format.DateTimeFormatter;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -20,11 +17,10 @@ public class WorkingHours {
 	private Date date;
 	private Date startTime;
 	private Date endTime;
-	//private int workingHoursID;
-	private final Integer driverId;
+	private final String driverId;
 
 
-	public WorkingHours(Connection connection, Date date, Date startTime, Date endTime, Integer driverId) {
+	public WorkingHours(Connection connection, Date date, Date startTime, Date endTime, String driverId) {
 		this.date = new Date();
 		this.startTime = new Date(startTime.getTime());
 		this.endTime = new Date(endTime.getTime());
@@ -44,13 +40,15 @@ public class WorkingHours {
 
 	public Date getDate() { return date; }
 
-	public Integer getDriverId(){ return driverId; }
+	public String getDriverId(){ return driverId; }
 
 
 	/*
 	*method to print out the current day and date in the format shown
 	*@param id of the driver
 	*/
+
+
 	public void printCurrentDate(int id) throws SQLException{
 
 		java.util.Date orderDate = new java.util.Date();
@@ -90,54 +88,7 @@ public class WorkingHours {
 		}
 	}
 
-	/*public void updateDate(int id) throws SQLException{
-
-		Statement statement2 = null;
-		String query2 = "SELECT date" +
-				"FROM WorkingHours " +
-				"WHERE id ='" + id +"'";
-
-		try {
-			statement2 = connection.createStatement();
-			ResultSet rs = statement2.executeQuery(query2);
-
-			rs.next();
-			//String Date = rs.getString("date");
-			//System.out.println("Previous workday for Driver " + ID + "\t" + "is" + Date + "\n");
-			//LocalDate date = getLocalDate();
-			//String Date = rs.getString("date");
-			//System.out.println(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy").format(Date));
-
-			Statement statement3 = null;
-			String query3 = "UPDATE WorkingHours " +
-					"SET date ='" +  +
-					"'WHERE id='" + id + "'";
-
-			try {
-				statement3 = this.connection.createStatement();
-				statement3.executeUpdate(query3);
-				System.out.println("Updated  for Driver " + id + "\t" + "is" +  + "\n");
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				if (statement3 != null) {
-					statement3.close();
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			if (statement2 != null) {
-				statement2.close();
-			}
-		}
-
-
-	}*/
-
-	/*
-         * method to print a driver's shift start time
+         /* method to print a driver's shift start time
 	 * @param id of the driver
 	 */
 	public void printStartTime(int id) throws SQLException{
