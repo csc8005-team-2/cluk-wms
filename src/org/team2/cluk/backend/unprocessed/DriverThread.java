@@ -18,6 +18,8 @@ public class DriverThread extends Thread{
 
                 if (x){
                     Driver.assignOrderToDriver("manager");
+                    Driver.plotRouteNorth("manager");
+                    Driver.plotRouteSouth("manager");
                 }else{
                     try{
                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
