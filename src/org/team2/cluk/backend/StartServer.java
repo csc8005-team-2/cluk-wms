@@ -10,19 +10,12 @@ import org.team2.cluk.backend.webresources.*;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
-/**
- * Class containing main class used to start the server
- * <p><b>TO DO:</b></p>
- * <p><ol><li>
- *     Import DB settings from file
- * </li><li>
- *     Create way to exit application gracefully
- * </li><li>
- *     Export log to a file
- * </li></ol></p>
+/*
+ * StartServer Class which is the main class used to start the server
  *
  * @version 31/03/2019
  */
+   
 public class StartServer {
     public static void main (String[] args) {
         // http(s) server settings
