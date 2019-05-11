@@ -309,13 +309,16 @@ public class Restaurant {
 	@Path("/request-order/custom")
 	@POST
 	@Consumes("application/json")
-	public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strOrderContents) {
+	public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("custom") String customOrderStr, String strOrderContents) {
 
 		ServerLog.writeLog("Requested order to restaurant " + restaurantAddress);
 		if (!Authorisation.checkAccess(idToken, "restaurant")) {
 			ServerLog.writeLog("Unauthorised to make order");
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
 		}
+
+		// determine if order is custom
+		boolean customOrder = (customOrderStr.equalsIgnoreCase("true")) ? true : false;
 
 		// fetch current db connection
 		Connection connection = DbConnection.getConnection();
@@ -360,7 +363,9 @@ public class Restaurant {
 		try {
 			PreparedStatement pstmt = connection.prepareStatement(query);
 			pstmt.setString(1, currentTime);
-			pstmt.setString(2, "Out for delivery");
+			if (customOrder)
+				pstmt.setString(2, "Pending");
+			else pstmt.setString(2, "Out for delivery");
 			pstmt.setString(3, deliveryDate);
 			pstmt.executeUpdate();
 
@@ -504,7 +509,7 @@ public class Restaurant {
 
 		JsonArray standardOrderArray = standardOrderArrayBuilder.build();
 
-		return requestCustomOrder(idToken, restaurantAddress, standardOrderArray.toString());
+		return requestCustomOrder(idToken, restaurantAddress, "false", standardOrderArray.toString());
 	}
 
 
@@ -1122,7 +1127,7 @@ public class Restaurant {
 	
 	
 	//Ensure restaurant hasn't had order in last week days. 
-	public String enforceWeekLimit(String restaurantAddress) throws SQLException
+	public String enforceWeekLimit(String restaurantAddress)
     {
 		
 		// fetch db connection
@@ -1205,7 +1210,7 @@ public class Restaurant {
 	}
 	
 	//Ensure restaurant hasn't had order in last 3 days. 
-	public String enforceDayLimit(String restaurantAddress) throws SQLException
+	public String enforceDayLimit(String restaurantAddress)
     {
 		
 		// fetch db connection
@@ -1294,8 +1299,8 @@ public class Restaurant {
 		String deliveryDate="";
 		
 		try {
-			Date date1 = date.parse(firstdate);
-			Date date2 = date.parse(seconddate);
+			java.util.Date date1 = date.parse(firstdate);
+			java.util.Date date2 = date.parse(seconddate);
 			
 			if(date1.compareTo(date2)>0){
 				deliveryDate=firstdate;
