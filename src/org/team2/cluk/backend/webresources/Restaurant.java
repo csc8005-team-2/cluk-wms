@@ -36,6 +36,7 @@ public class Restaurant {
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
 
+        // if restaurant address not put in
     	if (restaurantAddress.isBlank()) {
     		ServerLog.writeLog("Rejected request as restaurant address not specified");
     		return Response.status(Response.Status.BAD_REQUEST).entity("ADDRESS_BLANK_OR_NOT_PROVIDED").build();
@@ -53,11 +54,13 @@ public class Restaurant {
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
             while (rs.next()) {
+		                // use Json
 				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
                 String stockItem = rs.getString("StockItem");
                 int quantity = rs.getInt("Quantity");
 
+		// add stock information to Json array
                 arrayEntryBuilder.add("stockItem", stockItem);
                 arrayEntryBuilder.add("quantity", quantity);
 
@@ -105,7 +108,7 @@ public class Restaurant {
         // variable for logging purposes only
 		String restaurant = "";
 
-    	//Checking order is being sent to the correct restaurant.
+    	// checking order is being sent to the correct restaurant
     	boolean correctRestaurant=false;
     	Statement statement = null;
     	String query = "SELECT restaurantAddress FROM Orders WHERE orderId ='" + orderId + "'";
@@ -289,16 +292,16 @@ public class Restaurant {
     	return response.build();
     }
 
-	/*
-	 * method executed when client requests custom order at the endpoint "/restaurant/request-order/custom"
-	 * orders include any quantity of stock. Stock contents are passed as parameters
-	 * body of the request should be JSON array with each entry of form: {stockItem: string, quantity: number}
-	 * If unsuccessful, the system will show "Order entry misspecified. Skipping this entry"
-	 * If successful, the system will show "ORDER_ACCEPTED"
-	 * @param restaurantAddress	value of address header specifying restaurant where order shall be delivered
-	 * @param strOrderContents	stringified JSON array containing order details
-	 * @return	202 ORDER_ACCEPTED - even if order contains entries not following the specification, they are removed from the order
-	 */
+    /*
+     * method executed when client requests custom order at the endpoint "/restaurant/request-order/custom"
+     * orders include any quantity of stock. Stock contents are passed as parameters
+     * body of the request should be JSON array with each entry of form: {stockItem: string, quantity: number}
+     * If unsuccessful, the system will show "Order entry misspecified. Skipping this entry"
+     * If successful, the system will show "ORDER_ACCEPTED"
+     * @param restaurantAddress	value of address header specifying restaurant where order shall be delivered
+     * @param strOrderContents	stringified JSON array containing order details
+     * @return	202 ORDER_ACCEPTED - even if order contains entries not following the specification, they are removed from the order
+     */
     @Path("/request-order/custom")
 	@POST
 	@Consumes("application/json")
@@ -349,7 +352,7 @@ public class Restaurant {
 			}
 		}
 
-    	// add Order ID and restaurant address to orders table
+    	// add order ID and restaurant address to orders table
     	query = "INSERT INTO Orders (restaurantAddress, orderId) VALUES (?, ?)";
 		PreparedStatement pstmt = null;
     	try{
@@ -367,7 +370,7 @@ public class Restaurant {
 			}
 		}
     	
-    	//getting stock items from Stock table
+    	// getting stock items from Stock table
 		pstmt = null;
 
     	for (JsonValue orderEntryValue: orderContents) {
@@ -501,6 +504,7 @@ public class Restaurant {
                 stockEntryBuilder.add("quantity", quantity);
                 stockEntryBuilder.add("minQuantity", minQuantity);
 
+		// if quantity is below minimum stock
                 if(quantity < minQuantity){
                 	int deficit = minQuantity - quantity;
                 	ServerLog.writeLog("Current stock of "+ stockItem +" at "+ restaurantAddress + " is below minimum stock levels by "+deficit+".");
@@ -525,15 +529,15 @@ public class Restaurant {
     	return Response.status(Response.Status.OK).entity(stockArray.toString()).build();
 	}
 
-    /*
-     * This method is used to allow the minimum stock level to be changed
-     * Users need to choose the item which is required to change and input the quantity they would like to update it to
-     * If successful, the system will state "Minimum stock levels updated to: " + min
-     * If unsuccessful, the system will state "SQL exception occurred when closing SQL statement"
-     * @param restaurantAddress address of the restaurant, provided in "address" header parameter
-     * @param strStockObject stringified JSON array containing minimum stock order details
-     * @return the updated stock level
-     */
+   /*
+    * This method is used to allow the minimum stock level to be changed
+    * Users need to choose the item which is required to change and input the quantity they would like to update it to
+    * If successful, the system will state "Minimum stock levels updated to: " + min
+    * If unsuccessful, the system will state "SQL exception occurred when closing SQL statement"
+    * @param restaurantAddress address of the restaurant, provided in "address" header parameter
+    * @param strStockObject stringified JSON array containing minimum stock order details
+    * @return the updated stock level     
+    */
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
@@ -572,16 +576,16 @@ public class Restaurant {
             return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
         }
 
-    /*
-     * This method creates a meal within a restaurant 
-     * Users are required to input the item and the quantity needed to create the meal
-     * The system will check whether the quantity of the item is below the minimum stock.
-     * If the quantity of one item is below the minimum stock, the system will show "STOCK_TOO_LOW"
-     * If successful, the system will show "MEAL_CREATED"
-     * @param restaurantAddress address of the restaurant where the meal is created, provided in "address" header parameter
-     * @param meal created from the stock items 
-     * @return the item that has been created
-     */
+      /*
+       * This method creates a meal within a restaurant 
+       * Users are required to input the item and the quantity needed to create the meal
+       * The system will check whether the quantity of the item is below the minimum stock.
+       * If the quantity of one item is below the minimum stock, the system will show "STOCK_TOO_LOW"
+       * If successful, the system will show "MEAL_CREATED"
+       * @param restaurantAddress address of the restaurant where the meal is created, provided in "address" header parameter
+       * @param meal created from the stock items 
+       * @return the item that has been created
+       */
 	@Path("/create-meal")
 	@GET
 	public Response createMeal(@HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
@@ -589,7 +593,7 @@ public class Restaurant {
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 
-		//Check that there is enough stock at the restaurant to make the meal item.
+		// check that there is enough stock at the restaurant to make the meal item
 		boolean enoughStock = true;
 
 		// check what meal is made of
@@ -682,7 +686,7 @@ public class Restaurant {
 
 	}
 
-	/*
+       /*
 	* Method to update the restaurant stock allowing for manual adjustment of stock levels
         * If successsful, system shows "STOCK_UPDATED"
 	* If unsuccessful, system shows "ERROR_UPDATING_STOCK"
@@ -714,6 +718,7 @@ public class Restaurant {
 			statement = connection.createStatement();
 			ResultSet rs = statement.executeQuery(query);
 
+			// use current quantity
 			rs.next();
 			currentQuantity = rs.getInt("quantity");
 			ServerLog.writeLog("Previous stock of "+stockItem + ": " + currentQuantity);
@@ -734,6 +739,7 @@ public class Restaurant {
 			}
 		}
 
+		// differenceInQuantity - how much the stock amount has been changed by 
 		int newQuantity = currentQuantity + differenceInQuantity;
 
 		statement = null;
@@ -769,10 +775,10 @@ public class Restaurant {
 	*/
 	@GET
 	@Path("/get-price")
-	//Method to get price of meal item.
 	public Response getPrice(@HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
 
+		// inititalize price 
 		double price = -1;
 
 		Statement statement = null;
