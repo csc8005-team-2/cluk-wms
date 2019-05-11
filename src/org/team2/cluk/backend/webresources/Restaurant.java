@@ -1011,4 +1011,189 @@ public class Restaurant {
 
             return Response.status(Response.Status.OK).entity(response.toString()).build();
 	    }
+	
+	
+	
+	//Ensure restaurant hasn't had order in last week days. 
+	public String enforceWeekLimit(Connection connection, String restaurantAddress) throws SQLException
+    {
+		Calendar d = Calendar.getInstance();
+		java.util.ArrayList<Integer> idList = new java.util.ArrayList<Integer>();
+		java.util.ArrayList<Integer> weekList = new java.util.ArrayList<Integer>();
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		int orderId=0;
+	
+		Statement statement = null;
+		String query = "SELECT orderId FROM Orders WHERE restaurantAddress = '" + restaurantAddress+"'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				orderId = rs.getInt("orderId");
+				idList.add(orderId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			}	
+		}
+
+		boolean freeweek=false;
+		while(freeweek==false){
+		
+		    String currentTime = date.format(d.getTime());
+		    d.add(Calendar.DATE, -7);
+		    String timeBack = date.format(d.getTime());
+		    d.add(Calendar.DATE,7);
+		    
+			
+			for (int i = 0; i<idList.size(); i++){
+				orderId = idList.get(i);
+	
+				statement = null;
+				query = "SELECT orderId from StockOrders WHERE orderId ="+orderId+" AND (orderDeliveryDate BETWEEN '"+timeBack+"' AND '"+currentTime+"')";
+			
+					try {
+						statement = connection.createStatement();
+						ResultSet rs = statement.executeQuery(query);
+						while (rs.next()) {
+							orderId = rs.getInt("orderId");
+							weekList.add(orderId);
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						try {
+							statement.close();
+						} catch (SQLException e) {
+							//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+						}
+					}
+		}
+		
+		if(weekList.size()<2){
+			freeweek=true;
+			
+		}else{
+			d.add(Calendar.DATE, 1);
+			weekList.clear();
+			
+		}
+		
+
+    }
+	
+		String deliveryDate = date.format(d.getTime());
+		return deliveryDate;
+
+	}
+	
+	//Ensure restaurant hasn't had order in last 3 days. 
+	public String enforceDayLimit(Connection connection, String restaurantAddress) throws SQLException
+    {
+	
+		Calendar d = Calendar.getInstance();
+		java.util.ArrayList<Integer> idList = new java.util.ArrayList<Integer>();
+		java.util.ArrayList<Integer> weekList = new java.util.ArrayList<Integer>();
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		int orderId=0;
+		
+		Statement statement = null;
+		String query = "SELECT orderId FROM Orders WHERE restaurantAddress = '" + restaurantAddress+"'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				orderId = rs.getInt("orderId");
+				idList.add(orderId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			}	
+		}
+		
+		boolean freeweek=false;
+		while(freeweek==false){
+		
+		
+	    String currentTime = date.format(d.getTime());
+	    d.add(Calendar.DATE, -2);
+	    String timeBack = date.format(d.getTime());
+	    d.add(Calendar.DATE,2);
+	    
+		for (int i = 0; i<idList.size(); i++){
+			orderId = idList.get(i);
+
+			statement = null;
+			query = "SELECT orderId from StockOrders WHERE orderId ="+orderId+" AND (orderDeliveryDate BETWEEN '"+timeBack+"' AND '"+currentTime+"')";
+		
+				try {
+					statement = connection.createStatement();
+					ResultSet rs = statement.executeQuery(query);
+					while (rs.next()) {
+						orderId = rs.getInt("orderId");
+						weekList.add(orderId);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+
+			}
+	
+		if(weekList.size()<1){
+			freeweek=true;
+			
+		}else{
+			d.add(Calendar.DATE, 1);
+			weekList.clear();
+		}
+		}
+		
+		String deliveryDate = date.format(d.getTime());
+		
+		return deliveryDate;
+    }
+	
+	
+	
+	//Compares two dates and selects the latest.
+	public String compare(String firstdate, String seconddate){
+		
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		String deliveryDate="";
+		
+		try {
+			Date date1 = date.parse(firstdate);
+			Date date2 = date.parse(seconddate);
+			
+			if(date1.compareTo(date2)>0){
+				deliveryDate=firstdate;
+			}else{
+				deliveryDate=seconddate;
+			}
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(deliveryDate);
+		return deliveryDate;
+	}
+	
 }     
