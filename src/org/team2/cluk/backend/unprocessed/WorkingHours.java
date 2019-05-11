@@ -15,6 +15,9 @@ import java.sql.*;
 
 public class WorkingHours {
 
+       /*
+	* instance variables
+	*/
 	private Connection connection;
 	private LocalDate date;
 	private Date startTime;
@@ -22,8 +25,11 @@ public class WorkingHours {
 	//private int workingHoursID;
 	private final int id;
 
-
+	/*
+	* constructor of the objects for the class WorkingHours
+	*/
 	public WorkingHours(Connection connection, LocalDate date, Date startTime, Date endTime, int id) {
+		// initialize instance variables 
 		this.connection = connection;
 		this.date = LocalDate.now();
 		this.startTime = new Date(startTime.getTime());
@@ -61,6 +67,7 @@ public class WorkingHours {
 	*/
 	public void printCurrentDate(int id) throws SQLException{
 
+		// use local date
 		LocalDate date = getLocalDate();
 		System.out.println(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy").format(date));
 
@@ -70,6 +77,7 @@ public class WorkingHours {
 				"WHERE id ='" + id+"'";
 
 		try {
+			// db connection
 			statement1 = this.connection.createStatement();
 			ResultSet rs = statement1.executeQuery(query1);
 
@@ -128,10 +136,9 @@ public class WorkingHours {
 				statement2.close();
 			}
 		}
-
-
 	}*/
 
+	
 	/*
 	* Method to print a driver's shift start time
 	* If successful, the system shows "Driver " + id + "'s start time is " + StartTime
@@ -146,6 +153,7 @@ public class WorkingHours {
 					"WHERE id ='" + id + "'";
 
 			try {
+				// db connection
 				statement3 = this.connection.createStatement();
 				ResultSet rs = statement3.executeQuery(query3);
 				while (rs.next()) {
@@ -172,6 +180,7 @@ public class WorkingHours {
 	*/
 	public void updateStartTime(int hour1, int min1, int sec1, int id) throws SQLException {
 
+		// use calendar
 		Calendar c1 = Calendar.getInstance();
 
 		c1.set(Calendar.HOUR, hour1);
@@ -181,6 +190,7 @@ public class WorkingHours {
 
 		try {
 
+			// date format
 			Date dateFormat = new SimpleDateFormat("HH:mm:ss").parse(startTime);
 			//System.out.println(dateFormat.format(startTime));
 			java.sql.Date sqlStartTime = new java.sql.Date(dateFormat.getTime());
@@ -210,6 +220,7 @@ public class WorkingHours {
 				"WHERE id ='" + id + "'";
 
 		try {
+			// db connection 
 			statement3 = this.connection.createStatement();
 			ResultSet rs = statement3.executeQuery(query3);
 			while (rs.next()) {
@@ -236,6 +247,7 @@ public class WorkingHours {
 	*/
 	public void updateEndTime(int hour2, int min2, int sec2, int id) throws SQLException{
 
+		// use calendar
 		Calendar c2 = Calendar.getInstance();
 
 		c2.set(Calendar.HOUR, hour2);
@@ -245,6 +257,7 @@ public class WorkingHours {
 
 		try {
 
+			// date format 
 			Date dateFormat = new SimpleDateFormat("HH:mm:ss").parse(endTime);
 			//System.out.println(dateFormat.format(endTime));
 			java.sql.Date sqlEndTime = new java.sql.Date(dateFormat.getTime());
