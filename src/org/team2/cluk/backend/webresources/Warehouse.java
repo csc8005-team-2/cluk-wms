@@ -12,14 +12,26 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/*
+ * Warehouse Class which handles stocks information, sending orders to restaurant and assigning a driver to deliver the order
+ *
+ * @version 11/05/2019
+ */
+
 @Path("/warehouse")
 public class Warehouse
 {
 
+    /*
+     * Method which gets the total stock within a warehouse
+     * If successful, system will show "StockItem: " + Quantity
+     * @param address of the warehouse
+     * @return the stock name and quantity (in units) held at the warehouse
+     */
     @GET
     @Path("/get-total-stock")
     @Produces("application/json")
-    //Outputs total stock held at the warehouse(units).
     public void GetTotalStock(@HeaderParam("warehouse") String address)
     {
         Statement statement = null;
@@ -48,17 +60,19 @@ public class Warehouse
         }                 
     }
 
-    /**
+    /*
+     * Method to increase the warehouse stock by the quantity specified
+     * Takes parameters of stock item and quantity
      * {stockItem: string, quantity: number}
-     * @param address
-     * @param requestBody
-     * @return
-     * @throws SQLException
+     * If successful, system shows "STOCK_UPDATED"
+     * If JSON request unsuccessful, system shows "Order entry misspecified. Skipping entry."
+     * @param address of the warehouse
+     * @param requestBody uses Json to request an array of the stock at the warehouse
+     * @return the updated stock to the warehouse
      */
     @POST
     @Path("/update-stock")
     @Consumes("application/json")
-    //Increases warehouse stock of item specified by quantity specified. Takes parameters for stockItem and quantity.
     public Response updateStock(@HeaderParam("warehouse") String address, String requestBody)
     {
         ServerLog.writeLog("Updating warehouse stock at " + address);
@@ -141,15 +155,24 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("STOCK_UPDATED").build();
     }
 
+    /*
+     * Method which sends an order from a Warehouse to a Restaurant
+     * It reduces warehouse stock levels determined by the stock requests in the order, taking the order ID as a parameter
+     * The system checks whether the order has enough stock quantities to provide the order
+     * If successful, the system shows "ORDER_SENT"
+     * If unsuccessful due to not enough stock in warehouse, the system shows "STOCK_TOO_LOW"
+     * @param address of the warehouse
+     * @param orderId including the stock items and quantity which are to be sent
+     * @return database update showing the order is out for delivery
+     */
     @GET
     @Path("/send-order")
-    //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
     public Response sendOrder(@HeaderParam("address") String address, @HeaderParam("orderId") int orderId)
     {
         // fetch current db connection
         Connection connection = DbConnection.getConnection();
 
-    	//Check if order has already been delivered.
+    	// check if order has already been delivered
     	boolean orderFulfilled = false;
     	Statement statement = null;
     	String query = "SELECT orderStatus FROM StockOrders WHERE orderId ='"+orderId+"'";
@@ -182,7 +205,7 @@ public class Warehouse
     	// retrieve order contents
         HashMap<String, Integer> orderedStock = new HashMap<>();
 
-    	//Check if warehouse has enough stock to fulfil order.
+    	// check if warehouse has enough stock to fulfil order
     	boolean stockAvailable = true;
 
     	statement = null;
@@ -247,7 +270,7 @@ public class Warehouse
     	if (!stockAvailable)
     	    return Response.status(Response.Status.FORBIDDEN).entity("STOCK_TOO_LOW").build();
 
-    	//If passed previous checks update stock levels.
+    	// if passed previous checks update stock levels
 
         for (Map.Entry<String, Integer> orderEntry: orderedStock.entrySet()) {
             String stockItem = orderEntry.getKey();
@@ -273,7 +296,7 @@ public class Warehouse
             }
         }
 
-        //Update database to mark order as out for delivery.
+        // update database to mark order as out for delivery
         statement = null;
         query = "UPDATE StockOrders "+
                 "SET orderStatus = 'Out for delivery' "+
@@ -295,6 +318,13 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("ORDER_SENT").build();
     }
 
+   /*
+    * Method which gets the minimum amount of each stock item within the warehouse 
+    * If successful, system will show "Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity
+    * If unsuccessful, system will show "ERROR_QUERYING_MIN_STOCK_LEVEL"
+    * @param address of the warehouse
+    * @return the stock items and their minimum amount 
+    */
     @Path("/get-min-stock")
     @POST
     @Consumes("application/json")
@@ -343,9 +373,15 @@ public class Warehouse
         return res.build();
     }
 
+   /*
+    * Method which checks that the Warehouse stock is above the minimum quantity level
+    * If method is successful and there are stock items below the minimum level, system will show "Current stock of "+ stockItem +" is below minimum stock levels by "+ deficit
+    * If method is successful and no stock items are below the minimum level, system will show "ENOUGH_STOCK"
+    * @param address of the warehouse
+    * @return a list of stock and quantity which is below the minimum level for that warehouse
+    */
     @GET
     @Path("/min-stock-check")
-    //Checks the warehouse stock is above the minimum level.
     public Response minStockCheck(@HeaderParam("address") String address)
     {
         Connection connection = DbConnection.getConnection();
@@ -394,7 +430,14 @@ public class Warehouse
         return updateStock(address, lackingStockArrayBuilder.build().toString());
     }
 
-    //Allows the warehouse stock minimums to be set.
+   /*
+    * Method which allows the Warehouse stock minimum levels to be set
+    * If successful, the system will show "MIN_STOCK_VALUE_UPDATED"
+    * If unsuccessful request, the system will show "REQUEST_MISSPECIFIED"
+    * @param address of the Warehouse
+    * @param requestBody to request to update stock minimum levels
+    * @return adding the updated minimum stock levels to the database
+    */
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
@@ -435,9 +478,16 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
     }
 
+    /*
+     * Method which assigns an order to a driver which needs to be delivered from a warehouse to a restaurant 
+     * If successful, system will show "ORDER_ASSIGNED"
+     * If unsuccessful, system will show "ORDER_ASSIGNMENT_ERROR"
+     * @param orderId which includes the correct stock quantities required to be delivered to the restaurant 
+     * @param driverId of the delivery driver
+     * @return the driver id which is assigned to an order ID
+     */
     @GET
     @Path("/assign-to-driver")
-    //Assigns an order to a driver(basic) may require expanding based on driver class.
     public Response assignOrderToDriver(@HeaderParam("orderId") int orderId, @HeaderParam("driverId") String driverId){
         Response.ResponseBuilder res = null;
 
@@ -469,10 +519,14 @@ public class Warehouse
 
     	return res.build();
     }
-
+	
+    /*
+    * method to get the currently pending orders to go from a warehouse to a restaurant
+    * Includes the date and time for the orders
+    * @return order entries which currently have the status "pending"
+    */
     @GET
     @Path("/get-pending-orders")
-    //Method to get currently pending orders.
     public Response getCurrentPendingOrders() {
         Response.ResponseBuilder res = null;
 
@@ -480,7 +534,7 @@ public class Warehouse
 
         JsonArrayBuilder pendingOrdersBuilder = Json.createArrayBuilder();
 
-        //Gets orderId and date/time for orders with status pending.
+        // gets orderId and date/time for orders with status pending
         Statement statement = null;
         String query = "SELECT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
                 "FROM StockOrders, Orders WHERE StockOrders.orderStatus='Pending' AND Orders.orderId=StockOrders.orderId";
