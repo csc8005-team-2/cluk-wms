@@ -117,7 +117,7 @@ public class Warehouse
 
                 arrayEntryBuilder.add("stockItem", stockItem);
                 arrayEntryBuilder.add("quantity", quantity);
-                arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? "true" : "false");
+                arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? true : false);
 
                 JsonObject arrayEntry = arrayEntryBuilder.build();
                 responseBuilder.add(arrayEntry);
