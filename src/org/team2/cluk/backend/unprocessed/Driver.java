@@ -679,15 +679,15 @@ public class Driver {
 	//connects to database
 	//gets today's date and the orderId of approved orders to be delivered in that same day
 	//gets the restaurant address of that same orderId from the Order table
-	//gets the restaurant address of the north region that matches the restaurant address above
+	//gets the restaurant address of the  region that matches the restaurant address above
 	//returns JsonObject of the method status
 	/*@param idToken
 	* @return restaurantAddress
 	* */
 
-	@Path("/plot-route-north")
+	@Path("/plot-route")
 	@GET
-	public static Response plotRouteNorth(@HeaderParam("Authorisation") String idToken) {
+	public static Response plotRoute(@HeaderParam("Authorisation") String idToken) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -728,18 +728,7 @@ public class Driver {
 					while (rs1.next()) {
 						String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
 
-						//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is north
-						Statement statement2 = null;
-						String query2 = "SELECT restaurantAddress" +
-								"FROM Restaurant " +
-								"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + "AND region = 'North'" + "'";
-						try {
-							statement2 = DbConnection.getConnection().createStatement();
-							ResultSet rs2 = statement2.executeQuery(query2);
-
-							while (rs2.next()) {
-								String restaurantAddressRestaurantTableNorth = rs2.getString("restaurantAddress");
-								JsonObject responseJson = Json.createObjectBuilder().add("North", restaurantAddressRestaurantTableNorth).build();
+								JsonObject responseJson = Json.createObjectBuilder().add("Address", restaurantAddressOrdersTable).build();
 								return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 							}
 
@@ -747,100 +736,12 @@ public class Driver {
 							e.printStackTrace();
 						}
 					}
-				}catch (SQLException e){
-					e.printStackTrace();
-				}
-			}
-		} catch (SQLException e) {
+				}catch (SQLException e) {
 			e.printStackTrace();
 		}
 
 		return Response.status(Response.Status.CREATED).build();
 
-	}
-
-
-	/* checks access type is manager */
-	//connects to database
-	//gets today's date and the orderId of approved orders to be delivered in that same day
-	//gets the restaurant address of that same orderId from the Order table
-	//gets the restaurant address of the south region that matches the restaurant address above
-	//returns JsonObject of the method status
-	/*
-	 * @param idToken
-	 * @return restaurantAddress
-	 */
-
-	@Path("/plot-route-south")
-	@GET
-	public static Response plotRouteSouth(@HeaderParam("Authorisation") String idToken) {
-
-		if (!Authorisation.checkAccess(idToken, "manager")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		}
-
-		//connects to database
-
-		Connection connection = DbConnection.getConnection();
-
-		//get today's date
-		java.util.Date orderDate = new java.util.Date();
-		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
-		String currentDate = date.format(orderDate.getTime());
-
-		//get orderId from stockOrders table where the orderDeliveryDate is today's date and orderStatus is approved for delivery.
-
-		Statement statement = null;
-		String query = "SELECT orderId" +
-				"FROM StockOrders" +
-				"WHERE orderDeliveryDate='" + currentDate + " AND orderStatus= approved'";
-		try {
-			statement = DbConnection.getConnection().createStatement();
-			ResultSet rs = statement.executeQuery(query);
-
-			while (rs.next()) {
-				int orderIdStockOrders = rs.getInt("orderId");
-
-				//get the restaurantAddress where the orderId from orders table is equal to the orderId from stockOrders table.
-
-				Statement statement1 = null;
-				String query1 = "SELECT restaurantAddress " +
-						"FROM Orders " +
-						"WHERE orderId ='" + orderIdStockOrders + "'";
-
-				try {
-					statement1 = DbConnection.getConnection().createStatement();
-					ResultSet rs1 = statement1.executeQuery(query1);
-
-					while (rs1.next()) {
-						String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
-
-						//get the restaurant address in orders table which is equal to that in Restaurant table and where the region is south
-						Statement statement2 = null;
-						String query2 = "SELECT restaurantAddress" +
-								"FROM Restaurant " +
-								"WHERE restaurantAddress = '" + restaurantAddressOrdersTable + "AND region = 'South'" + "'";
-						try {
-							statement2 = DbConnection.getConnection().createStatement();
-							ResultSet rs2 = statement2.executeQuery(query2);
-
-							while (rs2.next()) {
-								String restaurantAddressRestaurantTableSouth = rs2.getString("restaurantAddress");
-								JsonObject responseJson = Json.createObjectBuilder().add("South", restaurantAddressRestaurantTableSouth).build();
-								return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
-							}
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-				}catch (SQLException e){
-					e.printStackTrace();
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return Response.status(Response.Status.CREATED).build();
 	}
 
 	//connects to database
