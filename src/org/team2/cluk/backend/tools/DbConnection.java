@@ -40,7 +40,6 @@ public class DbConnection {
     * Method to allow users to disconnect from the database
     * If it fails, the system will show "Exception occurred when disconnecting from the database"
     */
-    
     public static void disconnect() {
         try {
             connection.close();
@@ -49,6 +48,10 @@ public class DbConnection {
         }
     }
 
+    /*
+    * Accessor method to get the connection
+    * @return connection to the database
+    */
     public static Connection getConnection() {
         return connection;
     }
