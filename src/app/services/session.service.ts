@@ -11,6 +11,7 @@ import {OrderId} from '../classes/order-id';
 import {MealPrice} from '../classes/meal-price';
 import {OrderEntry} from '../classes/order-entry';
 import {StockName} from '../classes/stock-name';
+import {ComparativeStockItem} from '../classes/comparative-stock-item';
 
 @Injectable({
   providedIn: 'root'
@@ -103,7 +104,6 @@ export class SessionService {
 
     return this.http.get<StockName[]>(this.BACKEND_URL + '/warehouse/get-stock-names', {headers: reqHeader} );
   }
-
   /*
 * Methods for authorization and account management
 * @param none
@@ -236,10 +236,10 @@ export class SessionService {
   * @param {string} address
   * @returns http.get<StockItem[]>
   */ 
-  getTotalStockRest(address: string): Observable<StockItem[]> {
+  getTotalStockRest(address: string): Observable<ComparativeStockItem[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken).append('address', address);
 
-    return this.http.get<StockItem[]>(this.BACKEND_URL + '/restaurant/get-total-stock', {headers: reqHeader});
+    return this.http.get<ComparativeStockItem[]>(this.BACKEND_URL + '/restaurant/get-total-stock', {headers: reqHeader});
   }
 
   /*
@@ -346,11 +346,11 @@ export class SessionService {
   * @param {string} _address
   * @returns http.get<StockItem[]>
   */ 
-  getTotalStockWar(_address: string): Observable<StockItem[]> {
+  getTotalStockWar(_address: string): Observable<ComparativeStockItem[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
       .append('address', _address);
 
-    return this.http.get<StockItem[]>(this.BACKEND_URL + '/warehouse/get-total-stock', {headers: reqHeader});
+    return this.http.get<ComparativeStockItem[]>(this.BACKEND_URL + '/warehouse/get-total-stock', {headers: reqHeader});
   }
 
   /*
@@ -376,6 +376,26 @@ export class SessionService {
       .append('orderId', orderId.toString());
 
     return this.http.get<Message>(this.BACKEND_URL + '/warehouse/send-order', {headers: reqHeader});
+  }
+
+  approveOrder(_address: string, orderId: number): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('address', _address)
+      .append('orderId', orderId.toString());
+
+    return this.http.get<Message>(this.BACKEND_URL + '/warehouse/approve-order', {headers: reqHeader});
+  }
+
+  /*
+  * Method to decline a stock order request from a restaurant
+  * @param {string} address, {number} orderId
+  * @returns http.get<Message>
+  */
+  declineOrder(orderId: number): Observable<Message> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('orderId', orderId.toString());
+
+    return this.http.get<Message>(this.BACKEND_URL + '/warehouse/decline-order', {headers: reqHeader});
   }
 
   /*
