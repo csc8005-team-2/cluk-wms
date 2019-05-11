@@ -43,10 +43,10 @@ public class WorkingHours {
 	public String getDriverId(){ return driverId; }
 
 
-	/*
+/*	*//*
 	*method to print out the current day and date in the format shown
 	*@param id of the driver
-	*/
+	*//*
 
 
 	public void printCurrentDate(int id) throws SQLException{
@@ -88,9 +88,9 @@ public class WorkingHours {
 		}
 	}
 
-         /* method to print a driver's shift start time
+         *//* method to print a driver's shift start time
 	 * @param id of the driver
-	 */
+	 *//*
 	public void printStartTime(int id) throws SQLException{
 
 		// fetch db connection
@@ -119,11 +119,11 @@ public class WorkingHours {
 
 	}
 
-	/*
+	*//*
 	* method to update a driver's shift start time
 	* @param hour1, min1, sec1 specific time for the shift start time 
 	* @param id of the driver
-	*/
+	*//*
 	public void updateStartTime(int hour1, int min1, int sec1, int id) throws SQLException {
 
 		// fetch db connection
@@ -153,10 +153,10 @@ public class WorkingHours {
 	}
 
 
-	 /*
+	 *//*
          * method to print a driver's shift end time
 	 * @param id of the driver
-	 */
+	 *//*
 	public void printEndTime(int id) throws SQLException{
 
 		// fetch db connection
@@ -185,11 +185,11 @@ public class WorkingHours {
 	}
 
 
-	/*
+	*//*
 	* method to update a driver's shift end time
 	* @param hour1, min1, sec1 specific time for the shift end time 
 	* @param id of the driver
-	*/
+	*//*
 	public void updateEndTime(int hour2, int min2, int sec2, int id) throws SQLException{
 
 		// fetch db connection
@@ -217,6 +217,6 @@ public class WorkingHours {
 			e.printStackTrace();
 		}
 
-	}
+	}*/
 }
 
