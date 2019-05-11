@@ -29,8 +29,8 @@ export class ViewOrderComponent implements OnInit {
   }
 
   acceptOrder() {
-    this.session.sendOrder(this.orderAddress, this.orderId).subscribe(res => {
-      if (res.message === 'ORDER_SENT') {
+    this.session.approveOrder(this.orderAddress, this.orderId).subscribe(res => {
+      if (res.message === 'APPROVED_ORDER') {
         window.alert('Order ' + this.orderId + ' has been accepted for dispatch to ' + this.orderAddress + '!');
         this.dialogRef.close(true);
       }
@@ -40,7 +40,7 @@ export class ViewOrderComponent implements OnInit {
   declineOrder() {
     this.session.declineOrder(this.orderId).subscribe(res => {
       if (res.message === 'DECLINED_ORDER') {
-        window.alert('Order ' + this.orderId + ' has been accepted for dispatch to ' + this.orderAddress + '!');
+        window.alert('Order ' + this.orderId + ' has been declined!');
         this.dialogRef.close(true);
       }
     }, err => console.log(err));
