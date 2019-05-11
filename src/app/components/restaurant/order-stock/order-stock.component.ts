@@ -4,12 +4,6 @@ import {StockItem} from '../../../classes/stock-item';
 import {SessionService} from '../../../services/session.service';
 import {MatTableDataSource} from '@angular/material';
 
-export interface OrderStockObject {
-  stockNumber: string;
-  stockItem: string;
-  orderAmount: number;
-}
-
 @Component({
   selector: 'app-order-stock',
   templateUrl: './order-stock.component.html',
@@ -18,6 +12,8 @@ export interface OrderStockObject {
 export class OrderStockComponent implements OnInit {
   // Stock Object table
   availableStock: StockName[];
+  tooLittleStock = false;
+  customOrderStr = 'false';
 
 
   // displayed columns format
@@ -32,7 +28,14 @@ export class OrderStockComponent implements OnInit {
 
   addItem(stockItem: string, qtyStr: string) {
     if (stockItem && qtyStr) {
+      this.tooLittleStock = false;
       const qty: number = +qtyStr;
+
+      if (qty < 2) {
+        this.tooLittleStock = true;
+        return;
+      }
+
       this.incorrectSelection = false;
       this.order.push({stockItem, quantity: qty});
       this.orderDataSource = new MatTableDataSource(this.order);
@@ -51,14 +54,24 @@ export class OrderStockComponent implements OnInit {
   ngOnInit() {
   }
 
+  customOrder(): boolean {
+    return (this.customOrderStr === 'true') ? true : false;
+  }
+
   orderStock() {
-    this.session.requestCustomOrder(this.session.getVenueAddress(), this.order).subscribe(res => {
+    if (this.customOrder()) {
+      this.session.requestCustomOrder(this.session.getVenueAddress(), this.order).subscribe(res => {
         this.order = [];
         this.orderDataSource = new MatTableDataSource(this.order);
         window.alert('Order has been sent to the warehouse! Order number: ' + res.orderId);
-    }, err => {
-      console.log(err);
-    });
+      }, err => {
+        console.log(err);
+      });
+    } else {
+      this.session.requestStandardOrder(this.session.getVenueAddress()).subscribe(res => {
+        window.alert('Order has been sent to the warehouse! Order number: ' + res.orderId);
+      });
+    }
   }
 }
 

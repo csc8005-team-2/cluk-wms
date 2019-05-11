@@ -1,5 +1,14 @@
+<div mat-line>
+<mat-radio-group [(ngModel)]="customOrderStr">
+  <mat-radio-button value="false">Standard order</mat-radio-button>
+  <mat-radio-button value="true">Custom order</mat-radio-button>
+</mat-radio-group>
+</div>
+
+<mat-card id="customOrder" *ngIf="customOrder()">
 <div class="totalStock">
   <div id="incorrectSelectionMsg" *ngIf="incorrectSelection">Information missing! Cannot add to stock order!</div>
+  <div id="incorrectSelectionMsg" *ngIf="tooLittleStock">You should order at least 2 units!</div>
 
   <mat-form-field>
     <mat-select #itemInput placeholder="Stock Item">
@@ -31,5 +40,6 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
+</mat-card>
 
-<button mat-raised-button (click)="orderStock()">Submit</button>
+<button mat-raised-button id="submitOrder" (click)="orderStock()">Submit</button>

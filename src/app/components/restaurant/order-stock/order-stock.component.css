@@ -16,3 +16,11 @@
 #incorrectSelectionMsg {
     color: red;
 }
+
+.mat-radio-button {
+  margin: 1em 2em 1em 0;
+}
+
+#submitOrder {
+  margin: 2em 0;
+}

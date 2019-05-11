@@ -28,7 +28,8 @@ import {MatCheckboxModule, MatDialogModule, MatRadioModule} from '@angular/mater
         MatSelectModule,
         MatTableModule,
         MatDialogModule,
-        MatCheckboxModule],
+        MatCheckboxModule,
+        MatRadioModule],
     exports: [
         MatGridListModule,
         MatSidenavModule,
@@ -43,7 +44,8 @@ import {MatCheckboxModule, MatDialogModule, MatRadioModule} from '@angular/mater
         MatSelectModule,
         MatTableModule,
         MatDialogModule,
-        MatCheckboxModule]
+        MatCheckboxModule,
+        MatRadioModule]
   })
   
   export class MaterialModule {
