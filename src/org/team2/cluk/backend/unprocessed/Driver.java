@@ -33,7 +33,7 @@ public class Driver {
 	 * @param requestBody
 	 * @return driver information
 	 */
-	@GET
+	@POST
 	@Path("/add-driver-info")
 	@Produces("application/json")
 	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("driverId") String driverId, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody) {
@@ -595,7 +595,7 @@ public class Driver {
 	 * @param WorkingHours
 	 * @return updated work duration for driver after they take a break
 	 */
-	@POST
+	@GET
 	@Path("go-on-break")
 
 	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("w") WorkingHours w) throws SQLException {
@@ -686,7 +686,7 @@ public class Driver {
 	* */
 
 	@Path("/plot-route-north")
-	@POST
+	@GET
 	public static Response plotRouteNorth(@HeaderParam("Authorisation") String idToken) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
@@ -772,7 +772,7 @@ public class Driver {
 	 */
 
 	@Path("/plot-route-south")
-	@POST
+	@GET
 	public static Response plotRouteSouth(@HeaderParam("Authorisation") String idToken) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
@@ -854,7 +854,7 @@ public class Driver {
 	*/
 
 	@Path("/assign-order-to-driver")
-	@POST
+	@GET
 	public static Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
