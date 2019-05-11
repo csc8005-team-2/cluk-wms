@@ -11,24 +11,27 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+ * Restaurant Class which handles stocks information, ordering stock and recieving orders, creating meals and checking prices
+ *
+ * @version 11/05/2019
+ */
+
 @Path("/restaurant")
 public class Restaurant {
 
-    /**
-     * Handles request for total stock units at a given restaurant given as "address" in the request header
+    /*
+     * Method which handles request for total stock units at a given restaurant given as "address" in the request header
+     * The system will ask users to input a restaurant's address 
+     * The system will show information about the total stock in the given restaurant
+     * If the restaurant address is blank, the system will show "ADDRESS_BLANK_OR_NOT_PROVIDED"
+     * If method is successful, the system will show items that are stocked in the restaurant the quantity of the item
      * @param restaurantAddress address of the restaurant provided in the request header as "address"
      * @return  JSON array with all stock stored in that restaurant
      */
     @GET
     @Path("/get-total-stock")
 	@Produces("application/json")
-    /*
-     * This method is used to get the information about the total stock in the restaurant which the user input in.
-     * Users need to input a restaurant's address and the system will show the information about the total stock in the restaurant.
-     * At the start the system will let users to input a restaurant's name.
-     * If the restaurant's address is blank the system will show "ADDRESS_BLANK_OR_NOT_PROVIDED".
-     * If everything goes right the system will show  items that stocked in the restaurant and the quantity of the item.
-     */
     public Response getTotalStock(@HeaderParam("address") String restaurantAddress) {
 
 		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
@@ -79,13 +82,17 @@ public class Restaurant {
         return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
+   /*
+    * This method updates the stock for a restaurant when it has received an order
+    * If it is unsuccessful, the system will show "ORDER_NOT_FOUND"
+    * If successful, the system will show "ORDER_RECEIVED" and add the information to the restaurant stock
+    * Users must choose the item and quantity that the restaurant has ordered and the address of the restaurant
+    * @param restaurantAddress address of the restaurant provided in the request header as "address"
+    * @param orderId of the stock recieved by the restaurant
+    * @return order added to restaurant stock
+    */
     @GET
     @Path("/receive-order")
-	/*This method updates the stock for a restaurant when it has received an order.
-	 * If there are something goes wrong,the system will show "ORDER_NOT_FOUND".
-	 * If everything goes right,the system will show "ORDER_RECEIVED".
-	 * User need to choose the item and quantity that the restaurant ordered and the address of the restaurant.
-	 */
     public Response receiveOrder(@HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
     	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
 
