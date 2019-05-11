@@ -32,8 +32,8 @@ public class DriverThread extends Thread{
                             sleep(sleepTimeMilliSeconds);
                         }
                         if(z){
-                            long sleepTimeHours = Math.abs(TimeUnit.HOURS.toMillis(24) - currentTimeDate.getTime() - timeToCompareDate.getTime() + ());
-                            long sleepTimeMilliSeconds = TimeUnit.HOURS.convert(sleepTimeHours, TimeUnit.MILLISECONDS);
+                            long sleepTimeHours = Math.abs(currentTimeDate.getTime() - timeToCompareDate.getTime());
+                            long sleepTimeMilliSeconds = Math.abs((TimeUnit.HOURS.toMillis(24))-(TimeUnit.HOURS.convert(sleepTimeHours, TimeUnit.MILLISECONDS)));
                             sleep(sleepTimeMilliSeconds);
                         }
                     }catch (InterruptedException e){
