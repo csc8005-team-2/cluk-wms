@@ -23,7 +23,6 @@ export class QueryStockComponent implements OnInit {
   constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
     this.session.getTotalStockRest(this.session.getVenueAddress()).subscribe(res => {
       this.availableStock = new MatTableDataSource(res);
-      console.log(res);
     }, err => {
       console.log(err);
     });
