@@ -46,7 +46,7 @@ public class Restaurant {
 		Connection connection = DbConnection.getConnection();
 
 		Statement statement = null;
-		String query = "SELECT stockItem, quantity " +
+		String query = "SELECT stockItem, quantity, minQuantity " +
 				"FROM Within " +
 				"WHERE restaurantAddress ='" + restaurantAddress + "'";
 		try {
@@ -57,9 +57,11 @@ public class Restaurant {
 
 				String stockItem = rs.getString("StockItem");
 				int quantity = rs.getInt("Quantity");
+				int minQty = rs.getInt("minQuantity");
 
 				arrayEntryBuilder.add("stockItem", stockItem);
 				arrayEntryBuilder.add("quantity", quantity);
+				arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? "true" : "false");
 
 				JsonObject arrayEntry = arrayEntryBuilder.build();
 				responseBuilder.add(arrayEntry);
