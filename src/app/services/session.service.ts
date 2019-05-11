@@ -27,10 +27,10 @@ export class SessionService {
     this.idToken = this.getCookie('token');
     this.venueAddress = this.getCookie('address');
 
-    const restPerm = (this.getCookie('restaurant') === 'true') ? true: false;
-    const warPerm = (this.getCookie('warehouse') === 'true') ? true: false;
-    const drivPerm = (this.getCookie('driver') === 'true') ? true: false;
-    const manPerm = (this.getCookie('manager') === 'true') ? true: false;
+    const restPerm = (this.getCookie('restaurant')) ? ((this.getCookie('restaurant') === 'true')) : false;
+    const warPerm = (this.getCookie('warehouse')) ? ((this.getCookie('warehouse') === 'true')) : false;
+    const drivPerm = (this.getCookie('driver')) ? ((this.getCookie('driver') === 'true')) : false;
+    const manPerm = (this.getCookie('manager')) ? ((this.getCookie('manager') === 'true')) : false;
 
     this.permissions = {restaurant: restPerm, warehouse: warPerm, driver: drivPerm, manager: manPerm};
   }
