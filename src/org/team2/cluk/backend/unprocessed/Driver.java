@@ -7,11 +7,14 @@ import java.text.SimpleDateFormat;
 import java.sql.*;
 
 /*
-* Driver class handles driver contact information, including shift information
-*/
+ * Driver class handles driver contact information, including shift information
+ */
 
 public class Driver {
 
+       /*
+	* Instance variables
+	*/
 	private Connection connection;
 	private String firstName;
 	private String lastName;
@@ -21,8 +24,11 @@ public class Driver {
 	private int workDuration; //mins.
 	private final int breakTime = 45; //mins
 
-
+	/*
+	* Constructor for objects of class Driver
+	*/
 	public Driver(Connection connection, String firstName, String lastName, int id, String phoneNumber,  int capacity, int workDuration){
+		// initialize instance variables
 		this.connection = connection;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -49,6 +55,7 @@ public class Driver {
 				"SELECT '"+ firstName + "', '" + lastName + "', '" + id + "', '" + phoneNumber + "', '" + capacity + "', '" + workDuration + "')";
 
 		try {
+			// db connection
 			statement1 = this.connection.createStatement();
 			statement1.executeQuery(query1);
 			System.out.println("Driver information " + id + "has been added to the database" + ".\n");
@@ -75,6 +82,7 @@ public class Driver {
 		String query2 = "DELETE FROM Driver WHERE id = '" + id + "'";
 
 		try {
+			// db connection
 			statement2 = this.connection.createStatement();
 			statement2.executeUpdate(query2);
 			System.out.println("Driver information id " + id + "has been removed from the database" + ".\n");
@@ -102,6 +110,7 @@ public class Driver {
 				"WHERE id ='" + id + "'";
 
 		try {
+			// db connection
 			statement3 = this.connection.createStatement();
 			ResultSet rs = statement3.executeQuery(query3);
 			while (rs.next()) {
@@ -133,6 +142,7 @@ public class Driver {
 				"WHERE id='" + id +"'";
 
 		try {
+			// db connection
 			statement4 = this.connection.createStatement();
 			ResultSet rs = statement4.executeQuery(query4);
 
@@ -140,12 +150,14 @@ public class Driver {
 			String newFirstName = rs.getString("firstName");
 			System.out.println("Driver " + id + "'s first name is " + firstName + "\n");
 
+			// update first name
 			Statement statement5 = null;
 			String query5 = "UPDATE Driver " +
 					"SET firstName ='" + newFirstName +
 					"'WHERE id='" + id + "'";
 
 			try {
+				// db connection
 				statement5 = this.connection.createStatement();
 				statement5.executeUpdate(query5);
 				System.out.println("Driver " + id + "'s first name has been updated to " + newFirstName + "\n");
@@ -180,6 +192,7 @@ public class Driver {
 				"WHERE id ='" + id + "'";
 
 		try {
+			// db connection
 			statement6 = this.connection.createStatement();
 			ResultSet rs = statement6.executeQuery(query6);
 
@@ -212,6 +225,7 @@ public class Driver {
 				"WHERE id='" + id +"'";
 
 		try {
+			// db connection
 			statement7 = this.connection.createStatement();
 			ResultSet rs = statement7.executeQuery(query7);
 
@@ -219,6 +233,7 @@ public class Driver {
 			String newLastName = rs.getString("lastName");
 			System.out.println("Driver " + id + "'s last name is " + lastName + "\n");
 
+			// update last name 
 			Statement statement8 = null;
 			String query8 = "UPDATE Driver " +
 					"SET lastName ='" + newLastName +
@@ -259,6 +274,7 @@ public class Driver {
 				"WHERE id ='" + id + "'";
 
 		try {
+			// db connection
 			statement9 = this.connection.createStatement();
 			ResultSet rs = statement9.executeQuery(query9);
 			while (rs.next()) {
@@ -291,6 +307,7 @@ public class Driver {
 				"WHERE id='" + id +"'";
 
 		try {
+			// db connection
 			statement10 = this.connection.createStatement();
 			ResultSet rs = statement10.executeQuery(query10);
 
@@ -299,12 +316,14 @@ public class Driver {
 			System.out.println("Driver " + id + "'s phone number is " + PhoneNumber + "\n");
 			String newPhoneNumber = PhoneNumber + phoneNumber;
 
+			// update phone number
 			Statement statement11 = null;
 			String query11 = "UPDATE Driver " +
 					"SET phoneNumber ='" + newPhoneNumber +
 					"'WHERE id='" + id+"'";
 
 			try {
+				// db connection
 				statement11 = this.connection.createStatement();
 				statement11.executeUpdate(query11);
 				System.out.println("Updated phone number for Driver " + id + "\t" + "is" + newPhoneNumber + "\n");
@@ -335,6 +354,7 @@ public class Driver {
 	*/
 	public void printWorkDuration(int id, WorkingHours w) throws SQLException{
 
+		// use date format
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 		int startTime = Integer.parseInt(formatter.format(w.getStartTime()));
 		int endTime = Integer.parseInt(formatter.format(w.getEndTime()));
@@ -346,6 +366,7 @@ public class Driver {
 				"FROM WorkingHours" +
 				"WHERE id = id";
 		try {
+			// db connection
 			statement12 = this.connection.createStatement();
 			ResultSet rs = statement12.executeQuery(query12);
 
@@ -372,6 +393,7 @@ public class Driver {
 	*/
 	public void goOnBreak(int id, WorkingHours w) throws SQLException{
 
+		// use date format
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 		int startTime = Integer.parseInt(formatter.format(w.getStartTime()));
 		int endTime = Integer.parseInt(formatter.format(w.getEndTime()));
@@ -381,6 +403,7 @@ public class Driver {
 
 		while (goOnBreak == false) {
 
+			// if work duration is 4.5 hours (required to take a break after this)
 			if(workDuration == 270) {
 
 				Statement statement13 = null;
@@ -389,20 +412,24 @@ public class Driver {
 						"WHERE id='" + id +"'";
 
 				try {
+					// db connection
 					statement13 = this.connection.createStatement();
 					ResultSet rs = statement13.executeQuery(query13);
 
 					rs.next();
 					int WorkDuration = rs.getInt(workDuration);
 					System.out.println("Previous work duration of driver " + id + "\t" + "is" + WorkDuration + "\n");
+					// add previous work duration and break time to equal new work time
 					int newWorkDuration = WorkDuration + breakTime;
 
+					// update the db
 					Statement statement14 = null;
 					String query14 = "UPDATE Driver " +
 							"SET workDuration ='" + newWorkDuration +
 							"'WHERE id='" + id+"'";
 
 					try {
+						// db connection
 						statement14 = this.connection.createStatement();
 						statement14.executeUpdate(query14);
 						System.out.println("Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break" + "\n");
@@ -440,6 +467,7 @@ public class Driver {
 				"WHERE id ='" + id +"'";
 
 		try {
+			// db connection
 			statement15 = this.connection.createStatement();
 			ResultSet rs = statement15.executeQuery(query15);
 			while (rs.next()) {
@@ -470,6 +498,7 @@ public class Driver {
 				"FROM Driver " +
 				"WHERE id ='" + id+"'";
 		try {
+			// db connection
 			statement16 = this.connection.createStatement();
 			ResultSet rs = statement16.executeQuery(query16);
 
@@ -477,8 +506,10 @@ public class Driver {
 
 			int Capacity = rs.getInt("capacity");
 			System.out.println("Previous capacity of Driver " + id + " is " + capacity);
+			// new capacity is formed from the sum of the previous capacity and the new capacity
 			int newCapacity = Capacity+capacity;
 
+			// update the driver capacity to db
 			Statement statement17 = null;
 			String query17 = "UPDATE Driver " +
 					"SET capacity ='" + newCapacity+
