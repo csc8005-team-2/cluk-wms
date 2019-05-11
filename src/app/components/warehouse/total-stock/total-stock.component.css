@@ -16,3 +16,7 @@
 #incorrectSelectionMsg {
     color: red;
 }
+
+.tooLow {
+  background-color: indianred;
+}
