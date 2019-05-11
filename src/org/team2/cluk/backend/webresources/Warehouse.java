@@ -760,8 +760,10 @@ public class Warehouse
     @Path("/get-pending-orders")
     @Produces("application/json")
     public Response getCurrentPendingOrders(@HeaderParam("Authorization") String idToken) {
-	    
+	    ServerLog.writeLog("Requested list of pending orders");
+
 	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
+	        ServerLog.writeLog("No permissions to view pending orders");
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
         }
 
@@ -776,6 +778,7 @@ public class Warehouse
         String query = "SELECT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
                 "FROM StockOrders, Orders WHERE StockOrders.orderStatus='Pending' AND Orders.orderId=StockOrders.orderId";
         try {
+            ServerLog.writeLog("Querying database for pending orders");
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
 
@@ -785,6 +788,8 @@ public class Warehouse
                 int orderId = rs.getInt("StockOrders.orderId");
                 Date dateTime = rs.getDate("StockOrders.orderDateTime");
                 String address = rs.getString("Orders.restaurantAddress");
+
+                ServerLog.writeLog("Pending order ID: " + orderId);
 
                 orderEntry.add("orderId", orderId);
                 orderEntry.add("dateTime", dateTime.toString());
