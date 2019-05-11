@@ -27,7 +27,7 @@ public class Driver {
 	//private String phoneNumber;
 	//private int availableCapacity;
 	//private int assignedOrderCapacity;
-	private int workDuration; //mins.
+	private static int workDuration; //mins.
 	private final int breakTime = 45; //mins
 	//private String region;
 	//private boolean availability;
@@ -35,17 +35,17 @@ public class Driver {
 	//private final int maxAvailableCapacity = 500; //not sure of the number but this should be the maximum capacity a driver can have!
 
 
-	public Driver(/*String firstName, String lastName, int id, String phoneNumber, */int workDuration){
+	//public Driver(/*String firstName, String lastName, int id, String phoneNumber, */int workDuration){
 		//this.firstName = firstName;
 		//this.lastName = lastName;
 		//this.id = id;
 		//this.phoneNumber = phoneNumber;
 		//this.availableCapacity = availableCapacity;
 		//this.assignedOrderCapacity = assignedOrderCapacity;
-		this.workDuration = workDuration;
+		//this.workDuration = workDuration;
 		//this.region = region;
 		//this.availability = availability;
-	}
+	//}
 
 
 	@GET
@@ -631,7 +631,7 @@ public class Driver {
 	// getting the restaurantAddress from Restaurant table that matches the one in orders table where the region is north
 	//and south individually
 
-	public Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken, String requestBody) {
+	public static Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken, String requestBody) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -641,6 +641,10 @@ public class Driver {
 		Connection connection = DbConnection.getConnection();
 
 		JsonObject requestJson = JsonTools.parseObject(requestBody);
+
+		//check for orders that are accepted
+        //check for drivers
+        //and then assign orders to driver based on workingHours...
 
 		if (!(requestJson.containsKey("orderId") || requestJson.containsKey("driverId"))) {
 			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
@@ -734,7 +738,7 @@ public class Driver {
 		}
 	}
 
-
+// driver should be able to see where he's going
 
 
 
