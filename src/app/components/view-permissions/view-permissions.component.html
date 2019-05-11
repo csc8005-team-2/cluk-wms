@@ -16,5 +16,12 @@
   </mat-select>
 </p>
 <p mat-line><mat-checkbox #driverPerm [checked]="data.driver">Driver</mat-checkbox></p>
+<p mat-line [hidden]="!driverPerm.checked">
+  <mat-select #drivWarLocation placeholder="Select location" [value]="(data.driver) ? data.location: ''">
+    <mat-option *ngFor="let item of warehouseLocations" [value]="item.address">
+      {{item.address}}
+    </mat-option>
+  </mat-select>
+</p>
 <p mat-line><mat-checkbox #managerPerm [checked]="data.manager">Manager</mat-checkbox></p>
-<button mat-raised-button (click)="updatePermissions(warehousePerm.checked, restaurantPerm.checked, driverPerm.checked, managerPerm.checked, (warLocation.value) ? warLocation.value : resLocation.value)">Update permissions</button>
+<button mat-raised-button (click)="updatePermissions(warehousePerm.checked, restaurantPerm.checked, driverPerm.checked, managerPerm.checked, (warLocation.value) ? warLocation.value : ((resLocation.value) ? resLocation.value : drivWarLocation.value))">Update permissions</button>
