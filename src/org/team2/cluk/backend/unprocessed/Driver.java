@@ -6,6 +6,10 @@ import java.text.SimpleDateFormat;
 //import java.util.Date;
 import java.sql.*;
 
+/*
+* Driver class handles driver contact information, including shift information
+*/
+
 public class Driver {
 
 	private Connection connection;
@@ -29,8 +33,15 @@ public class Driver {
 
 	}
 
-	/*method to add a driver's information to the driver table，users need to input their name,capacity and workDuration.If everything goes right,the system will show
-	"Driver information " + id + "has been added to the database"*/
+       /*
+	* Method which adds driver information to the driver table of the database
+	* Users are required to input their name, capacity and work duration
+	* If successful, the system will show "Driver information " + id + "has been added to the database"
+	* @param firstName, lastName, id, phoneNumber driver contact details
+	* @param capacity amount of space they have available for stock (in units)
+	* @param workDuration is the length of their delivery shift
+	* @return updated driver information to the database
+	*/
 	public void addDriverInfo(String firstName, String lastName, int id, String phoneNumber,  int capacity, int workDuration) throws SQLException {
 
 		Statement statement1 = null;
@@ -51,7 +62,13 @@ public class Driver {
 		}
 	}
 
-	/*method to remove a driver's information from the table,user need to input their id.If everything goes right,the system will show "Driver information id " + id + "has been removed from the database"*/
+       /*
+	* Method which removes driver information to the driver table of the database
+	* Users are required to input id
+	* If successful, the system will show "Driver information id " + id + "has been removed from the database"
+	* @param id of the driver (in units)
+	* @return updated driver information to the database
+	*/
 	public void removeDriverInfo(int id) throws SQLException{
 
 		Statement statement2 = null;
@@ -71,7 +88,12 @@ public class Driver {
 		}
 	}
 
-	/*method to print a driver's first name using the driver's id. If everything goes right, the system will show "Driver " + id + "'s first name is " + firstName + ".*/
+       /*
+	* Method to print a driver's first name using the driver's id. 
+	* If successful, the system will show "Driver " + id + "'s first name is " + firstName + "
+	* @param id of the driver
+	* @return the first name of the driver
+	*/
 	public void printFirstName(int id) throws SQLException{
 
 		Statement statement3 = null;
@@ -96,8 +118,13 @@ public class Driver {
 		}
 	}
 
-	/* method to update a driver's first name using the id and new first name.If everything goes right,the system will show
-	"Driver " + id + "'s first name has been updated to " + newFirstName*/
+       /* 
+	* Method to update a driver's first name using the id and first name
+	* If successful, the system will show "Driver " + id + "'s first name has been updated to " + newFirstName
+	* @param id of the driver
+	* @param firstName of the driver
+	* @return the updated first name of the driver to the database
+	*/
 	public void updateFirstName(int id, String firstName) throws SQLException{
 
 		Statement statement4 = null;
@@ -139,8 +166,12 @@ public class Driver {
 		}
 	}
 
-	/*method to print a driver's last name using id as an input parameter.If everything goes right, the system will show 
-	"Driver " + id + "'s last name is " + lastName*/
+       /*
+	* Method to print a driver's last name using id as an input parameter
+	* If successful, the system will show "Driver " + id + "'s last name is " + lastName
+	* @param id of the driver 
+	* @return the last name of the driver
+	*/
 	public void printLastName(int id) throws SQLException{
 
 		Statement statement6 = null;
@@ -166,8 +197,13 @@ public class Driver {
 		}
 	}
 
-	/*method to update driver's last name using the id and new last name.If everything goes right,the system will show 
-	"Driver " + id + "'s last name is " + lastName*/
+       /* 
+	* Method to update a driver's last name using the id and last name
+	* If successful, the system will show "Driver " + id + "'s last name has been updated to " + newLastName 
+	* @param id of the driver
+	* @param lastName of the driver
+	* @return the updated last name of the driver to the database
+	*/
 	public void updateLastName(int id, String lastName) throws SQLException{
 
 		Statement statement7 = null;
@@ -209,8 +245,12 @@ public class Driver {
 		}
 	}
 
-	/*method to print a driver's phone number using id.If everything goes right,the system will show
-	 * Driver " + id + "'s phone number is " + PhoneNumber */
+	/*
+	* Method to print the phone number of the driver 
+	* If successful, the system will show "Driver " + id + "'s phone number is " + PhoneNumber
+	* @param id of the driver
+	* @return the phone number of the driver
+	*/
 	public void printPhoneNumber(int id) throws SQLException{
 
 		Statement statement9 = null;
@@ -235,8 +275,14 @@ public class Driver {
 		}
 	}
 
-	/*method to update a driver's phone number using the id and new phone number.Users need to input their id and phonenumber.
-	 * If everything goes right,the system will show "Updated phone number for Driver " + id + "\t" + "is" + newPhoneNumber*/
+       /*
+	* Method to update the driver's phone number using the id and phone number
+	* Users need to input their id and phonenumber
+	* If successful, the system will show "Driver " + id + "'s phone number is " + PhoneNumber
+	* @param id of the driver
+	* @param phoneNumber of the driver
+	* @return the updated phone number to the database
+	*/
 	public void UpdatePhoneNumber(int id, String phoneNumber) throws SQLException{
 
 		Statement statement10 = null;
@@ -279,7 +325,14 @@ public class Driver {
 		}
 	}
 
-	//method to print a driver's current work duration
+       /*
+	* Method to print a driver's current work duration
+	* Uses date format HH:mm:ss
+	* If successful, system shows "Driver " + id + "'s work duration so far is " + WorkDuration
+	* @param id of the driver 
+	* @param WorkingHours the amount of time a driver is delivering orders from a warehouse to a restaurant
+	* @return the driver's id and work duration so far
+	*/
 	public void printWorkDuration(int id, WorkingHours w) throws SQLException{
 
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
@@ -298,7 +351,7 @@ public class Driver {
 
 			rs.next();
 			int WorkDuration = rs.getInt(workDuration);
-			System.out.println(" Driver " + id + "'s work duration so far is " + WorkDuration + "\n");
+			System.out.println("Driver " + id + "'s work duration so far is " + WorkDuration + "\n");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -308,8 +361,15 @@ public class Driver {
 		}
 	}
 
-	/*method to make drivers go on break, applying the break time to their work duration.User need to input the driver's id and the computer will show "Previous work duration of driver " + id + "\t" + "is" + WorkDuration
-	 * If everything goes right,the system will show "Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break"*/
+       /*
+	* Method which makes drivers go on a break by applying a break time to their work duration
+	* Users need to input the driver's id
+	* This method is required as drivers must take a 45-minute break after driving for 4.5 hours
+	* Drivers have a maximum of 10 hours per shift
+	* If successful, the system will show "Updated work Duration for Driver " + id + "\t" + "is" + newWorkDuration + " after going on break"
+	* @param id of the driver
+	* @param WorkingHours the amount of time a driver is delivering orders from a warehouse to a restaurant
+	*/
 	public void goOnBreak(int id, WorkingHours w) throws SQLException{
 
 		DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
@@ -364,9 +424,14 @@ public class Driver {
 				}
 			}
 		}
-
 	}
-/*This method is used to print the capacity of drivers.If everything goes right,the system will show "Driver " + id + "'s car capacity is " + Capacity*/
+	
+       /*
+	* Method to print the capacity of the drivers
+	* The capacity is the quantity of stock they can deliver during one trip
+	* If successful, the system will show "Driver " + id + "'s car capacity is " + Capacity
+	*/
+	
 	public void printCapacity() throws SQLException{
 
 		Statement statement15 = null;
@@ -390,8 +455,14 @@ public class Driver {
 			}
 		}
 	}
-/*This method is used to update the drivers' capacity.User need to input the driver's id and check the capacity.
- * If everything goes right,the system will show "Updated capacity of Driver "+ id + " is " + newCapacity*/
+
+       /*
+	* This method updates the driver's capacity
+	* User is required to input the driver's id
+	* If successful, the system will show "Updated capacity of Driver "+ id + " is " + newCapacity
+	* @param id of the driver
+	* @param capacity is the initial capacity of the driver
+	*/
 	public void UpdateCapacity(int id, int capacity) throws SQLException{
 
 		Statement statement16 = null;
