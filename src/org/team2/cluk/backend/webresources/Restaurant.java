@@ -348,7 +348,10 @@ public class Restaurant {
 			c.add(Calendar.DATE, 2);
 		}
 
-		String deliveryDate = date.format(c.getTime());
+		String timePeriodRestrictions = this.compare(this.enforceDayLimit(restaurantAddress),this.enforceWeekLimit(restaurantAddress));
+		String dayOfWeekRestrictions = date.format(c.getTime());
+		
+		String deliveryDate = this.compare(timePeriodRestrictions, dayOfWeekRestrictions);
 
 		// creating order in StockOrders table
 		ServerLog.writeLog("Adding order to the list");
@@ -1015,8 +1018,12 @@ public class Restaurant {
 	
 	
 	//Ensure restaurant hasn't had order in last week days. 
-	public String enforceWeekLimit(Connection connection, String restaurantAddress) throws SQLException
+	public String enforceWeekLimit(String restaurantAddress) throws SQLException
     {
+		
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+		
 		Calendar d = Calendar.getInstance();
 		java.util.ArrayList<Integer> idList = new java.util.ArrayList<Integer>();
 		java.util.ArrayList<Integer> weekList = new java.util.ArrayList<Integer>();
@@ -1094,8 +1101,11 @@ public class Restaurant {
 	}
 	
 	//Ensure restaurant hasn't had order in last 3 days. 
-	public String enforceDayLimit(Connection connection, String restaurantAddress) throws SQLException
+	public String enforceDayLimit(String restaurantAddress) throws SQLException
     {
+		
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
 	
 		Calendar d = Calendar.getInstance();
 		java.util.ArrayList<Integer> idList = new java.util.ArrayList<Integer>();
