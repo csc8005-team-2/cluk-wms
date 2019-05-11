@@ -26,6 +26,7 @@ import { AccountManagerComponent } from './components/account-manager/account-ma
 import { CreateAccountComponent } from './components/create-account/create-account.component';
 import { ViewPermissionsComponent } from './components/view-permissions/view-permissions.component';
 import { DriverComponent } from './components/driver/driver.component';
+import {FormsModule} from '@angular/forms';
 @NgModule({
   declarations: [
     AppComponent,
@@ -53,7 +54,8 @@ import { DriverComponent } from './components/driver/driver.component';
     HttpClientModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    MaterialModule
+    MaterialModule,
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent],
