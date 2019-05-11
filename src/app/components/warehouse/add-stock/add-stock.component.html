@@ -1,5 +1,6 @@
 <div class="totalStock">
   <div id="incorrectSelectionMsg" *ngIf="incorrectSelection">Information missing! Cannot add new stock list!</div>
+  <div id="incorrectSelectionMsg" *ngIf="tooLittleStock">You should add at least 2 units!</div>
 
 <mat-form-field>
   <mat-select #itemInput placeholder="Stock Item">

@@ -12,6 +12,7 @@ import {MatTableDataSource} from '@angular/material';
 export class AddStockComponent implements OnInit {
   // Stock Object table
   availableStock: StockName[];
+  tooLittleStock = false;
 
 
   // displayed columns format
@@ -26,7 +27,14 @@ export class AddStockComponent implements OnInit {
 
   addItem(stockItem: string, qtyStr: string) {
     if (stockItem && qtyStr) {
+      this.tooLittleStock = false;
       const qty: number = +qtyStr;
+
+      if (qty < 2) {
+        this.tooLittleStock = true;
+        return;
+      }
+
       this.incorrectSelection = false;
       this.order.push({stockItem, quantity: qty});
       this.orderDataSource = new MatTableDataSource(this.order);
