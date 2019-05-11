@@ -1,7 +1,11 @@
 package org.team2.cluk.backend.tools;
+
 /*
- * The kind of users.This incloud restaurant warehouse and driver.Other class can use them from this class.
+ * Roles Class which shows the kind of users
+ * This includes Restaurant, Warehouse and Driver
+ * These are used by other classes
  */
+
 public enum Roles {
     RESTAURANT, WAREHOUSE, DRIVER
 }
