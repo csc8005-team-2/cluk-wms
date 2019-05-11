@@ -40,6 +40,7 @@ public class Warehouse
                        "WHERE warehouseAddress='"+address+"'";
                        
         try {
+	// connect to db
         statement = DbConnection.getConnection().createStatement();
         ResultSet rs = statement.executeQuery(query);
         while (rs.next()) {
@@ -198,6 +199,7 @@ public class Warehouse
             }
     	}
 
+	// if order hasnt been fulfilled
     	if (!orderFulfilled)
     	    return Response.status(Response.Status.FORBIDDEN).entity("ORDER_ALREADY_FULFILLED").build();
 
@@ -330,13 +332,14 @@ public class Warehouse
     @Consumes("application/json")
     public Response getMinStock(@HeaderParam("address") String address) {
         Response.ResponseBuilder res = null;
+	    // fetch db connection
         Connection connection = DbConnection.getConnection();
 
-
-
+	    
         Statement statement = null;
         String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddress ='"+address+"'";
         try {
+		// create Json array builder 
             JsonArrayBuilder minStockBuilder = Json.createArrayBuilder();
             JsonArray minStock = minStockBuilder.build();
 
@@ -349,6 +352,7 @@ public class Warehouse
                 String stockItem = rs.getString("stockItem");
                 int minQuantity = rs.getInt("minQuantity");
 
+		// add stock and quantity to Json array
                 stockEntryBuilder.add("stockItem", stockItem);
                 stockEntryBuilder.add("quantity", minQuantity);
                 minStockBuilder.add(stockEntryBuilder);
@@ -384,8 +388,10 @@ public class Warehouse
     @Path("/min-stock-check")
     public Response minStockCheck(@HeaderParam("address") String address)
     {
+	// fetch db connection
         Connection connection = DbConnection.getConnection();
 
+	// create Json array builder
         JsonArrayBuilder lackingStockArrayBuilder = Json.createArrayBuilder();
 
         Statement statement = null;
@@ -401,9 +407,11 @@ public class Warehouse
             int quantity = rs.getInt("quantity");
             int minQuantity = rs.getInt("minQuantity");
 
+            // if quantity below the minimum 
             if(quantity < minQuantity){
             	int deficit = minQuantity - quantity;
 
+		// add stock information to the Json array
             	JsonObjectBuilder stockEntry = Json.createObjectBuilder();
             	stockEntry.add("stockItem", stockItem);
             	stockEntry.add("quantity", deficit);
@@ -424,7 +432,8 @@ public class Warehouse
             }
         }
 
-        if (lackingStockArrayBuilder.build().toArray().length==0)
+	// if no stock is below minimum quantity level
+        if (lackingStockArrayBuilder.build().toArray().length==0) // none added to Json array
             return Response.status(Response.Status.OK).entity("ENOUGH_STOCK").build();
 
         return updateStock(address, lackingStockArrayBuilder.build().toString());
@@ -478,14 +487,14 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
     }
 
-    /*
-     * Method which assigns an order to a driver which needs to be delivered from a warehouse to a restaurant 
-     * If successful, system will show "ORDER_ASSIGNED"
-     * If unsuccessful, system will show "ORDER_ASSIGNMENT_ERROR"
-     * @param orderId which includes the correct stock quantities required to be delivered to the restaurant 
-     * @param driverId of the delivery driver
-     * @return the driver id which is assigned to an order ID
-     */
+   /*
+    * Method which assigns an order to a driver which needs to be delivered from a warehouse to a restaurant 
+    * If successful, system will show "ORDER_ASSIGNED"
+    * If unsuccessful, system will show "ORDER_ASSIGNMENT_ERROR"
+    * @param orderId which includes the correct stock quantities required to be delivered to the restaurant 
+    * @param driverId of the delivery driver
+    * @return the driver id which is assigned to an order ID
+    */
     @GET
     @Path("/assign-to-driver")
     public Response assignOrderToDriver(@HeaderParam("orderId") int orderId, @HeaderParam("driverId") String driverId){
@@ -499,7 +508,7 @@ public class Warehouse
 
     	try {
     	    statement = connection.prepareStatement(query);
-		    statement.setInt(1,orderId);
+		    statement.setInt(1,orderId); // order assignment to driver
 		    statement.setString(2, driverId);
 		    statement.execute();
     	}catch (SQLException e ) {
@@ -520,7 +529,7 @@ public class Warehouse
     	return res.build();
     }
 	
-    /*
+   /*
     * method to get the currently pending orders to go from a warehouse to a restaurant
     * Includes the date and time for the orders
     * @return order entries which currently have the status "pending"
@@ -530,8 +539,10 @@ public class Warehouse
     public Response getCurrentPendingOrders() {
         Response.ResponseBuilder res = null;
 
+	// fetch db connection
         Connection connection = DbConnection.getConnection();
 
+	// create Json array builder
         JsonArrayBuilder pendingOrdersBuilder = Json.createArrayBuilder();
 
         // gets orderId and date/time for orders with status pending
@@ -549,11 +560,12 @@ public class Warehouse
                 Date dateTime = rs.getDate("StockOrders.orderDateTime");
                 String address = rs.getString("Orders.restaurantAddress");
 
+		// add to Json array
                 orderEntry.add("orderId", orderId);
                 orderEntry.add("dateTime", dateTime.toString());
                 orderEntry.add("address", address);
 
-                //Gets contents of the order.
+                // gets contents of the order
                 JsonArrayBuilder orderContents = Json.createArrayBuilder();
                 Statement innerStatement = null;
                 String innerQuery = "SELECT quantity, stockItem FROM Contains WHERE orderId="+orderId;
@@ -567,6 +579,7 @@ public class Warehouse
                         int quantity = innerRs.getInt("quantity");
                         JsonObjectBuilder stockEntry = Json.createObjectBuilder();
 
+			// add stock to the Json array
                         stockEntry.add("stockItem", stockItem);
                         stockEntry.add("quantity", quantity);
 
