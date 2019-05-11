@@ -31,8 +31,8 @@ public class Warehouse
     @Produces("application/json")
     public Response GetStockNames(@HeaderParam("Authorization") String idToken)
     {
-	    
-	   if (!Authorisation.checkAccess(idToken, "warehouse")) {
+
+        if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "restaurant")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
         }
 		    
