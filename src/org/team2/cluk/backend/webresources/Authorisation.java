@@ -148,7 +148,7 @@ public class Authorisation {
             // generate output JSON
             JsonObjectBuilder outputJsonBuilder = Json.createObjectBuilder();
             outputJsonBuilder.add("idToken", newIdToken);
-            outputJsonBuilder.add("location", location);
+            outputJsonBuilder.add("location", (location == null) ? "" : location);
             JsonObject outputJson = outputJsonBuilder.build();
             ServerLog.writeLog("Output JSON for " + username + " ready");
             // return token to the user on successful login
