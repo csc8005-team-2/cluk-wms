@@ -1017,6 +1017,110 @@ public class Restaurant {
 	
 	
 	
+		/*
+	    * method to get todays deliveries.
+	    * @param idToken
+	    * @return the orders with delivery date today.
+	    */
+	    @GET
+	    @Path("/get-todays-orders")
+	    @Produces("application/json")
+	    public Response getTodaysOrders(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
+		    
+		    if (!Authorisation.checkAccess(idToken, "restaurant")) {
+	            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+	        }
+
+	        Response.ResponseBuilder res = null;
+
+	        Connection connection = DbConnection.getConnection();
+
+	        JsonArrayBuilder pendingOrdersBuilder = Json.createArrayBuilder();
+	        
+	        
+	        java.util.Date todayDate= new java.util.Date();
+	        java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+	        String today = date.format(todayDate.getTime());
+	        
+
+	        //Gets orderId and date/time for orders with status pending.
+	        Statement statement = null;
+	        String query = "SELECT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
+	                "FROM StockOrders, Orders WHERE StockOrders.orderDeliveryDate = '"+today+"' AND Orders.restaurantAddress ='"+ restaurantAddress+"'";
+	        try {
+	            statement = connection.createStatement();
+	            ResultSet rs = statement.executeQuery(query);
+
+	            JsonObjectBuilder orderEntry = Json.createObjectBuilder();
+
+	            while(rs.next()) {
+	                int orderId = rs.getInt("StockOrders.orderId");
+	                Date dateTime = rs.getDate("StockOrders.orderDateTime");
+	                String address = rs.getString("Orders.restaurantAddress");
+
+	                orderEntry.add("orderId", orderId);
+	                orderEntry.add("dateTime", dateTime.toString());
+	                orderEntry.add("address", address);
+
+	                //Gets contents of the order.
+	                JsonArrayBuilder orderContents = Json.createArrayBuilder();
+	                Statement innerStatement = null;
+	                String innerQuery = "SELECT quantity, stockItem FROM Contains WHERE orderId="+orderId;
+
+	                try {
+	                    innerStatement = connection.createStatement();
+	                    ResultSet innerRs = innerStatement.executeQuery(innerQuery);
+
+	                    while(innerRs.next()) {
+	                        String stockItem = innerRs.getString("stockItem");
+	                        int quantity = innerRs.getInt("quantity");
+	                        JsonObjectBuilder stockEntry = Json.createObjectBuilder();
+
+	                        stockEntry.add("stockItem", stockItem);
+	                        stockEntry.add("quantity", quantity);
+
+	                        orderContents.add(stockEntry);
+	                    }
+	                }catch (SQLException e ) {
+	                    e.printStackTrace();
+	                }finally {
+	                    if (innerStatement != null) {
+	                        try {
+	                            innerStatement.close();
+	                        } catch (SQLException e) {
+	                            ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+	                        }
+	                    }
+	                }
+
+	                orderEntry.add("contents", orderContents);
+
+	                pendingOrdersBuilder.add(orderEntry);
+	            }
+
+	            res = Response.status(Response.Status.OK).entity(pendingOrdersBuilder.build().toString());
+
+	        } catch (SQLException e ) {
+	            e.printStackTrace();
+	        } finally {
+	            if (statement != null) {
+	                try {
+	                    statement.close();
+	                } catch (SQLException e) {
+	                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+	                }
+	            }
+	        }
+
+	        return res.build();
+			}
+	
+	
+	
+	
+	
+	
+	
 	//Ensure restaurant hasn't had order in last week days. 
 	public String enforceWeekLimit(String restaurantAddress) throws SQLException
     {
