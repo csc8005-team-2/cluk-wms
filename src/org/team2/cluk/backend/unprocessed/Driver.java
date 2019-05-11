@@ -892,6 +892,7 @@ public class Driver {
 		String query = "SELECT orderId" +
 				"FROM StockOrders" +
 				"WHERE orderDeliveryDate='" + currentDate + " AND orderStatus= approved'";
+
 		int orderId=0;
 		String driverId = "";
 
@@ -934,7 +935,30 @@ public class Driver {
 			statement3 = connection.prepareStatement(query);
 			statement3.setInt(1,orderId);
 			statement3.setString(2, driverId);
-			statement3.executeQuery(query3);
+			ResultSet rs2 = statement3.executeQuery(query3);
+
+			while(rs2.next()){
+
+                //change orderStatus to Pending
+
+                Statement statement4 = null;
+                String query4 = "UPDATE StockOrders " +
+                        "SET orderStatus = 'Out for delivery' ";
+                try {
+                    statement4 = DbConnection.getConnection().createStatement();
+                    statement4.executeUpdate(query4);
+                    JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_OUT_FOR_DELIVERY").build();
+                    res = Response.status(Response.Status.OK).entity(responseJson.toString());
+                    return res.build();
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (statement4 != null) {
+                        statement4.close();
+                    }
+                }
+            }
 		}catch (SQLException e ) {
 			e.printStackTrace();
 
