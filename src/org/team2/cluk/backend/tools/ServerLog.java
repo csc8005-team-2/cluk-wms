@@ -18,10 +18,11 @@ public class ServerLog {
     public static void writeLog(String msg) {
         Date currentDateTime = new Date();
         String logEntry = "[" + currentDateTime + "] " + msg;
-        log.add(logEntry);
+        log.add(logEntry); // add log entry
         System.out.println(logEntry);
     }
 
+    // create arraylist of log entries
     public static ArrayList<String> getLog() {
         return (ArrayList<String>) log.clone();
     }
