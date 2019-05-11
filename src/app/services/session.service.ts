@@ -262,7 +262,7 @@ export class SessionService {
   */ 
   requestCustomOrder(address: string, orderContents: StockItem[]): Observable<OrderId> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', address);
+      .append('address', address).append('custom', 'true');
 
     return this.http.post<OrderId>(this.BACKEND_URL + '/restaurant/request-order/custom', orderContents, {headers: reqHeader});
   }
@@ -274,7 +274,7 @@ export class SessionService {
   */ 
   requestStandardOrder(address: string): Observable<OrderId> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', address);
+      .append('address', address).append('custom', 'false');
 
     return this.http.get<OrderId>(this.BACKEND_URL + '/restaurant/request-order', {headers: reqHeader});
   }
