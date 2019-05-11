@@ -9,6 +9,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.sql.*;
 
+/*
+ * WorkingHours Class which provides information such as start time, end time and date for the Driver's shifts
+ */
+
 public class WorkingHours {
 
 	private Connection connection;
@@ -27,18 +31,34 @@ public class WorkingHours {
 		this.id = id;
 	}
 
+       /*
+	* Accessor method to get the start time 
+	* @return the start time of the driver's shift
+	*/
 	public Date getStartTime() {
 		return startTime;
 	}
 
+       /*
+	* Accessor method to get the end time 
+	* @return the end time of the driver's shift
+  	*/
 	public Date getEndTime() {
 		return endTime;
 	}
 
+       /*
+	* Accessor method to get the date
+	* @return the date of the driver's shift
+	*/
 	public LocalDate getLocalDate() { return date; }
 
-
-	//method to print out the current day and date in the format shown
+       /*
+	* Method which prints out the current date in the format dd/MM/yyyy
+	* If successful, the system shows "Workday for driver " + id + "is " + LocalDate
+	* @param id of the driver
+	* @return the driver id and the date of their shift 
+	*/
 	public void printCurrentDate(int id) throws SQLException{
 
 		LocalDate date = getLocalDate();
@@ -112,7 +132,12 @@ public class WorkingHours {
 
 	}*/
 
-	//method to print a Driver's shift start time
+	/*
+	* Method to print a driver's shift start time
+	* If successful, the system shows "Driver " + id + "'s start time is " + StartTime
+	* @param id of the driver 
+	* @return the driver's id and the start time 
+	*/
 	public void printStartTime(int id) throws SQLException{
 
 			Statement statement3 = null;
@@ -138,7 +163,13 @@ public class WorkingHours {
 
 	}
 
-	//method to update a driver's shift end time
+	/*
+	* Method to update a driver's shift start time
+	* If successful, the system shows "Driver " + id + "'s shift start time is updated to " + sqlStartTime
+	* @param hour1, min1, sec1  start time of the shift
+	* @param id of the driver 
+	* @return the driver's id and the start time 
+	*/
 	public void updateStartTime(int hour1, int min1, int sec1, int id) throws SQLException {
 
 		Calendar c1 = Calendar.getInstance();
@@ -165,7 +196,12 @@ public class WorkingHours {
 	}
 
 
-	//method to print a driver's shift end time
+	/*
+	* Method to print a driver's shift end time
+	* If successful, the system shows "Driver " + id + "'s start time is " + EndTime 
+	* @param id of the driver 
+	* @return the driver's id and the end time 
+	*/
 	public void printEndTime(int id) throws SQLException{
 
 		Statement statement3 = null;
@@ -191,7 +227,13 @@ public class WorkingHours {
 	}
 
 
-	//method to update a driver's shift end time
+       /*
+	* Method to update a driver's shift end time
+	* If successful, the system shows "Driver " + id + "'s shift end time is updated to " + sqlEndTime
+	* @param hour2, min2, sec2  end time of the shift
+	* @param id of the driver 
+	* @return the driver's id and the end time 
+	*/
 	public void updateEndTime(int hour2, int min2, int sec2, int id) throws SQLException{
 
 		Calendar c2 = Calendar.getInstance();
