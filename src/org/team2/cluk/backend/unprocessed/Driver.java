@@ -943,7 +943,8 @@ public class Driver {
 
                 Statement statement4 = null;
                 String query4 = "UPDATE StockOrders " +
-                        "SET orderStatus = 'Out for delivery' ";
+                        "SET orderStatus = 'Out for delivery' " +
+                        "WHERE orderId = '" + orderId + "'";
                 try {
                     statement4 = DbConnection.getConnection().createStatement();
                     statement4.executeUpdate(query4);
