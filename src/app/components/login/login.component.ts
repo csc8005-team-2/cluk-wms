@@ -27,7 +27,7 @@ export class LoginComponent implements OnInit {
         return;
       } else {
         if (this.session.permissions.restaurant) {
-          prefix = 'restuarant';
+          prefix = 'restaurant';
         } else if (this.session.permissions.warehouse) {
           prefix = 'warehouse';
         }
