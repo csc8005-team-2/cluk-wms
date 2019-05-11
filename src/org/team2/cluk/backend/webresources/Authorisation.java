@@ -23,7 +23,7 @@ import java.util.Map;
 
 /*
  * Authorisation class which handles accounts within the database
- * It enables account permissions for Restaurant, Warehouse, Driver and Manager
+ * It enables account permissions for Restaurant, Warehouse and Driver
  */
 
 @Path("/")
@@ -157,12 +157,14 @@ public class Authorisation {
         return Response.status(Response.Status.NOT_FOUND).entity("USER_NEVER_LOGGED_IN").build();
     }
 
+    //check authorization header
     public static boolean checkAuthHeader(String authHeader) {
         if (userTokens.containsKey(authHeader))
             return true;
         return false;
     }
 
+    //check permissions using authorization header and role 
     public static boolean checkPermissions(String authHeader, Roles role) {
         switch (role) {
             case WAREHOUSE: if (warehousePermissions.contains(authHeader))
@@ -234,6 +236,7 @@ public class Authorisation {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
 
+        // initialise permissions
         boolean restaurant = false;
         boolean warehouse = false;
         boolean driver = false;
@@ -262,6 +265,7 @@ public class Authorisation {
             }
         }
 
+        // userToken assigned to a username
         if (userTokens.containsValue(username)) {
             String assignedToken = "";
 
@@ -296,6 +300,7 @@ public class Authorisation {
 
         JsonObject requestJson = JsonTools.parseObject(requestBody);
 
+        // check Json request
         if (!(requestJson.containsKey("username") && requestJson.containsKey("restaurant") && requestJson.containsKey("warehouse") && requestJson.containsKey("driver")))
             return Response.status(Response.Status.BAD_REQUEST).entity("PERMISSION_REQUEST_MISSPECIFIED").build();
 
@@ -389,7 +394,7 @@ public class Authorisation {
         return res.build();
     }
 
-    /*
+   /*
     * Method to retrieve the staff information 
     * @return a Json array of the staff information 
     * including id, name, username and if they are staff within restaurant, warehouse or a driver 
@@ -397,10 +402,10 @@ public class Authorisation {
     @Path("/accounts/info")
     @GET
     @Produces("application/json")
-    //Method to see staff info
     public Response getStaffInfo() {
         Connection connection = DbConnection.getConnection();
 
+        // use Json array
         JsonArrayBuilder staffInfoBuilder = Json.createArrayBuilder();
 
         Statement statement = null;
@@ -413,6 +418,7 @@ public class Authorisation {
             while(rs.next()){
                 JsonObjectBuilder staffEntryBuilder = Json.createObjectBuilder();
 
+                // all staff information included
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String username = rs.getString("username");
@@ -454,7 +460,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(staffInfo.toString()).build();
     }
 
-    /*
+   /*
     * Method which checks if an account has access to the warehouse, restaurant or driver
     * If an account does not have access, it will be unable to use the restricted functionality
     * @param idToken of an account 
