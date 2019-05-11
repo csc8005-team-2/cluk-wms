@@ -3,7 +3,6 @@ package org.team2.cluk.backend.unprocessed;
 import java.text.ParseException;
 import java.util.Date;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 public class DriverThread extends Thread{
@@ -18,7 +17,7 @@ public class DriverThread extends Thread{
                 boolean x = currentTimeString.equals(timeToCompareString);
 
                 if (x){
-                    Driver.assignOrderToDriver();
+                    Driver.assignOrderToDriver("manager");
                 }else{
                     try{
                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
