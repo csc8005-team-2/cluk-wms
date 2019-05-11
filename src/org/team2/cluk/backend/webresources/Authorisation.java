@@ -21,6 +21,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+/*
+ * Authorisation class which handles accounts within the database
+ * It enables account permissions for Restaurant, Warehouse, Driver and Manager
+ */
+
 @Path("/")
 public class Authorisation {
     // initialise hashmap for storing currently authorised users
@@ -47,6 +52,13 @@ public class Authorisation {
         return returnHexHash;
     }
 
+   /*
+    * Method to log in user to the system with specific username and password 
+    * Uses Json to get the correct username and password 
+    * If Json unsuccessful, the system will show "MISSING_USERNAME_OR_PASSWORD"
+    * @param loginData   username and password 
+    * @return a successful log in 
+    */
     @Path("/login")
     @POST
     @Consumes("application/json")
@@ -108,11 +120,10 @@ public class Authorisation {
                 }
             }
         }
-
-
-        // if auth successful, generate token and add to hashmap
-        // generating token using Apache Common Lang library as per
-        // https://www.baeldung.com/java-random-string
+        
+        /* if authorization successful, generate token and add to hashmap
+        generating token using Apache Common Lang library as per
+        https://www.baeldung.com/java-random-string */
         if (loginSuccessful) {
             String newIdToken;
             // generate tokens until unique token generated
@@ -129,6 +140,13 @@ public class Authorisation {
         return res;
     }
 
+    /*
+    * Method to log out user from the system 
+    * If successful, the system will show "LOGOUT_SUCCESSFUL"
+    * If unsuccessful, the system will show "USER_NEVER_LOGGED_IN"
+    * @param idToken for the username of a user in the system
+    * @return a successful log out
+    */
     @Path("/logout")
     @GET
     public Response logoutUser(@HeaderParam("Authorization") String idToken) {
@@ -156,7 +174,15 @@ public class Authorisation {
         }
         return false;
     }
-
+   
+   /*
+    * Method to add an account to the system with a username and password
+    * If successful, the system will show "ACCOUNT_CREATED"
+    * If Json unsuccessful, the system will show "MISSING_NAME_USERNAME_OR_PASSWORD"
+    * @param idToken for the username of the new user in the system
+    * @param requestBody using Json to request to add a new account
+    * @return the new account to the database 
+    */
     @Path("/accounts/add")
     @POST
     public Response addAccount(@HeaderParam("Authorization") String idToken, String requestBody) {
@@ -199,6 +225,11 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity("ACCOUNT_CREATED").build();
     }
 
+   /*
+    * Method to refresh the permissions for the accounts in the database
+    * If unsuccessful, the system will show "Error verifying user " + username + "credentials"
+    * @param username of an account
+    */
     public void refreshPermissions(String username) {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
@@ -250,10 +281,16 @@ public class Authorisation {
         }
     }
 
+   /*
+    * Method to set the account permissions
+    * If successful, the system will show "PERMISSIONS_UPDATED"
+    * If Json is unsuccessful, the system will show "PERMISSION_REQUEST_MISSPECIFIED"
+    * @param requestBody using a Json to request to change the permissions of the accounts
+    * @return updated permissions to the database
+    */
     @POST
     @Path("/accounts/set-permission")
     @Consumes("application/json")
-    //Method to set account permissions.
     public Response setPermissions(String requestBody) {
         Connection connection = DbConnection.getConnection();
 
@@ -297,9 +334,16 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity("PERMISSIONS_UPDATED").build();
     }
 
+    /*
+    * Method which removes an account from the system
+    * The system first logs out the user, and then deletes
+    * If successful, the system will show "ACCOUNT_REMOVED"
+    * If unsuccessful, the system will show "ACCOUNT_REMOVAL_ERROR"
+    * @param username for the account that will be removed
+    * @return the database with the account removed from it
+    */
     @Path("/accounts/remove")
     @GET
-    //Method to remove account from database.
     public Response removeAccount(@HeaderParam("username") String username) {
         Response.ResponseBuilder res = null;
 
@@ -319,7 +363,6 @@ public class Authorisation {
         }
 
         // delete user account
-
         Statement statement = null;
         String query = "DELETE FROM Accounts WHERE username ='"+username+"'";
 
@@ -346,6 +389,11 @@ public class Authorisation {
         return res.build();
     }
 
+    /*
+    * Method to retrieve the staff information 
+    * @return a Json array of the staff information 
+    * including id, name, username and if they are staff within restaurant, warehouse or a driver 
+    */
     @Path("/accounts/info")
     @GET
     @Produces("application/json")
@@ -406,6 +454,12 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(staffInfo.toString()).build();
     }
 
+    /*
+    * Method which checks if an account has access to the warehouse, restaurant or driver
+    * If an account does not have access, it will be unable to use the restricted functionality
+    * @param idToken of an account 
+    * @return whether the account will have access or not 
+    */
     @Path("/account/check-access")
     @GET
     @Produces("application/json")
