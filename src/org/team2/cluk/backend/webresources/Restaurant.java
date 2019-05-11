@@ -311,7 +311,9 @@ public class Restaurant {
 	@Consumes("application/json")
 	public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strOrderContents) {
 
+		ServerLog.writeLog("Requested order to restaurant " + restaurantAddress);
 		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			ServerLog.writeLog("Unauthorised to make order");
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
 		}
 
@@ -319,8 +321,10 @@ public class Restaurant {
 		Connection connection = DbConnection.getConnection();
 
 		// parse request body to retrieve contents
+		ServerLog.writeLog("Parsing input JSON");
 		JsonArray orderContents = JsonTools.parseArray(strOrderContents);
 
+		ServerLog.writeLog("Generating delivery date");
 		//added delivery date to stock orders
 		java.util.Date orderDate = new java.util.Date();
 		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -347,6 +351,7 @@ public class Restaurant {
 		String deliveryDate = date.format(c.getTime());
 
 		// creating order in StockOrders table
+		ServerLog.writeLog("Adding order to the list");
 		String query = "INSERT INTO StockOrders (orderDateTime, orderStatus, orderDeliveryDate) VALUES (?, ?, ?)";
 
 		try {
@@ -441,7 +446,7 @@ public class Restaurant {
 
 		ServerLog.writeLog("Order " + orderId + " has been accepted");
 		JsonObject responseJson = Json.createObjectBuilder().add("orderId", orderId).build();
-		return Response.status(Response.Status.ACCEPTED).entity(responseJson).build();
+		return Response.status(Response.Status.ACCEPTED).entity(responseJson.toString()).build();
 	}
 
 
