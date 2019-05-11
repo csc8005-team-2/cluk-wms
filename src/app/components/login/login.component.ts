@@ -18,7 +18,21 @@ export class LoginComponent implements OnInit {
   login(username: string, password: string) {
     this.wrongCredentials = false;
     this.session.login(username, password).subscribe(res => {
-      this.router.navigate(['total-stock']);
+      let prefix = '';
+      if (this.session.permissions.manager) {
+        this.router.navigate(['accounts']);
+        return;
+      } else if (this.session.permissions.driver) {
+        this.router.navigate(['driver']);
+        return;
+      } else {
+        if (this.session.permissions.restaurant) {
+          prefix = 'restuarant';
+        } else if (this.session.permissions.warehouse) {
+          prefix = 'warehouse';
+        }
+        this.router.navigate([prefix + '/total-stock']);
+      }
     }, err => {
       if (err.error === 'WRONG_CREDENTIALS') {
         this.wrongCredentials = true;
