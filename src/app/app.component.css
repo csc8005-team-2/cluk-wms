@@ -10,10 +10,6 @@
     padding: 16px;
   }
   
-  #transcript-area {
-    width: 100%
-  }
-  
   #test-row {
     z-index: 20;
   }
@@ -22,7 +18,7 @@
     #main-card {
       margin-top: -72px;
       margin-bottom: -32px;
-      max-width: 60vw;
+      max-width: 65vw;
       min-width: 20vw;
       margin-left: auto;
       margin-right: auto;
