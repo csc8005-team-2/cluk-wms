@@ -61,7 +61,7 @@ public class Restaurant {
 
 				arrayEntryBuilder.add("stockItem", stockItem);
 				arrayEntryBuilder.add("quantity", quantity);
-				arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? "true" : "false");
+				arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? true : false);
 
 				JsonObject arrayEntry = arrayEntryBuilder.build();
 				responseBuilder.add(arrayEntry);
@@ -647,7 +647,7 @@ public class Restaurant {
     @Consumes("application/json")
     public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strStockObject)
         {
-		if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse")) {
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
 		}
 	

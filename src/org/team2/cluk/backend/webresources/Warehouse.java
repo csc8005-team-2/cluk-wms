@@ -117,7 +117,7 @@ public class Warehouse
 
                 arrayEntryBuilder.add("stockItem", stockItem);
                 arrayEntryBuilder.add("quantity", quantity);
-                arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? "true" : "false");
+                arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? true : false);
 
                 JsonObject arrayEntry = arrayEntryBuilder.build();
                 responseBuilder.add(arrayEntry);
@@ -261,7 +261,7 @@ public class Warehouse
     public Response approveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
     {
 	    
-	    if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant")) {
+	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
         }
 	    
@@ -276,8 +276,10 @@ public class Warehouse
    		statement = connection.createStatement();
    		statement.executeUpdate(query);
    		ServerLog.writeLog("Order: "+orderId +" Approved");
-   			
-   		res = Response.status(Response.Status.OK).entity("APPROVED_ORDER");
+
+        JsonObject resJson= Json.createObjectBuilder().add("message", "APPROVED_ORDER").build();
+
+   		res = Response.status(Response.Status.OK).entity(resJson.toString());
    		
    	 } catch (SQLException e) {
    		ServerLog.writeLog("SQL exception occurred when executing query");
@@ -322,8 +324,9 @@ public class Warehouse
    		statement = connection.createStatement();
    		statement.executeUpdate(query);
    		ServerLog.writeLog("Order: "+orderId +" Declined");
-   			
-   		res = Response.status(Response.Status.OK).entity("DECLINED_ORDER");
+
+   		JsonObject resJson= Json.createObjectBuilder().add("message", "DECLINED_ORDER").build();
+   		res = Response.status(Response.Status.OK).entity(resJson.toString());
    		
    	 } catch (SQLException e) {
    		ServerLog.writeLog("SQL exception occurred when executing query");
@@ -356,7 +359,7 @@ public class Warehouse
     @Produces("application/json")
     public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
     {
-	     if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "driver")) {
+	     if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "driver")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
         }
 	    
