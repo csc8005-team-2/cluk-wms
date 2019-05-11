@@ -1,30 +1,23 @@
-<button *ngIf="isLoggedIn()" mat-raised-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
-<mat-menu #menu="matMenu">
-  <button mat-menu-item [matMenuTriggerFor]="warehouseMenu" *ngIf="this.checkPermissions().warehouse">Warehouse</button>
-  <button mat-menu-item [matMenuTriggerFor]="restaurantMenu" *ngIf="this.checkPermissions().restaurant">Restaurant</button>
-  <button mat-menu-item routerLink="/accounts" *ngIf="this.checkPermissions().manager">Account Manager</button>
-  <!-- <a mat-menu-item routerLink="/restaurant-orders">Restaurant Orders</a> -->
-  <mat-divider></mat-divider>
-  <button mat-menu-item (click)="logout()">Log Out</button>
-</mat-menu>
+<div mat-line *ngIf="isLoggedIn()">
+  <span *ngIf="checkPermissions().warehouse">
+    <a mat-raised-button routerLink="/warehouse/total-stock">Total Stock</a>
+    <a mat-raised-button routerLink="/warehouse/add-stock">Add Stock</a>
+    <a mat-raised-button routerLink="/warehouse/restaurant-orders">View Restaurant Orders</a>
+    <a mat-raised-button routerLink="/warehouse/warehouse-manager">Warehouse Manager</a>
+    <a mat-raised-button routerLink="/warehouse/warehouse-stock-remove">Remove Stock</a>
+  </span>
 
-<mat-menu #warehouseMenu="matMenu">
-  <a mat-menu-item routerLink="/warehouse/total-stock">Total Stock</a>
-  <a mat-menu-item routerLink="/warehouse/add-stock">Add Stock</a>
-  <a mat-menu-item routerLink="/warehouse/restaurant-orders">View Restaurant Orders</a>
-  <a mat-menu-item routerLink="/warehouse/warehouse-manager">Warehouse Manager</a>
-  <a mat-menu-item routerLink="/warehouse/warehouse-stock-remove">Remove Stock</a>
-</mat-menu>
+  <span *ngIf="checkPermissions().restaurant">
+    <a mat-raised-button routerLink="/restaurant/query-stock">Total Stock</a>
+    <a mat-raised-button routerLink="/restaurant/receive-stock">Receive Stock</a>
+    <a mat-raised-button routerLink="/restaurant/order-stock">Order Stock</a>
+    <a mat-raised-button routerLink="/restaurant/restaurant-manager">Restaurant Manager</a>
+    <a mat-raised-button routerLink="/restaurant/restaurant-stock-remove">Remove Stock</a>
+  </span>
 
-<mat-menu #restaurantMenu="matMenu">
-  <a mat-menu-item routerLink="/restaurant/query-stock">Total Stock</a>
-  <a mat-menu-item routerLink="/restaurant/receive-stock">Receive Stock</a>
-  <a mat-menu-item routerLink="/restaurant/order-stock">Order Stock</a>
-  <a mat-menu-item routerLink="/restaurant/restaurant-manager">Restaurant Manager</a>
-  <a mat-menu-item routerLink="/restaurant/restaurant-stock-remove">Remove Stock</a>
-</mat-menu>
+  <a mat-raised-button routerLink="/driver" *ngIf="this.checkPermissions().driver">Delivery Map</a>
 
-<mat-menu #driverMenu="matMenu">
-  <a mat-menu-item routerLink="/total-stock">Total Stock</a>
-  <a mat-menu-item routerLink="/add-stock">Add Stock</a>
-</mat-menu>
+  <a mat-raised-button routerLink="/accounts" *ngIf="this.checkPermissions().manager">Account Manager</a>
+
+  <button mat-raised-button (click)="logout()">Logout</button>
+</div>
