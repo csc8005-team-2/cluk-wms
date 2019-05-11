@@ -276,8 +276,10 @@ public class Warehouse
    		statement = connection.createStatement();
    		statement.executeUpdate(query);
    		ServerLog.writeLog("Order: "+orderId +" Approved");
-   			
-   		res = Response.status(Response.Status.OK).entity("APPROVED_ORDER");
+
+        JsonObject resJson= Json.createObjectBuilder().add("message", "APPROVED_ORDER").build();
+
+   		res = Response.status(Response.Status.OK).entity(resJson.toString());
    		
    	 } catch (SQLException e) {
    		ServerLog.writeLog("SQL exception occurred when executing query");
@@ -322,8 +324,9 @@ public class Warehouse
    		statement = connection.createStatement();
    		statement.executeUpdate(query);
    		ServerLog.writeLog("Order: "+orderId +" Declined");
-   			
-   		res = Response.status(Response.Status.OK).entity("DECLINED_ORDER");
+
+   		JsonObject resJson= Json.createObjectBuilder().add("message", "DECLINED_ORDER").build();
+   		res = Response.status(Response.Status.OK).entity(resJson.toString());
    		
    	 } catch (SQLException e) {
    		ServerLog.writeLog("SQL exception occurred when executing query");
