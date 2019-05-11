@@ -647,7 +647,7 @@ public class Restaurant {
     @Consumes("application/json")
     public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strStockObject)
         {
-		if (!Authorisation.checkAccess(idToken, "restaurant") || !Authorisation.checkAccess(idToken, "warehouse")) {
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
 		}
 	
