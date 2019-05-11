@@ -258,7 +258,7 @@ public class Driver {
 	@Path("/update-first-name")
 	@POST
 	@Consumes("application/json")
-	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("firstName") String firstName, String firstNameObject) {
+	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("firstName") String firstName, String requestBody) {
 		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
@@ -267,7 +267,9 @@ public class Driver {
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 		Statement statement = null;
-		JsonObject firstNameObject = JsonTools.parseObject(firstNameObject);
+		JsonObject firstNameObject = JsonTools.parseObject(requestBody);
+		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+
 
 		if (!(firstNameObject.containsKey("firstName"))) {
 			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
@@ -292,6 +294,10 @@ public class Driver {
 				}
 			}
 		}
+
+		JsonArray response = responseBuilder.build();
+
+		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
 
@@ -372,7 +378,7 @@ public class Driver {
 	@Path("/update-last-name")
 	@POST
 	@Consumes("application/json")
-	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("lastName") String lastName, String lastNameObject) {
+	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("lastName") String lastName, String requestBody) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -382,7 +388,9 @@ public class Driver {
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 		Statement statement = null;
-		JsonObject lastNameObject = JsonTools.parseObject(lastNameObject);
+		JsonObject lastNameObject = JsonTools.parseObject(requestBody);
+		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+
 
 		if (!(lastNameObject.containsKey("lastName"))) {
 			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
@@ -407,6 +415,9 @@ public class Driver {
 				}
 			}
 		}
+
+		JsonArray response = responseBuilder.build();
+		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
 
@@ -471,8 +482,8 @@ public class Driver {
 				}
 			}
 		}
-		JsonArray response = responseBuilder.build();
 
+		JsonArray response = responseBuilder.build();
 		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
@@ -488,7 +499,7 @@ public class Driver {
 	@Path("/update-phone-number")
 	@POST
 	@Consumes("application/json")
-	public Response updatePhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("phoneNumber") String phoneNumber, String phoneNumberObject) throws SQLException {
+	public Response updatePhoneNumber(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("phoneNumber") String phoneNumber, String requestBody) throws SQLException {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -498,7 +509,10 @@ public class Driver {
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 		Statement statement = null;
-		JsonObject phoneNumberObject = JsonTools.parseObject(phoneNumberObject);
+
+		JsonObject phoneNumberObject = JsonTools.parseObject(requestBody);
+		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+
 
 		if (!(phoneNumberObject.containsKey("phoneNumber"))) {
 			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
@@ -520,7 +534,8 @@ public class Driver {
 			}
 		}
 
-		return Response.status(Response.Status.OK).build();
+		JsonArray response = responseBuilder.build();
+		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
 
 
@@ -638,9 +653,6 @@ public class Driver {
 
 					rs.next();
 					int WorkDuration = rs.getInt(workDuration);
-
-					//System.out.println("Previous work duration of driver " + driverId + "\t" + "is" + WorkDuration + "\n");
-
 					int newWorkDuration = WorkDuration + breakTime;
 
 					Statement statement2 = null;
@@ -657,8 +669,8 @@ public class Driver {
 					} catch (SQLException e) {
 						ServerLog.writeLog("Error when updating work duration of Driver: " + driverId);
 						e.printStackTrace();
-						//JsonObject responseJson = Json.createObjectBuilder().add("message", "UPDATE_WORKDURATION_ERROR");
-						//return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+						JsonObject responseJson = Json.createObjectBuilder().add("message", "UPDATE_WORKDURATION_ERROR").build();
+						return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 
 					} finally {
 						if (statement2 != null) {
@@ -682,12 +694,12 @@ public class Driver {
 				}
 			}
 		}
-		if (!goOnBreak) {
+		/*if (!goOnBreak) {
 			//ServerLog.writeLog("Driver" + driverId + " went on break today. ");
 			JsonObject responseJson = Json.createObjectBuilder().add("message", "BREAK_TAKEN").build();
 			//response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
 			return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
-		}
+		}*/
 
 		return Response.status(Response.Status.ACCEPTED).build();
 	}
@@ -904,7 +916,7 @@ public class Driver {
 				"WHERE workDuration='" + minWorkDuration + "'";
 		try {
 			statement1 = DbConnection.getConnection().createStatement();
-			ResultSet rs1 = statement1.executeQuery(query);
+			ResultSet rs1 = statement1.executeQuery(query1);
 
 			while (rs1.next()) {
 				driverId = rs1.getString("driverId");
@@ -922,7 +934,7 @@ public class Driver {
 			statement3 = connection.prepareStatement(query);
 			statement3.setInt(1,orderId);
 			statement3.setString(2, driverId);
-			statement3.execute();
+			statement3.executeQuery(query3);
 		}catch (SQLException e ) {
 			e.printStackTrace();
 
@@ -940,8 +952,8 @@ public class Driver {
 		}
 
 		JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_ASSIGNED_TO_DRIVER").build();
-		res = Response.status(Response.Status.OK).entity(responseJson.toString();
+		res = Response.status(Response.Status.OK).entity(responseJson.toString());
 		return res.build();
 	}
-	
+
 }
