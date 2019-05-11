@@ -37,6 +37,15 @@ export class ViewOrderComponent implements OnInit {
     }, err => console.log(err));
   }
 
+  declineOrder() {
+    this.session.declineOrder(this.orderId).subscribe(res => {
+      if (res.message === 'DECLINED_ORDER') {
+        window.alert('Order ' + this.orderId + ' has been accepted for dispatch to ' + this.orderAddress + '!');
+        this.dialogRef.close(true);
+      }
+    }, err => console.log(err));
+  }
+
   ngOnInit() {
   }
 
