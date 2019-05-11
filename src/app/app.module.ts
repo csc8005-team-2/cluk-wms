@@ -25,7 +25,7 @@ import { ChangeMinThresholdComponent } from './components/change-min-threshold/c
 import { AccountManagerComponent } from './components/account-manager/account-manager.component';
 import { CreateAccountComponent } from './components/create-account/create-account.component';
 import { ViewPermissionsComponent } from './components/view-permissions/view-permissions.component';
-
+import { DriverComponent } from './components/driver/driver.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -45,7 +45,8 @@ import { ViewPermissionsComponent } from './components/view-permissions/view-per
     ChangeMinThresholdComponent,
     AccountManagerComponent,
     CreateAccountComponent,
-    ViewPermissionsComponent
+    ViewPermissionsComponent,
+    DriverComponent
   ],
   imports: [
     BrowserModule,

@@ -12,6 +12,7 @@ import { OrderStockComponent } from './components/restaurant/order-stock/order-s
 import { RestaurantManagerComponent } from './components/restaurant/restaurant-manager/restaurant-manager.component';
 import { RestaurantStockRemoveComponent } from './components/restaurant/restaurant-stock-remove/restaurant-stock-remove.component';
 import {AccountManagerComponent} from './components/account-manager/account-manager.component';
+import {DriverComponent} from './components/driver/driver.component';
 
 
 
@@ -27,7 +28,8 @@ const routes: Routes = [
   { path: 'warehouse/total-stock', component: TotalStockComponent},
   { path: 'warehouse/add-stock', component: AddStockComponent},
   { path: 'warehouse/restaurant-orders', component: RestaurantOrdersComponent},
-  { path: 'accounts', component: AccountManagerComponent}
+  { path: 'accounts', component: AccountManagerComponent},
+  { path: 'driver', component: DriverComponent}
   ];
 
 @NgModule({

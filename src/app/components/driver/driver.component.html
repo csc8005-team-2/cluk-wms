@@ -1,0 +1,27 @@
+<div>
+<div id="right-panel">
+  <div>
+    <mat-form-field>
+    <mat-select #start id="start" placeholder="Start">
+      <mat-option value="DH2 1AB">warehouse</mat-option>
+    </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+    <mat-select #waypoints multiple id="waypoints" placeholder="Delivery destinations">
+      <mat-option value="NE13 6BP"> Seaton Burn Services, Fisher Lane, Newcastle upon Tyne</mat-option>
+      <mat-option value="NE66 1LA"> Alnwick Town Centre, 19 Lagny Street, Alnwick</mat-option>
+      <mat-option value="DL5 6EJ">Newton Aycliffe, 4 Northfield Way, Newton Aycliffe</mat-option>
+      <mat-option value="Thirsk YO7 1LB"> Thirsk Town Centre, 26 Market Place</mat-option>
+      <mat-option value="Whitby YO21 1DX">Whitby Town Centre, Station Square</mat-option>
+    </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+    <mat-select #end id="end" placeholder="End">
+      <mat-option value="DH2 1AB">warehouse</mat-option>
+    </mat-select>
+    </mat-form-field>
+    <button mat-raised-button (click)="getDirections(start.value, end.value, waypoints.value)">Get directions</button>
+  </div>
+  <div #map id="map"></div>
+  <div #directionsPanel id="directions-panel"></div>
+</div>

@@ -1,0 +1,17 @@
+#map {
+  min-height: 30em;
+  float: left;
+  width: 100%;
+}
+
+.mat-raised-button {
+  font-weight: normal; /* overriding change done by the map... */
+}
+
+#directions-panel {
+  margin-top: 20px;
+  background-color: rgba(59, 59, 59, 0.199);
+  padding : 20px;
+  overflow: scroll;
+  height: 250px;
+}
