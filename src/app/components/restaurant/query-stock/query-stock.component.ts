@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import {StockItem} from '../../../classes/stock-item';
 import {SessionService} from '../../../services/session.service';
 import {MatTableDataSource} from '@angular/material';
+import {ComparativeStockItem} from '../../../classes/comparative-stock-item';
 
 @Component({
   selector: 'app-total-stock',
@@ -10,7 +11,7 @@ import {MatTableDataSource} from '@angular/material';
 })
 export class QueryStockComponent implements OnInit {
   // Stock Object table
-  availableStock: MatTableDataSource<StockItem>;
+  availableStock: MatTableDataSource<ComparativeStockItem>;
 
   // displayed columns format
   displayedColumns: string[] = ['stockItem', 'quantity'];
@@ -22,6 +23,7 @@ export class QueryStockComponent implements OnInit {
   constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
     this.session.getTotalStockRest(this.session.getVenueAddress()).subscribe(res => {
       this.availableStock = new MatTableDataSource(res);
+      console.log(res);
     }, err => {
       console.log(err);
     });
