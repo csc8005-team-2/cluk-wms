@@ -21,39 +21,16 @@ import java.text.SimpleDateFormat;
 
 public class Driver {
 
-	//private String firstName;
-	//private String lastName;
-	//private final int id;
-	//private String phoneNumber;
-	//private int availableCapacity;
-	//private int assignedOrderCapacity;
 	private static int workDuration; //mins.
 	private final int breakTime = 45; //mins
-	//private String region;
-	//private boolean availability;
 	private final int maxWorkDuration = 600;  //10 hours = 600mins, use this to limit assigning order to driver etc
-	//private final int maxAvailableCapacity = 500; //not sure of the number but this should be the maximum capacity a driver can have!
-
-
-	//public Driver(/*String firstName, String lastName, int id, String phoneNumber, */int workDuration) {
-		//this.firstName = firstName;
-		//this.lastName = lastName;
-		//this.id = id;
-		//this.phoneNumber = phoneNumber;
-		//this.availableCapacity = availableCapacity;
-		//this.assignedOrderCapacity = assignedOrderCapacity;
-		//this.workDuration = workDuration;
-		//this.region = region;
-		//this.availability = availability;
-	//}
 
 
 	/*
 	 * method to add driver information to the driver table
 	 * @param idToken to check access for manager
-	 * @param firstName, lastName, driverId, phoneNumber  driver information
-	 * @param workDuration  the schedule of the driver
-	 * @param requestbody
+	 * @param firstName, lastName, driverId, phoneNumber, workDuration
+	 * @param requestBody
 	 * @return driver information
 	 */
 	@GET
@@ -185,6 +162,7 @@ public class Driver {
 	 * method to get the driver's first name using the driver's id
 	 * @param idToken to check access of manager or restaurant
 	 * @param driverId
+	 * @return driver firstName
 	 */
 	@GET
 	@Path("/get-first-name")
@@ -249,10 +227,10 @@ public class Driver {
 
 	/*
 	 * method to update a driver's first name using the driverId and new first name
-	 * @param idToken
+	 * @param idToken to check permission is manager
 	 * @param driverId
 	 * @param firstName
-	 * @param firstNameObject to get a new first name
+	 * @param requestBody
 	 * @return updated first name of the driver
 	 */
 	@Path("/update-first-name")
@@ -301,16 +279,15 @@ public class Driver {
 	}
 
 
-	@GET
-	@Path("/get-last-name")
-	@Produces("application/json")
-
 	/*
 	 * method to print a driver's last name using the driver's id
-	 * @param idToken
+	 * @param idToken to check permission is manager or restaurant
 	 * @param driverId
 	 * @return the drivers last name
 	 */
+	@GET
+	@Path("/get-last-name")
+	@Produces("application/json")
 	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId) {
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -369,7 +346,7 @@ public class Driver {
 
 	/*
 	 * method to update a driver's last name using the driverId and new last name
-	 * @param idToken
+	 * @param idToken to check permission is manager
 	 * @param driverId
 	 * @param lastName
 	 * @param lastNameObject to get a new last name
@@ -423,7 +400,7 @@ public class Driver {
 
 	/*
 	 * method to print a driver's phone number using driverId
-	 * @param idToken to check access to either manager or restaurant
+	 * @param idToken to check is either manager or restaurant
 	 * @param driverId
 	 * @return phone number of the driver
 	 */
@@ -541,7 +518,7 @@ public class Driver {
 
 	/*
 	 * method to get the current work duration of the driver
-	 * @param idToken
+	 * @param idToken to check permission is set to either manager or restaurant
 	 * @param driverId
 	 * @param WorkingHours
 	 * @return work duration of a driver
@@ -621,7 +598,6 @@ public class Driver {
 	@POST
 	@Path("go-on-break")
 
-
 	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("w") WorkingHours w) throws SQLException {
 
 		if ((!Authorisation.checkAccess(idToken, "manager") || (!Authorisation.checkAccess(idToken, "driver")))) {
@@ -694,12 +670,6 @@ public class Driver {
 				}
 			}
 		}
-		/*if (!goOnBreak) {
-			//ServerLog.writeLog("Driver" + driverId + " went on break today. ");
-			JsonObject responseJson = Json.createObjectBuilder().add("message", "BREAK_TAKEN").build();
-			//response = Response.status(Response.Status.OK).entity("BREAK_TAKEN");
-			return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
-		}*/
 
 		return Response.status(Response.Status.ACCEPTED).build();
 	}
@@ -711,9 +681,13 @@ public class Driver {
 	//gets the restaurant address of that same orderId from the Order table
 	//gets the restaurant address of the north region that matches the restaurant address above
 	//returns JsonObject of the method status
+	/*@param idToken
+	* @return restaurantAddress
+	* */
+
 	@Path("/plot-route-north")
 	@POST
-	public Response plotRouteNorth(@HeaderParam("Authorisation") String idToken) {
+	public static Response plotRouteNorth(@HeaderParam("Authorisation") String idToken) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -792,9 +766,14 @@ public class Driver {
 	//gets the restaurant address of that same orderId from the Order table
 	//gets the restaurant address of the south region that matches the restaurant address above
 	//returns JsonObject of the method status
+	/*
+	 * @param idToken
+	 * @return restaurantAddress
+	 */
+
 	@Path("/plot-route-south")
 	@POST
-	public Response plotRouteSouth(@HeaderParam("Authorisation") String idToken) {
+	public static Response plotRouteSouth(@HeaderParam("Authorisation") String idToken) {
 
 		if (!Authorisation.checkAccess(idToken, "manager")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
@@ -864,12 +843,16 @@ public class Driver {
 		return Response.status(Response.Status.CREATED).build();
 	}
 
-	/* checks access type is manager */
 	//connects to database
 	//gets today's date and the orderId of approved orders to be delivered in that same day
 	//gets the driverId that has no workDuration i.e available to work
 	//assigns the orderId to the driverId
 	//returns response of the method status
+	/*
+	* @param idToken to check permission is manager
+	* @returns orderId that has been order to a driverId
+	*/
+
 	@Path("/assign-order-to-driver")
 	@POST
 	public static Response assignOrderToDriver(@HeaderParam("Authorisation") String idToken) {
