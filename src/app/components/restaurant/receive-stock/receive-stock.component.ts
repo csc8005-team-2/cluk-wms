@@ -38,7 +38,7 @@ export class ReceiveStockComponent implements OnInit {
     dialogRef.afterClosed().subscribe(orderAccepted => {
       if (orderAccepted) {
         this.pendingOrdersSub.unsubscribe();
-        this.pendingOrdersSub = this.session.getPendingOrders().subscribe(res => {
+        this.pendingOrdersSub = this.session.getTodaysOrders().subscribe(res => {
           this.pendingOrders = new MatTableDataSource(res);
           this.cdRef.detectChanges();
         }, err => {
