@@ -25,8 +25,8 @@ public class Driver {
 	gets the restaurant address of that same orderId from the Order table
 	gets the restaurant address of the  region that matches the restaurant address above
 	@returns JsonObject of the method status
-	@param idToken
-	@return restaurantAddress
+	 @param idToken ID token assigned to the user
+	@return array of addresses driver needs to visit
 	*/
 
 	@Path("/plot-route")

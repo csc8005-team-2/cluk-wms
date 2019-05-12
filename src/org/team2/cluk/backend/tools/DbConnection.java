@@ -21,6 +21,9 @@ public class DbConnection {
     * Users input a username,password and url, all of type string
     * If successful, the system will show "Database connection established" and connect to the server
     * If it fails, the system will show "JDBC driver not found" or "Database connection error" or "Unrecognised exception encountered"
+    * @param username database username
+    * @param password database password
+    * @param url    URI under which database is available in MySQL Connector/J format
     */
     public static void connect(String username, String password, String url) {
         try {

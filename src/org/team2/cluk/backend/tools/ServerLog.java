@@ -14,6 +14,7 @@ public class ServerLog {
 
 /**
  * Method to add a log for the system
+ * @param msg message text
  */
     public static void writeLog(String msg) {
         Date currentDateTime = new Date();

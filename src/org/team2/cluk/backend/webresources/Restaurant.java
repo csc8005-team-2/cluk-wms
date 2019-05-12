@@ -28,6 +28,7 @@ public class Restaurant {
      * The system will show information about the total stock in the given restaurant
      * If the restaurant address is blank, the system will show "ADDRESS_BLANK_OR_NOT_PROVIDED"
      * If method is successful, the system will show items that are stocked in the restaurant the quantity of the item
+	 * @param idToken to check access for restaurant
      * @param restaurantAddress address of the restaurant provided in the request header as "address"
      * @return  JSON array with all stock stored in that restaurant
      */
@@ -95,6 +96,7 @@ public class Restaurant {
     * If it is unsuccessful, the system will show "ORDER_NOT_FOUND"
     * If successful, the system will show "ORDER_RECEIVED" and add the information to the restaurant stock
     * Users must choose the item and quantity that the restaurant has ordered and the address of the restaurant
+	* @param idToken to check access for restaurant
     * @param restaurantAddress address of the restaurant provided in the request header as "address"
     * @param orderId of the stock recieved by the restaurant
     * @return order added to restaurant stock
@@ -327,6 +329,7 @@ public class Restaurant {
      * body of the request should be JSON array with each entry of form: {stockItem: string, quantity: number}
      * If unsuccessful, the system will show "Order entry misspecified. Skipping this entry"
      * If successful, the system will show "ORDER_ACCEPTED"
+	 * @param idToken to check access for restaurant
      * @param restaurantAddress	value of address header specifying restaurant where order shall be delivered
      * @param strOrderContents	stringified JSON array containing order details
      * @return	202 ORDER_ACCEPTED - even if order contains entries not following the specification, they are removed from the order
@@ -487,6 +490,7 @@ public class Restaurant {
 	 * Method requests standard order for a restaurant. It fetches what the standard order items and quantities are and
 	 * places the order
 	 * If successful, the system will select stock item and typical units ordered from stock
+	 * @param idToken to check access for restaurant
 	 * @param restaurantAddress	address of the destination restaurant, provided in "address" header parameter
 	 * @return	same responses as for requestCustomOrder
 	 */
@@ -543,6 +547,7 @@ public class Restaurant {
      * This method is used to check whether the stock at restaurant is above the minimum stock level
      * Users are required to input the restaurant's address
      * If there is an item of stock below the minimum, the system will show "Current stock of "+ stockItem +" at "+ restaurantAddress + " is below minimum stock levels by "+deficit+"."
+	 * @param idToken to check access for restaurant
      * @param restaurantAddress address of the restaurant, provided in "address" header parameter
      * @return stock which is under the minimum stock level
      */
@@ -608,6 +613,8 @@ public class Restaurant {
 
 	/**
 	* method that gets the minimum stock
+	 * @param idToken to check access for restaurant
+	 * @param address restaurant address
 	*/
 	@Path("/get-min-stock")
 	@GET
@@ -663,6 +670,7 @@ public class Restaurant {
     * Users need to choose the item which is required to change and input the quantity they would like to update it to
     * If successful, the system will state "Minimum stock levels updated to: " + min
     * If unsuccessful, the system will state "SQL exception occurred when closing SQL statement"
+	* @param idToken to check access for restaurant
     * @param restaurantAddress address of the restaurant, provided in "address" header parameter
     * @param strStockObject stringified JSON array containing minimum stock order details
     * @return the updated stock level
@@ -725,6 +733,7 @@ public class Restaurant {
        * The system will check whether the quantity of the item is below the minimum stock.
        * If the quantity of one item is below the minimum stock, the system will show "STOCK_TOO_LOW"
        * If successful, the system will show "MEAL_CREATED"
+	   * @param idToken to check access for restaurant
        * @param restaurantAddress address of the restaurant where the meal is created, provided in "address" header parameter
        * @param meal created from the stock items
        * @return the item that has been created
@@ -854,6 +863,7 @@ public class Restaurant {
 	* Method to update the restaurant stock allowing for manual adjustment of stock levels
         * If successsful, system shows "STOCK_UPDATED"
 	* If unsuccessful, system shows "ERROR_UPDATING_STOCK"
+		* @param idToken to check access for restaurant
 	* @param address address of the restaurant where the stock is updated, provided in "address" header parameter
 	* @param requestBody to request stock
 	* @return updated stock
@@ -955,6 +965,7 @@ public class Restaurant {
 	/**
 	* Method to get the price of a meal item within a restaurant
 	* If successful, system will show "Item: " + meal + " Cost: " + price"
+	 * @param idToken to check access for restaurant
 	* @param meal which has been created previously by the restaurant
 	* @return the meal price
 	*/
@@ -1004,7 +1015,7 @@ public class Restaurant {
 	}
 
 
-	/*
+	/**
 	* method to get a list of the restaurants
 	* @param idToken to check access for manager
 	* @return the restaurant list
@@ -1059,9 +1070,10 @@ public class Restaurant {
 
 
 
-		/*
-	    * method to get todays deliveries.
+		/**
+	    * method to get today's deliveries.
 	    * @param idToken
+		 * @param restaurantAddress address of the restaurant
 	    * @return the orders with delivery date today.
 	    */
 	    @GET
@@ -1158,12 +1170,11 @@ public class Restaurant {
 			}
 
 
-
-
-
-
-
-	//Ensure restaurant hasn't had order in last week days.
+	/**
+	 * Ensure restaurant hasn't had order in last week days.
+	 * @param restaurantAddress address of the restaurant
+	 * @return delivery date for the order
+	 */
 	public String enforceWeekLimit(String restaurantAddress)
     {
 
@@ -1246,7 +1257,12 @@ public class Restaurant {
 
 	}
 
-	//Ensure restaurant hasn't had order in last 3 days.
+
+	/**
+	 * Ensure restaurant hasn't had order in last 3 days.
+	 * @param restaurantAddress address of the restaurant
+	 * @return delivery date
+	 */
 	public String enforceDayLimit(String restaurantAddress)
     {
 
@@ -1328,8 +1344,12 @@ public class Restaurant {
     }
 
 
-
-	//Compares two dates and selects the latest.
+	/**
+	 * Compares two dates and selects the latest.
+	 * @param firstdate
+	 * @param seconddate
+	 * @return latest of the dates
+	 */
 	public String compare(String firstdate, String seconddate){
 
 		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");

@@ -6,8 +6,8 @@ import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.ext.Provider;
 
 
-/*
-* CorsFilter class which implements the ContainerResponseFilter
+/**
+* CorsFilter class which implements the ContainerResponseFilter. It allows web browsers to make requests to the backend.
 */
 
 @Provider

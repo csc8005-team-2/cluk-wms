@@ -325,6 +325,7 @@ public class Authorisation {
     * Method to set the account permissions
     * If successful, the system will show "PERMISSIONS_UPDATED"
     * If Json is unsuccessful, the system will show "PERMISSION_REQUEST_MISSPECIFIED"
+    * @param idToken ID token assigned to the user
     * @param requestBody using a Json to request to change the permissions of the accounts
     * @return updated permissions to the database
     */
@@ -383,6 +384,7 @@ public class Authorisation {
     * The system first logs out the user, and then deletes
     * If successful, the system will show "ACCOUNT_REMOVED"
     * If unsuccessful, the system will show "ACCOUNT_REMOVAL_ERROR"
+     * @param idToken ID token assigned to the user
     * @param username for the account that will be removed
     * @return the database with the account removed from it
     */
@@ -437,6 +439,7 @@ public class Authorisation {
 
    /**
     * Method to retrieve the staff information
+    * @param idToken ID token assigned to the user
     * @return a Json array of the staff information
     * including id, name, username and if they are staff within restaurant, warehouse or a driver
     */
@@ -573,7 +576,7 @@ public class Authorisation {
         return false;
     }
 
-    /*
+    /**
     * method to check the work location for the accounts
     * @param idToken ID token of the user whose permissions are checked
     * @param name within Accounts
@@ -622,7 +625,7 @@ public class Authorisation {
     }
 
 
-    /*
+    /**
     * method to set the work location for employees
     * @param idToken   ID token of the user whose permissions are checked
     * @param requestBody
