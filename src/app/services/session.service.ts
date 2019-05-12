@@ -13,6 +13,7 @@ import {OrderEntry} from '../classes/order-entry';
 import {StockName} from '../classes/stock-name';
 import {ComparativeStockItem} from '../classes/comparative-stock-item';
 import {VenueLocation} from '../classes/venue-location';
+import {GraphData} from '../classes/graph-data';
 
 @Injectable({
   providedIn: 'root'
@@ -116,6 +117,7 @@ export class SessionService {
     return this.http.get<Message>(this.BACKEND_URL + '/logout', {headers: reqHeader} ).pipe(
       tap ((res: Message) => {
         this.idToken = '';
+        this.venueAddress = '';
       }) /* ,
       catchError(this.handleError<Message>('logout')) */
     );
@@ -301,6 +303,14 @@ export class SessionService {
       .append('address', _address);
 
     return this.http.post<Message>(this.BACKEND_URL + '/restaurant/update-min-stock', newStockLvl, {headers: reqHeader});
+  }
+
+  getWarehouseGraph(stockItem: string, type: string): Observable<GraphData[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
+      .append('stockItem', stockItem)
+      .append('type', type);
+
+    return this.http.get<GraphData[]>(this.BACKEND_URL + '/warehouse/warehouse-graph', {headers: reqHeader});
   }
 
   getMealNames(): Observable<MealPrice[]> {

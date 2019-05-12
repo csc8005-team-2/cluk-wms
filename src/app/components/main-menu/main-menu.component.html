@@ -5,6 +5,7 @@
     <a mat-raised-button routerLink="/warehouse/restaurant-orders">View Restaurant Orders</a>
     <a mat-raised-button *ngIf="checkPermissions().manager" routerLink="/warehouse/warehouse-manager">Check Stock Threshold</a>
     <a mat-raised-button routerLink="/warehouse/warehouse-stock-remove">Remove Stock</a>
+    <a mat-raised-button routerLink="/charts/dispatch">Dispatch Report</a>
   </span>
 
   <span *ngIf="checkPermissions().restaurant">

@@ -14,6 +14,7 @@ import { RestaurantStockRemoveComponent } from './components/restaurant/restaura
 import {AccountManagerComponent} from './components/account-manager/account-manager.component';
 import {DriverComponent} from './components/driver/driver.component';
 import {POSComponent} from './components/restaurant/pos/pos.component';
+import {DispatchChartComponent} from './components/charts/dispatch-chart/dispatch-chart.component';
 
 
 
@@ -29,6 +30,7 @@ const routes: Routes = [
   { path: 'warehouse/total-stock', component: TotalStockComponent},
   { path: 'warehouse/add-stock', component: AddStockComponent},
   { path: 'warehouse/restaurant-orders', component: RestaurantOrdersComponent},
+  { path: 'charts/dispatch', component: DispatchChartComponent},
   { path: 'accounts', component: AccountManagerComponent},
   { path: 'driver', component: DriverComponent},
   { path: 'restaurant/sales', component: POSComponent}

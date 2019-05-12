@@ -29,6 +29,9 @@ import { DriverComponent } from './components/driver/driver.component';
 import {FormsModule} from '@angular/forms';
 import { POSComponent } from './components/restaurant/pos/pos.component';
 import { ViewReceivedOrderComponent } from './components/restaurant/view-received-order/view-received-order.component';
+import { DispatchChartComponent } from './components/charts/dispatch-chart/dispatch-chart.component';
+import {NgxChartsModule} from '@swimlane/ngx-charts';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -51,7 +54,8 @@ import { ViewReceivedOrderComponent } from './components/restaurant/view-receive
     ViewPermissionsComponent,
     DriverComponent,
     POSComponent,
-    ViewReceivedOrderComponent
+    ViewReceivedOrderComponent,
+    DispatchChartComponent
   ],
   imports: [
     BrowserModule,
@@ -59,7 +63,8 @@ import { ViewReceivedOrderComponent } from './components/restaurant/view-receive
     AppRoutingModule,
     BrowserAnimationsModule,
     MaterialModule,
-    FormsModule
+    FormsModule,
+    NgxChartsModule
   ],
   providers: [],
   bootstrap: [AppComponent],

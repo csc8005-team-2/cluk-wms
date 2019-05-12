@@ -1,0 +1,19 @@
+#selectionForm{
+  margin: auto;
+  text-align: center;
+  width: 70%;
+}
+
+#selectionForm > * {
+  margin: 1em;
+}
+
+#orderSummary {
+  width: 70%;
+  margin: auto;
+}
+
+.dispatchChart {
+  height: 20em;
+  width: 50em;
+}
