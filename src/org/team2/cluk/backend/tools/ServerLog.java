@@ -11,7 +11,7 @@ import java.util.Date;
  */
 public class ServerLog {
     private static ArrayList<String> log = new ArrayList<>();
-    
+
 /**
  * Method to add a log for the system
  */

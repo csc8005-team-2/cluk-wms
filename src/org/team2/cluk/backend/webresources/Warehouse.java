@@ -5,10 +5,10 @@ import org.team2.cluk.backend.tools.JsonTools;
 import org.team2.cluk.backend.tools.ServerLog;
 
 import javax.json.*;
-import javax.validation.constraints.Positive;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,32 +24,42 @@ public class Warehouse
 {
 
     /**
-     * Method which gets the total stock within a warehouse
-     * If successful, system will show "StockItem: " + Quantity
-     * @param address of the warehouse
-     * @return the stock name and quantity (in units) held at the warehouse
-     */
+    * method to get the stock names
+    * @param idToken to check access for warehouse
+    * @return all stock within the warehouse
+    */
     @GET
-    @Path("/get-total-stock")
+    @Path("/get-stock-names")
     @Produces("application/json")
-    public void GetTotalStock(@HeaderParam("warehouse") String address)
+    public Response GetStockNames(@HeaderParam("Authorization") String idToken)
     {
-        Statement statement = null;
-        String query = "SELECT stockItem, quantity " +
-                       "FROM Inside " +            
-                       "WHERE warehouseAddress='"+address+"'";
-                       
-        try {
-	// connect to db
-        statement = DbConnection.getConnection().createStatement();
-        ResultSet rs = statement.executeQuery(query);
-        while (rs.next()) {
-            String StockItem = rs.getString("StockItem");
-            int Quantity = rs.getInt("quantity");
-            System.out.println(StockItem + ": " + Quantity);
+        if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "restaurant")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
         }
-        } catch (SQLException e ) {
+
+        ServerLog.writeLog("Requested names of stock items.");
+
+        JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+        // fetch current database connection
+        Connection connection = DbConnection.getConnection();
+
+        Statement statement = null;
+        String query = "SELECT stockItem FROM Stock";
+
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+                String stockItem = rs.getString("StockItem");
+                arrayEntryBuilder.add("stockItem", stockItem);
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+            }
+        } catch (SQLException e) {
+            ServerLog.writeLog("SQL exception occurred when executing query");
             e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
         } finally {
             if (statement != null) {
                 try {
@@ -58,7 +68,80 @@ public class Warehouse
                     ServerLog.writeLog("SQL exception occurred when closing SQL statement");
                 }
             }
-        }                 
+        }
+        JsonArray response = responseBuilder.build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
+
+
+    }
+
+    /**
+     * Method which gets the total stock within a warehouse
+     * If successful, system will show "StockItem: " + Quantity
+     * @param address of the warehouse
+     * @return the stock name and quantity (in units) held at the warehouse
+     */
+    @GET
+    @Path("/get-total-stock")
+    @Produces("application/json")
+    public Response GetTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
+    {
+	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
+        ServerLog.writeLog("Requested information on total stock in the warehouse at "+address);
+
+        if (address.isBlank()) {
+            ServerLog.writeLog("Rejected request as warehouse address not specified");
+            return Response.status(Response.Status.BAD_REQUEST).entity("ADDRESS_BLANK_OR_NOT_PROVIDED").build();
+        }
+
+        JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+        // fetch current database connection
+        Connection connection = DbConnection.getConnection();
+
+        Statement statement = null;
+        String query = "SELECT stockItem, quantity, minQuantity " +
+                       "FROM Inside " +            
+                       "WHERE warehouseAddress='"+address+"'";
+
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+
+                String stockItem = rs.getString("StockItem");
+                int quantity = rs.getInt("Quantity");
+                int minQty = rs.getInt("minQuantity");
+
+                arrayEntryBuilder.add("stockItem", stockItem);
+                arrayEntryBuilder.add("quantity", quantity);
+                arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? true : false);
+
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+            }
+        } catch (SQLException e) {
+            ServerLog.writeLog("SQL exception occurred when executing query");
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+        JsonArray response = responseBuilder.build();
+
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
+
+
+
     }
 
     /**
@@ -74,8 +157,13 @@ public class Warehouse
     @POST
     @Path("/update-stock")
     @Consumes("application/json")
-    public Response updateStock(@HeaderParam("warehouse") String address, String requestBody)
+    @Produces("application/json")
+    public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
+	  if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
         ServerLog.writeLog("Updating warehouse stock at " + address);
         // fetch db connection
         Connection connection = DbConnection.getConnection();
@@ -153,7 +241,11 @@ public class Warehouse
             }
         }
 
-        return Response.status(Response.Status.OK).entity("STOCK_UPDATED").build();
+        JsonObject responseJson = Json.createObjectBuilder().add("message", "STOCK_UPDATED").build();
+
+        return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+
+
     }
 
     /**
@@ -168,8 +260,14 @@ public class Warehouse
      */
     @GET
     @Path("/send-order")
+    //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
     public Response sendOrder(@HeaderParam("address") String address, @HeaderParam("orderId") int orderId)
     {
+	     if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "restaurant")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
+        int orderId = Integer.parseInt(_orderId);
         // fetch current db connection
         Connection connection = DbConnection.getConnection();
 
@@ -183,8 +281,8 @@ public class Warehouse
 			
     		rs.next();
     		String orderStatus = rs.getString("orderStatus");
-    		if(!orderStatus.equalsIgnoreCase("Pending")){
-    			ServerLog.writeLog("Order has already been fulfilled.");
+    		if(!orderStatus.equalsIgnoreCase("Approved")){
+    			ServerLog.writeLog("Order has not been approved or has already been fulfilled.");
     			orderFulfilled = true;
     		}
     	} catch (SQLException e ) {
@@ -298,50 +396,35 @@ public class Warehouse
             }
         }
 
-        // update database to mark order as out for delivery
-        statement = null;
-        query = "UPDATE StockOrders "+
-                "SET orderStatus = 'Out for delivery' "+
-                "WHERE orderId='"+orderId+"'";
-        try{
-            statement = connection.createStatement();
-            statement.executeUpdate(query);
-        } catch (SQLException e ) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-                }
-            }
-        }
-        return Response.status(Response.Status.OK).entity("ORDER_SENT").build();
+
+        JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_SENT").build();
+        return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+
     }
 
    /**
-    * Method which gets the minimum amount of each stock item within the warehouse 
+    * Method which gets the minimum amount of each stock item within the warehouse
     * If successful, system will show "Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity
     * If unsuccessful, system will show "ERROR_QUERYING_MIN_STOCK_LEVEL"
     * @param address of the warehouse
-    * @return the stock items and their minimum amount 
+    * @return the stock items and their minimum amount
     */
     @Path("/get-min-stock")
-    @POST
+    @GET
     @Consumes("application/json")
-    public Response getMinStock(@HeaderParam("address") String address) {
+    public Response getMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address) {
         Response.ResponseBuilder res = null;
 	    // fetch db connection
         Connection connection = DbConnection.getConnection();
 
-	    
+	      if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
         Statement statement = null;
         String query = "SELECT stockItem, minQuantity from Inside WHERE warehouseAddress ='"+address+"'";
+        JsonArrayBuilder minStockBuilder = Json.createArrayBuilder();
         try {
-		// create Json array builder 
-            JsonArrayBuilder minStockBuilder = Json.createArrayBuilder();
-            JsonArray minStock = minStockBuilder.build();
 
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -359,7 +442,7 @@ public class Warehouse
 
                 ServerLog.writeLog("Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity+"\n");
             }
-
+            JsonArray minStock = minStockBuilder.build();
             res = Response.status(Response.Status.OK).entity(minStock.toString());
         } catch (SQLException e ) {
             res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_QUERYING_MIN_STOCK_LEVEL");
@@ -386,8 +469,14 @@ public class Warehouse
     */
     @GET
     @Path("/min-stock-check")
-    public Response minStockCheck(@HeaderParam("address") String address)
+    @Produces("application/json")
+    public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address)
     {
+
+	  if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
 	// fetch db connection
         Connection connection = DbConnection.getConnection();
 
@@ -407,7 +496,7 @@ public class Warehouse
             int quantity = rs.getInt("quantity");
             int minQuantity = rs.getInt("minQuantity");
 
-            // if quantity below the minimum 
+            // if quantity below the minimum
             if(quantity < minQuantity){
             	int deficit = minQuantity - quantity;
 
@@ -432,11 +521,12 @@ public class Warehouse
             }
         }
 
-	// if no stock is below minimum quantity level
-        if (lackingStockArrayBuilder.build().toArray().length==0) // none added to Json array
-            return Response.status(Response.Status.OK).entity("ENOUGH_STOCK").build();
+        if (lackingStockArrayBuilder.build().toArray().length==0)
+            return Response.status(Response.Status.OK).entity("{}").build(); // produce empty json if enough stock
 
-        return updateStock(address, lackingStockArrayBuilder.build().toString());
+        return updateStock(idToken, address, lackingStockArrayBuilder.build().toString());
+
+
     }
 
    /**
@@ -450,27 +540,43 @@ public class Warehouse
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
-    public Response updateMinStock(@HeaderParam("address") String address, String requestBody)
+    @Produces("application/json")
+    public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
     {
+        ServerLog.writeLog("Requested update of minimum stock required at " + address);
+	   if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
+	   ServerLog.writeLog("User authorised to make change");
         // fetch db connection
         Connection connection = DbConnection.getConnection();
 
+        ServerLog.writeLog("Parsing request body");
         JsonObject stockObject = JsonTools.parseObject(requestBody);
 
+        ServerLog.writeLog("Request body parsed");
         // check if request is correct
         if (!stockObject.containsKey("stockItem") || !stockObject.containsKey("quantity"))
             return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
 
+        ServerLog.writeLog("Request correctly specified: " + stockObject.toString());
+
+        ServerLog.writeLog("Further parsing JSON");
+
         String stockItem = stockObject.getString("stockItem");
-        int min = stockObject.getInt("quantity");
+        String minQtyStr = stockObject.getString("quantity");
+        int minQty = Integer.parseInt(minQtyStr);
+
+        ServerLog.writeLog("Update requested for " + stockItem + " to " + minQty);
 
         Statement statement = null;
-        String query = "UPDATE Inside SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+address+"'";
+    String query = "UPDATE Inside SET minQuantity ="+minQty+" WHERE stockItem='"+stockItem+"' AND warehouseAddress ='"+address+"'";
                        
         try {
         	statement = connection.createStatement();
         	statement.executeUpdate(query);
-        	ServerLog.writeLog("Minimum stock levels updated to: " + min + " at " + address);
+        	ServerLog.writeLog("Minimum stock levels updated to: " + minQty + " at " + address);
         
         } catch (SQLException e ) {
             e.printStackTrace();
@@ -484,20 +590,30 @@ public class Warehouse
             }
         }
 
-        return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
+        JsonObject responseJson = Json.createObjectBuilder().add("message", "MIN_STOCK_VALUE_UPDATED").build();
+
+        return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+
     }
 
    /**
-    * Method which assigns an order to a driver which needs to be delivered from a warehouse to a restaurant 
+    * Method which assigns an order to a driver which needs to be delivered from a warehouse to a restaurant
     * If successful, system will show "ORDER_ASSIGNED"
     * If unsuccessful, system will show "ORDER_ASSIGNMENT_ERROR"
-    * @param orderId which includes the correct stock quantities required to be delivered to the restaurant 
+    * @param orderId which includes the correct stock quantities required to be delivered to the restaurant
     * @param driverId of the delivery driver
     * @return the driver id which is assigned to an order ID
     */
-    @GET
+    /* @GET
     @Path("/assign-to-driver")
-    public Response assignOrderToDriver(@HeaderParam("orderId") int orderId, @HeaderParam("driverId") String driverId){
+    @Produces("application/json")
+    public static Response assignOrderToDriver(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId, @HeaderParam("driverId") String driverId){
+
+	     if (!Authorisation.checkAccess(idToken, "warehouse") || !Authorisation.checkAccess(idToken, "driver")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
+	int orderId = Integer.parseInt(_orderId);
         Response.ResponseBuilder res = null;
 
         // fetch current dbConnection
@@ -524,11 +640,12 @@ public class Warehouse
                 }
             }
         }
-    	res = Response.status(Response.Status.OK).entity("ORDER_ASSIGNED");
+    	JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_ASSIGNED").build();
+    	res = Response.status(Response.Status.OK).entity(responseJson.toString());
 
     	return res.build();
-    }
-	
+    } */
+
    /**
     * method to get the currently pending orders to go from a warehouse to a restaurant
     * Includes the date and time for the orders
@@ -536,7 +653,15 @@ public class Warehouse
     */
     @GET
     @Path("/get-pending-orders")
-    public Response getCurrentPendingOrders() {
+    @Produces("application/json")
+    public Response getCurrentPendingOrders(@HeaderParam("Authorization") String idToken) {
+	    ServerLog.writeLog("Requested list of pending orders");
+
+	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
+	        ServerLog.writeLog("No permissions to view pending orders");
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
         Response.ResponseBuilder res = null;
 
 	// fetch db connection
@@ -550,6 +675,7 @@ public class Warehouse
         String query = "SELECT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
                 "FROM StockOrders, Orders WHERE StockOrders.orderStatus='Pending' AND Orders.orderId=StockOrders.orderId";
         try {
+            ServerLog.writeLog("Querying database for pending orders");
             statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
 
@@ -559,6 +685,8 @@ public class Warehouse
                 int orderId = rs.getInt("StockOrders.orderId");
                 Date dateTime = rs.getDate("StockOrders.orderDateTime");
                 String address = rs.getString("Orders.restaurantAddress");
+
+                ServerLog.writeLog("Pending order ID: " + orderId);
 
 		// add to Json array
                 orderEntry.add("orderId", orderId);
@@ -617,5 +745,189 @@ public class Warehouse
         }
 
         return res.build();
+		}
+
+        /**
+	* method that outputs data to plot graphs for stock sent by warehouse
+	* @param idToken to check access for the warehouse
+	* @param stockItem which is then plotted on graph
+	* @param type
+	* @return data to plot graphs
+	*/
+	@GET
+	@Path("/warehouse-graph")
+	@Produces("application/json")
+	public Response warehouseGraph(@HeaderParam("Authorization") String idToken, @HeaderParam("stockItem") String stockItem, @HeaderParam("type") String type)
+        {
+
+		 if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
+		ServerLog.writeLog("Requested warehouse graphing data.");
+		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+		Connection connection = DbConnection.getConnection();
+
+        Statement statement = null;
+        String query = "SELECT restaurantAddress FROM Restaurants";
+
+        try {
+        	statement = connection.createStatement();
+        	ResultSet rs = statement.executeQuery(query);
+
+        	while (rs.next()) {
+        		String restaurant = rs.getString("restaurantAddress");
+
+        		Statement statement2 = null;
+                String query2 = "SELECT orderId FROM Orders where restaurantAddress ='"+restaurant+"'";
+                int total=0;
+
+                try {
+                	statement2 = connection.createStatement();
+                	ResultSet rs2 = statement2.executeQuery(query2);
+
+                	while (rs2.next()) {
+                		int orderId = rs2.getInt("orderId");
+
+                		java.util.Date orderDate = new java.util.Date();
+                    	java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                    	String currentTime = sdf.format(orderDate);
+
+                    	Calendar cal = Calendar.getInstance();
+
+                    	if(type.equalsIgnoreCase("year")) {
+                    		cal.add(Calendar.YEAR, -1);
+                    	}else if (type.equalsIgnoreCase("month")) {
+                    		cal.add(Calendar.MONTH, -1);
+                    	}else if (type.equalsIgnoreCase("week")) {
+                    		cal.add(Calendar.DAY_OF_MONTH, -7);
+                    	}else if (type.equalsIgnoreCase("day")) {
+                    		cal.add(Calendar.DAY_OF_MONTH, -1);
+                    	}
+
+                    	java.util.Date result = cal.getTime();
+                    	String timeBack = sdf.format(result);
+
+
+                		Statement statement3 = null;
+                        String query3 = "SELECT orderId FROM StockOrders where orderId ="+orderId+" AND (orderDeliveryDate BETWEEN '"+timeBack+"' AND '"+currentTime+"')";
+
+                        try {
+                        	statement3 = connection.createStatement();
+                        	ResultSet rs3 = statement3.executeQuery(query3);
+
+                        	while (rs3.next()) {
+                        		orderId = rs3.getInt("orderId");
+
+
+                        		Statement statement4 = null;
+                                String query4 = "SELECT quantity FROM Contains where orderId ="+orderId+" AND stockItem = '"+stockItem+"'";
+
+                                try {
+                                	statement4 = connection.createStatement();
+                                	ResultSet rs4 = statement4.executeQuery(query4);
+                                	int quantity=0;
+
+                                	while (rs4.next()) {
+                                		quantity = rs4.getInt("quantity");
+                                		total=total+quantity;
+                                	}
+
+                                } catch (SQLException e ) {
+                                    e.printStackTrace();
+                                } finally {
+                                    if (statement4 != null) {statement4.close();}
+                                }
+                        	}
+                        } catch (SQLException e ) {
+                            e.printStackTrace();
+                        } finally {
+                            if (statement3 != null) {statement3.close();}
+                        }
+                	}
+                } catch (SQLException e ) {
+                    e.printStackTrace();
+                } finally {
+                    if (statement2 != null) {statement2.close();}
+                }
+
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+                arrayEntryBuilder.add("name", restaurant);
+                arrayEntryBuilder.add("value", total);
+
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+
+        	}
+        }catch (SQLException e ) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+
+        JsonArray response = responseBuilder.build();
+
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
+
     }
+
+
+	/**
+	* method to get a warehouse list
+	* @param idToken check access for manager
+	* @return a list of all the warehouses
+	*/
+	@GET
+        @Path("/get-list")
+        @Produces("application/json")
+        public Response getWarehouseList(@HeaderParam("Authorization") String idToken) {
+
+            if (!Authorisation.checkAccess(idToken, "manager")) {
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+            }
+
+
+            JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+            // fetch current database connection
+            Connection connection = DbConnection.getConnection();
+
+            Statement statement = null;
+            String query = "SELECT warehouseAddress " +
+                    "FROM Warehouse ";
+            try {
+                statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(query);
+                while (rs.next()) {
+                    JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+
+                    String warehouseAddress = rs.getString("WarehouseAddress");
+
+                    arrayEntryBuilder.add("address", warehouseAddress);
+
+                    JsonObject arrayEntry = arrayEntryBuilder.build();
+                    responseBuilder.add(arrayEntry);
+                }
+            } catch (SQLException e) {
+                ServerLog.writeLog("SQL exception occurred when executing query");
+                e.printStackTrace();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+            } finally {
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+            JsonArray response = responseBuilder.build();
+
+            return Response.status(Response.Status.OK).entity(response.toString()).build();
+	    }
 }

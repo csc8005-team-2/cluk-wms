@@ -11,8 +11,9 @@ import java.io.StringReader;
  *
  * @version 02/04/2019
  */
+
 public class JsonTools {
-    
+
     /**
      * Converts String object (e.g. http request body) into JsonObject
      * @param inputJson stringified JSON

@@ -8,10 +8,12 @@ import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
+import java.text.ParseException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-/*
+/**
  * Restaurant Class which handles stocks information, ordering stock and recieving orders, creating meals and checking prices
  *
  * @version 11/05/2019
@@ -22,7 +24,7 @@ public class Restaurant {
 
     /**
      * Method which handles request for total stock units at a given restaurant given as "address" in the request header
-     * The system will ask users to input a restaurant's address 
+     * The system will ask users to input a restaurant's address
      * The system will show information about the total stock in the given restaurant
      * If the restaurant address is blank, the system will show "ADDRESS_BLANK_OR_NOT_PROVIDED"
      * If method is successful, the system will show items that are stocked in the restaurant the quantity of the item
@@ -32,58 +34,61 @@ public class Restaurant {
     @GET
     @Path("/get-total-stock")
 	@Produces("application/json")
-    public Response getTotalStock(@HeaderParam("address") String restaurantAddress) {
+	public Response getTotalStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
-		ServerLog.writeLog("Requested information on total stock in the restaurant at "+restaurantAddress);
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 
-        // if restaurant address not put in
-    	if (restaurantAddress.isBlank()) {
-    		ServerLog.writeLog("Rejected request as restaurant address not specified");
-    		return Response.status(Response.Status.BAD_REQUEST).entity("ADDRESS_BLANK_OR_NOT_PROVIDED").build();
+		ServerLog.writeLog("Requested information on total stock in the restaurant at " + restaurantAddress);
+
+		if (restaurantAddress.isBlank()) {
+			ServerLog.writeLog("Rejected request as restaurant address not specified");
+			return Response.status(Response.Status.BAD_REQUEST).entity("ADDRESS_BLANK_OR_NOT_PROVIDED").build();
 		}
 
 		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-    	// fetch current database connection
+		// fetch current database connection
 		Connection connection = DbConnection.getConnection();
 
-        Statement statement = null;
-        String query = "SELECT stockItem, quantity " +
-                "FROM Within " +
-                "WHERE restaurantAddress ='" + restaurantAddress+"'";
-        try {
-            statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery(query);
-            while (rs.next()) {
-		                // use Json
+		Statement statement = null;
+		String query = "SELECT stockItem, quantity, minQuantity " +
+				"FROM Within " +
+				"WHERE restaurantAddress ='" + restaurantAddress + "'";
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
 				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 
-                String stockItem = rs.getString("StockItem");
-                int quantity = rs.getInt("Quantity");
+				String stockItem = rs.getString("StockItem");
+				int quantity = rs.getInt("Quantity");
+				int minQty = rs.getInt("minQuantity");
 
-		// add stock information to Json array
-                arrayEntryBuilder.add("stockItem", stockItem);
-                arrayEntryBuilder.add("quantity", quantity);
+				arrayEntryBuilder.add("stockItem", stockItem);
+				arrayEntryBuilder.add("quantity", quantity);
+				arrayEntryBuilder.add("belowRequired", (quantity < minQty) ? true : false);
 
 				JsonObject arrayEntry = arrayEntryBuilder.build();
 				responseBuilder.add(arrayEntry);
-            }
-        } catch (SQLException e) {
-        	ServerLog.writeLog("SQL exception occurred when executing query");
-            e.printStackTrace();
+			}
+		} catch (SQLException e) {
+			ServerLog.writeLog("SQL exception occurred when executing query");
+			e.printStackTrace();
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-        } finally {
-            if (statement != null) {
-            	try {
-            		statement.close();
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
 				} catch (SQLException e) {
-            		ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
-            }
-        }
+			}
+		}
 		JsonArray response = responseBuilder.build();
 
-        return Response.status(Response.Status.OK).entity(response.toString()).build();
-    }
+		return Response.status(Response.Status.OK).entity(response.toString()).build();
+	}
 
    /**
     * This method updates the stock for a restaurant when it has received an order
@@ -99,51 +104,51 @@ public class Restaurant {
     public Response receiveOrder(@HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
     	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
 
-    	boolean processedCorrectly = true;
+		boolean processedCorrectly = true;
 
-    	Response.ResponseBuilder response = null;
-        // fetch current database connection
-        Connection connection = DbConnection.getConnection();
+		Response.ResponseBuilder response = null;
+		// fetch current database connection
+		Connection connection = DbConnection.getConnection();
 
-        // variable for logging purposes only
+		// variable for logging purposes only
 		String restaurant = "";
 
-    	// checking order is being sent to the correct restaurant
-    	boolean correctRestaurant=false;
-    	Statement statement = null;
-    	String query = "SELECT restaurantAddress FROM Orders WHERE orderId ='" + orderId + "'";
-    	try {
-    		statement = connection.createStatement();
-    		ResultSet rs = statement.executeQuery(query);
+		//Checking order is being sent to the correct restaurant
+		boolean correctRestaurant = false;
+		Statement statement = null;
+		String query = "SELECT restaurantAddress FROM Orders WHERE orderId ='" + orderId + "'";
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
 
-    		// check if order found
-    		if (!rs.next()) {
-    			ServerLog.writeLog("Order " + orderId + "not found");
-    			response = Response.status(Response.Status.NOT_FOUND).entity("ORDER_NOT_FOUND");
-    			return response.build();
+			// check if order found
+			if (!rs.next()) {
+				ServerLog.writeLog("Order " + orderId + "not found");
+				response = Response.status(Response.Status.NOT_FOUND).entity("ORDER_NOT_FOUND");
+				return response.build();
 			}
 
-    		// if order found, continue
-    		restaurant = rs.getString("restaurantAddress");
-    		if(restaurant.equals(restaurantAddress)) {
-				ServerLog.writeLog("New order received at: " + restaurantAddress + ". Order ID: "+ orderId);
+			// if order found, continue
+			restaurant = rs.getString("restaurantAddress");
+			if (restaurant.equals(restaurantAddress)) {
+				ServerLog.writeLog("New order received at: " + restaurantAddress + ". Order ID: " + orderId);
 				correctRestaurant = true;
-    		}
-    	} catch (SQLException e) {
+			}
+		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
 			if (statement != null) {
-			    try {
-			        statement.close();
-			    } catch(SQLException e) {
-                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-                }
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
 			}
 		}
 
-    	// if check not passed, return response already
+		// if check not passed, return response already
 		if (!correctRestaurant) {
-			ServerLog.writeLog("The order submitted is not for this restaurant. The correct "+
+			ServerLog.writeLog("The order submitted is not for this restaurant. The correct " +
 					"delivery location is " + restaurant + ".");
 			response = Response.status(Response.Status.FORBIDDEN).entity("WRONG_RESTAURANT");
 			return response.build();
@@ -152,14 +157,14 @@ public class Restaurant {
 		// if check passed, move on
 		ServerLog.writeLog("Order ID " + orderId + " matches with requested location: " + restaurantAddress);
 
-    	// retrieving conversion table
+		// retrieving conversion table
 		ServerLog.writeLog("Fetching unit conversion table");
 		HashMap<String, Integer> unitConversion = new HashMap<>();
 
 		statement = null;
-		query= "SELECT stockItem, unitSize from Stock";
+		query = "SELECT stockItem, unitSize from Stock";
 
-		try{
+		try {
 			statement = connection.createStatement();
 			ResultSet rs = statement.executeQuery(query);
 			while (rs.next()) {
@@ -174,7 +179,7 @@ public class Restaurant {
 				try {
 					ServerLog.writeLog("Unit conversion table retrieved successfully");
 					statement.close();
-				} catch(SQLException e) {
+				} catch (SQLException e) {
 					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
 			}
@@ -185,7 +190,7 @@ public class Restaurant {
 		HashMap<String, Integer> receivedOrder = new HashMap<>();
 
 		statement = null;
-		query = "SELECT stockItem, quantity FROM Contains WHERE orderId ='" +orderId+"'";
+		query = "SELECT stockItem, quantity FROM Contains WHERE orderId ='" + orderId + "'";
 
 		try {
 			statement = connection.createStatement();
@@ -209,8 +214,7 @@ public class Restaurant {
 			if (statement != null) {
 				try {
 					statement.close();
-				}
-				catch (SQLException e) {
+				} catch (SQLException e) {
 					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 				}
 			}
@@ -219,7 +223,7 @@ public class Restaurant {
 		// get current levels of ordered stock in the restaurant
 		HashMap<String, Integer> currentStock = new HashMap<>();
 
-		for (Map.Entry<String, Integer> entry: receivedOrder.entrySet()) {
+		for (Map.Entry<String, Integer> entry : receivedOrder.entrySet()) {
 			String stockItem = entry.getKey();
 			ServerLog.writeLog("Retrieving current level of " + stockItem + " at " + restaurantAddress);
 			statement = null;
@@ -253,8 +257,8 @@ public class Restaurant {
 			}
 		}
 
-    	// now, add order items to restaurant stock
-		for (Map.Entry<String, Integer> entry: receivedOrder.entrySet()) {
+		// now, add order items to restaurant stock
+		for (Map.Entry<String, Integer> entry : receivedOrder.entrySet()) {
 			// retrieve stock item
 			String stockItem = entry.getKey();
 			// calculate new quantity
@@ -263,7 +267,7 @@ public class Restaurant {
 			int newQuantity = quantityToAdd + previousQuantity;
 
 			statement = null;
-			String updateQuery = "UPDATE Within SET quantity ='" + newQuantity +"'" + "WHERE stockItem ='" + stockItem +"'";
+			String updateQuery = "UPDATE Within SET quantity ='" + newQuantity + "'" + "WHERE stockItem ='" + stockItem + "'";
 			try {
 				statement = connection.createStatement();
 				statement.executeUpdate(updateQuery);
@@ -282,11 +286,36 @@ public class Restaurant {
 					}
 				}
 			}
+
+			statement = null;
+			updateQuery = "UPDATE StockOrders SET orderStatus = 'Delivered' WHERE orderId ="+orderId;
+			try {
+				statement = connection.createStatement();
+				statement.executeUpdate(updateQuery);
+				ServerLog.writeLog("Order Status set to delivered for order ID "+orderId);
+			} catch (SQLException e) {
+				ServerLog.writeLog("Error when updating stock at restaurant: " + restaurantAddress);
+				e.printStackTrace();
+				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("UPDATE_STOCK_ERROR");
+				processedCorrectly = false;
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}
+
+
 		}
 
 		if (processedCorrectly) {
 			ServerLog.writeLog("Order " + orderId + " received in full by restaurant " + restaurantAddress);
-			response = Response.status(Response.Status.OK).entity("ORDER_RECEIVED");
+
+			JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_RECEIVED").build();
+			response = Response.status(Response.Status.OK).entity(responseJson.toString());
 		}
 
     	return response.build();
@@ -305,46 +334,84 @@ public class Restaurant {
     @Path("/request-order/custom")
 	@POST
 	@Consumes("application/json")
-    public Response requestCustomOrder(@HeaderParam("address") String restaurantAddress, String strOrderContents) {
+	public Response requestCustomOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("custom") String customOrderStr, String strOrderContents) {
 
-    	// fetch current db connection
-    	Connection connection = DbConnection.getConnection();
+		ServerLog.writeLog("Requested order to restaurant " + restaurantAddress);
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			ServerLog.writeLog("Unauthorised to make order");
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
 
-    	// parse request body to retrieve contents
+		// determine if order is custom
+		boolean customOrder = (customOrderStr.equalsIgnoreCase("true")) ? true : false;
+
+		// fetch current db connection
+		Connection connection = DbConnection.getConnection();
+
+		// parse request body to retrieve contents
+		ServerLog.writeLog("Parsing input JSON");
 		JsonArray orderContents = JsonTools.parseArray(strOrderContents);
 
-    	java.util.Date orderDate = new java.util.Date();
-    	java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	String currentTime = sdf.format(orderDate);
-    	int orderId=0;
+		ServerLog.writeLog("Generating delivery date");
+		//added delivery date to stock orders
+		java.util.Date orderDate = new java.util.Date();
+		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		java.text.SimpleDateFormat dayOfweek = new java.text.SimpleDateFormat("EEEE");
+		String currentTime = sdf.format(orderDate);
+		Calendar c = Calendar.getInstance();
+		int orderId = 0;
 
-    	// creating order in StockOrders table
-    	String query = "INSERT INTO StockOrders (orderDateTime, orderStatus) VALUES (?, ?)";
-    			    	    	
-    	try{
-    		PreparedStatement pstmt = connection.prepareStatement(query);
-    		pstmt.setString(1, currentTime);
-    		pstmt.setString(2,"Out for delivery"); //manual set to out for delivery
-    		pstmt.executeUpdate();
-	    		
-    	} catch (SQLException e ) {
-    		e.printStackTrace();
-    	} 
+		try {
+			c.setTime(sdf.parse(currentTime));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 
-    	// getting the orderId of the order we just created
-    	Statement statement = null;
-    	query = "SELECT orderId FROM StockOrders WHERE orderDateTime ='" +currentTime+"'"; 
-    	
-    	try { 
-    		statement = connection.createStatement();
-    		ResultSet rs = statement.executeQuery(query);
-    		while (rs.next()) {
-    			orderId = rs.getInt("orderId");
-    			ServerLog.writeLog("Created order " + orderId + " for restaurant at " + restaurantAddress);
+		if (dayOfweek.format(orderDate).matches("Monday|Tuesday|Wednesday|Thursday|Sunday")) {
+			c.add(Calendar.DATE, 1);
+		} else if (dayOfweek.format(orderDate).contentEquals("Friday")) {
+			c.add(Calendar.DATE, 3);
+		} else if (dayOfweek.format(orderDate).contentEquals("Saturday")) {
+			c.add(Calendar.DATE, 2);
+		}
+
+		String timePeriodRestrictions = this.compare(this.enforceDayLimit(restaurantAddress),this.enforceWeekLimit(restaurantAddress));
+		String dayOfWeekRestrictions = date.format(c.getTime());
+
+		String deliveryDate = this.compare(timePeriodRestrictions, dayOfWeekRestrictions);
+
+		// creating order in StockOrders table
+		ServerLog.writeLog("Adding order to the list");
+		String query = "INSERT INTO StockOrders (orderDateTime, orderStatus, orderDeliveryDate) VALUES (?, ?, ?)";
+
+		try {
+			PreparedStatement pstmt = connection.prepareStatement(query);
+			pstmt.setString(1, currentTime);
+			if (customOrder)
+				pstmt.setString(2, "Pending");
+			else pstmt.setString(2, "Approved");
+			pstmt.setString(3, deliveryDate);
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		// getting the orderId of the order we just created
+		Statement statement = null;
+		query = "SELECT orderId FROM StockOrders WHERE orderDateTime ='" + currentTime + "'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				orderId = rs.getInt("orderId");
+				ServerLog.writeLog("Created order " + orderId + " for restaurant at " + restaurantAddress);
 			}
-    	}catch (SQLException e ) {
-    		e.printStackTrace();
-    	} finally {
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
 			try {
 				statement.close();
 			} catch (SQLException e) {
@@ -352,67 +419,68 @@ public class Restaurant {
 			}
 		}
 
-    	// add order ID and restaurant address to orders table
-    	query = "INSERT INTO Orders (restaurantAddress, orderId) VALUES (?, ?)";
+		// add order ID and restaurant address to orders table
+		query = "INSERT INTO Orders (restaurantAddress, orderId) VALUES (?, ?)";
 		PreparedStatement pstmt = null;
-    	try{
+		try {
 			pstmt = connection.prepareStatement(query);
-    		pstmt.setString(1, restaurantAddress);
-    		pstmt.setInt(2, orderId); //same orderId as above
-    		pstmt.executeUpdate();
-    	}catch (SQLException e ) {
-    		e.printStackTrace();
-    	}finally {
+			pstmt.setString(1, restaurantAddress);
+			pstmt.setInt(2, orderId); //same orderId as above
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
 			try {
 				pstmt.close();
 			} catch (SQLException e) {
 				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 			}
 		}
-    	
-    	// getting stock items from Stock table
+
+		//getting stock items from Stock table
 		pstmt = null;
 
-    	for (JsonValue orderEntryValue: orderContents) {
-    		if (!(orderEntryValue instanceof JsonObject)) {
-    			ServerLog.writeLog("Order entry misspecified");
-    			continue;
-    		}
-
-    		JsonObject orderEntry = (JsonObject) orderEntryValue;
-
-    		if (!orderEntry.containsKey("stockItem") || !orderEntry.containsKey("quantity")) {
-    			ServerLog.writeLog("Order entry misspecified. Skipping this entry");
-    			continue;
+		for (JsonValue orderEntryValue : orderContents) {
+			if (!(orderEntryValue instanceof JsonObject)) {
+				ServerLog.writeLog("Order entry misspecified");
+				continue;
 			}
 
-    		String stockItem = orderEntry.getString("stockItem");
-    		int quantity = orderEntry.getInt("quantity");
+			JsonObject orderEntry = (JsonObject) orderEntryValue;
 
-    		query = "INSERT INTO Contains (orderId, quantity, stockItem) VALUES (?, ?, ?)";
-    		pstmt = null;
+			if (!orderEntry.containsKey("stockItem") || !orderEntry.containsKey("quantity")) {
+				ServerLog.writeLog("Order entry misspecified. Skipping this entry");
+				continue;
+			}
 
-    		try {
+			String stockItem = orderEntry.getString("stockItem");
+			int quantity = orderEntry.getInt("quantity");
+
+			query = "INSERT INTO Contains (orderId, quantity, stockItem) VALUES (?, ?, ?)";
+			pstmt = null;
+
+			try {
 				pstmt = connection.prepareStatement(query);
-    			pstmt.setInt(1, orderId);
-    			pstmt.setInt(2, quantity);
-    			pstmt.setString(3, stockItem);
-    			pstmt.executeUpdate();
-    			ServerLog.writeLog("Order " + orderId + " contains " + stockItem + " at quantity " + quantity);
-    		} catch (SQLException e ) {
-    			e.printStackTrace();
-    		} finally {
-    			try {
-    				pstmt.close();
-    			} catch (SQLException e) {
-    				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-    			}
-    		}
-    	}
+				pstmt.setInt(1, orderId);
+				pstmt.setInt(2, quantity);
+				pstmt.setString(3, stockItem);
+				pstmt.executeUpdate();
+				ServerLog.writeLog("Order " + orderId + " contains " + stockItem + " at quantity " + quantity);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
 
-    	ServerLog.writeLog("Order " + orderId + " has been accepted");
-    	return Response.status(Response.Status.ACCEPTED).entity("ORDER_ACCEPTED").build();
-    }
+		ServerLog.writeLog("Order " + orderId + " has been accepted");
+		JsonObject responseJson = Json.createObjectBuilder().add("orderId", orderId).build();
+		return Response.status(Response.Status.ACCEPTED).entity(responseJson.toString()).build();
+	}
 
 
 	/**
@@ -424,110 +492,169 @@ public class Restaurant {
 	 */
 	@Path("/request-order")
 	@GET
-    public Response requestStandardOrder(@HeaderParam("address") String restaurantAddress) {
+	public Response requestStandardOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
 
-    	        // fetch db connection
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
+
+		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 
 		// create JsonArrayBuilder to contain the contents of standard order
 		JsonArrayBuilder standardOrderArrayBuilder = Json.createArrayBuilder();
 
-    	        // getting standard quantities from Stock table
+		//Getting standard quantities from Stock table
 		Statement statement = null;
-    	String query = "SELECT stockItem, typicalUnitsOrdered FROM Stock";
-    	// selecting all the stock for a standard order
-    	try {
-    		statement = connection.createStatement();
-    		ResultSet rs = statement.executeQuery(query);
-    		while (rs.next()) {
+		String query = "SELECT stockItem, typicalUnitsOrdered FROM Stock";
+		//selecting all the stock for a standard order
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
 				JsonObjectBuilder orderEntryBuilder = Json.createObjectBuilder();
 
-    			String stockItem = rs.getString("stockItem");
-    			int typicalUnits = rs.getInt("typicalUnitsOrdered");
+				String stockItem = rs.getString("stockItem");
+				int typicalUnits = rs.getInt("typicalUnitsOrdered");
 
-    			orderEntryBuilder.add("stockItem", stockItem);
-    			orderEntryBuilder.add("quantity", typicalUnits);
+				orderEntryBuilder.add("stockItem", stockItem);
+				orderEntryBuilder.add("quantity", typicalUnits);
 
-    			JsonObject orderEntry = orderEntryBuilder.build();
-    			standardOrderArrayBuilder.add(orderEntry);
-    		}
-    	} catch (SQLException e ) {
-    		e.printStackTrace();
-    	} finally {
+				JsonObject orderEntry = orderEntryBuilder.build();
+				standardOrderArrayBuilder.add(orderEntry);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
 			try {
 				statement.close();
 			} catch (SQLException e) {
 				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
 			}
-    	}
+		}
 
-    	JsonArray standardOrderArray = standardOrderArrayBuilder.build();
+		JsonArray standardOrderArray = standardOrderArrayBuilder.build();
 
-		return requestCustomOrder(restaurantAddress, standardOrderArray.toString());
-    }
-	    			    		   
+		return requestCustomOrder(idToken, restaurantAddress, "false", standardOrderArray.toString());
+	}
 
 
     /**
      * This method is used to check whether the stock at restaurant is above the minimum stock level
-     * Users are required to input the restaurant's address 
+     * Users are required to input the restaurant's address
      * If there is an item of stock below the minimum, the system will show "Current stock of "+ stockItem +" at "+ restaurantAddress + " is below minimum stock levels by "+deficit+"."
      * @param restaurantAddress address of the restaurant, provided in "address" header parameter
-     * @return stock which is under the minimum stock level 
+     * @return stock which is under the minimum stock level
      */
 	@Path("/min-stock-check")
 	@GET
 	@Produces("application/json")
-    public Response minStockCheck(@HeaderParam("address") String restaurantAddress) {
+	public Response minStockCheck(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
+
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
+
+
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 
 		// create JsonArrayBuilder
 		JsonArrayBuilder stockArrayBuilder = Json.createArrayBuilder();
 
-    	Statement statement = null;
-    	String query = "SELECT stockItem, quantity, minQuantity " +
-    				   "FROM Within " +            
-                       "WHERE restaurantAddress='"+restaurantAddress+"'";
-                           
-    	try {
-    		statement = connection.createStatement();
-    		ResultSet rs = statement.executeQuery(query);
-            while (rs.next()) {
+		Statement statement = null;
+		String query = "SELECT stockItem, quantity, minQuantity " +
+				"FROM Within " +
+				"WHERE restaurantAddress='" + restaurantAddress + "'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
 				JsonObjectBuilder stockEntryBuilder = Json.createObjectBuilder();
 
-                String stockItem = rs.getString("StockItem");
-                int quantity = rs.getInt("quantity");
+				String stockItem = rs.getString("StockItem");
+				int quantity = rs.getInt("quantity");
+				int minQuantity = rs.getInt("minQuantity");
+
+				stockEntryBuilder.add("stockItem", stockItem);
+				stockEntryBuilder.add("quantity", quantity);
+				stockEntryBuilder.add("minQuantity", minQuantity);
+
+				if (quantity < minQuantity) {
+					int deficit = minQuantity - quantity;
+					ServerLog.writeLog("Current stock of " + stockItem + " at " + restaurantAddress + " is below minimum stock levels by " + deficit + ".");
+				}
+
+				JsonObject stockEntry = stockEntryBuilder.build();
+				stockArrayBuilder.add(stockEntry);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (statement != null) {
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+				}
+			}
+		}
+		JsonArray stockArray = stockArrayBuilder.build();
+
+		return Response.status(Response.Status.OK).entity(stockArray.toString()).build();
+
+	}
+
+	/**
+	* method that gets the minimum stock
+	*/
+	@Path("/get-min-stock")
+	@GET
+	@Consumes("application/json")
+	public Response getMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address) {
+        Response.ResponseBuilder res = null;
+        Connection connection = DbConnection.getConnection();
+
+        if (!Authorisation.checkAccess(idToken, "restaurant")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
+        Statement statement = null;
+        String query = "SELECT stockItem, minQuantity from Within WHERE restaurantAddress ='" + address + "'";
+        JsonArrayBuilder minStockBuilder = Json.createArrayBuilder();
+        try {
+
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+
+            while (rs.next()) {
+                JsonObjectBuilder stockEntryBuilder = Json.createObjectBuilder();
+
+                String stockItem = rs.getString("stockItem");
                 int minQuantity = rs.getInt("minQuantity");
 
                 stockEntryBuilder.add("stockItem", stockItem);
-                stockEntryBuilder.add("quantity", quantity);
-                stockEntryBuilder.add("minQuantity", minQuantity);
+                stockEntryBuilder.add("quantity", minQuantity);
+                minStockBuilder.add(stockEntryBuilder);
 
-		// if quantity is below minimum stock
-                if(quantity < minQuantity){
-                	int deficit = minQuantity - quantity;
-                	ServerLog.writeLog("Current stock of "+ stockItem +" at "+ restaurantAddress + " is below minimum stock levels by "+deficit+".");
-                }
-
-                JsonObject stockEntry = stockEntryBuilder.build();
-                stockArrayBuilder.add(stockEntry);
+                ServerLog.writeLog("Stock Item: " + stockItem + " Current minimum stock level: " + minQuantity + "\n");
             }
-            } catch (SQLException e ) {
-                e.printStackTrace();
-            } finally {
-                if (statement != null) {
-                	try {
-					statement.close();
-                	} catch (SQLException e) {
-                		ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-                	}
+            JsonArray minStock = minStockBuilder.build();
+            res = Response.status(Response.Status.OK).entity(minStock.toString());
+        } catch (SQLException e) {
+            res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_QUERYING_MIN_STOCK_LEVEL");
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
                 }
             }
-    	JsonArray stockArray = stockArrayBuilder.build();
-
-    	return Response.status(Response.Status.OK).entity(stockArray.toString()).build();
-	}
+        }
+    }
 
    /**
     * This method is used to allow the minimum stock level to be changed
@@ -536,13 +663,20 @@ public class Restaurant {
     * If unsuccessful, the system will state "SQL exception occurred when closing SQL statement"
     * @param restaurantAddress address of the restaurant, provided in "address" header parameter
     * @param strStockObject stringified JSON array containing minimum stock order details
-    * @return the updated stock level     
+    * @return the updated stock level
     */
     @Path("/update-min-stock")
     @POST
     @Consumes("application/json")
-    public Response updateMinStock(@HeaderParam("address") String restaurantAddress, String strStockObject)
+    public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strStockObject)
         {
+
+        	ServerLog.writeLog("Requested change in minimum threshold at " + restaurantAddress);
+
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
+
         	// fetch db connection
             Connection connection = DbConnection.getConnection();
             Statement statement = null;
@@ -551,13 +685,18 @@ public class Restaurant {
             if (!(stockObject.containsKey("stockItem") && stockObject.containsKey("quantity")))
 				return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
 
+            ServerLog.writeLog("Request specified correctly");
+
             String stockItem = stockObject.getString("stockItem");
-            int min = stockObject.getInt("quantity");
+            String minQtyStr = stockObject.getString("quantity");
+
+            int min = Integer.parseInt(minQtyStr);
 
             String query = "UPDATE Within SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
                            
             try {
             	statement = connection.createStatement();
+            	ServerLog.writeLog("Created SQL statement");
             	statement.executeUpdate(query);
             	ServerLog.writeLog("Minimum stock levels updated to: " + min);
             
@@ -573,23 +712,28 @@ public class Restaurant {
                 }
             }
 
-            return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
+            JsonObject responseJson = Json.createObjectBuilder().add("message", "MIN_STOCK_VALUE_UPDATED").build();
+            return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+
         }
 
       /**
-       * This method creates a meal within a restaurant 
+       * This method creates a meal within a restaurant
        * Users are required to input the item and the quantity needed to create the meal
        * The system will check whether the quantity of the item is below the minimum stock.
        * If the quantity of one item is below the minimum stock, the system will show "STOCK_TOO_LOW"
        * If successful, the system will show "MEAL_CREATED"
        * @param restaurantAddress address of the restaurant where the meal is created, provided in "address" header parameter
-       * @param meal created from the stock items 
+       * @param meal created from the stock items
        * @return the item that has been created
        */
 	@Path("/create-meal")
 	@GET
-	public Response createMeal(@HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
+	public Response createMeal(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("meal") String meal) {
 
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+				return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+			}
 		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 
@@ -623,7 +767,6 @@ public class Restaurant {
 		}
 
 		// check if enough ingredients in stock
-
 		for (Map.Entry<String, Integer> ingredient : mealIngredients.entrySet()) {
 			String stockItem = ingredient.getKey();
 			int quantity = ingredient.getValue();
@@ -658,7 +801,7 @@ public class Restaurant {
 		if (!enoughStock)
 			return Response.status(Response.Status.FORBIDDEN).entity("STOCK_TOO_LOW").build();
 
-		// otherwise, create meal... yay! food!
+		// otherwise, create meal
 		for (Map.Entry<String, Integer> ingredient: mealIngredients.entrySet()) {
 			String stockItem = ingredient.getKey();
 			int quantity = ingredient.getValue();
@@ -679,56 +822,94 @@ public class Restaurant {
 					}
 				}
 			}
+
+			java.util.Date mealDate = new java.util.Date();
+			Statement statement2 = null;
+			String query2 = "INSERT INTO purchaseHistory(mealId, dateTime, restaurantAddress) VALUES("+meal+", "+mealDate+", "+restaurantAddress+")";
+			try {
+				statement2 = connection.createStatement();
+				statement2.executeUpdate(query2);
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement2 != null) {
+					try {
+						statement2.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}
 		}
 		ServerLog.writeLog("Item: "+meal+" created.\n");
 
-		return Response.status(Response.Status.OK).entity("MEAL_CREATED").build();
-
+		JsonObject responseJson = Json.createObjectBuilder().add("message", "MEAL_CREATED").build();
+		return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 	}
 
        /**
 	* Method to update the restaurant stock allowing for manual adjustment of stock levels
         * If successsful, system shows "STOCK_UPDATED"
 	* If unsuccessful, system shows "ERROR_UPDATING_STOCK"
-	* @param restaurantAddress address of the restaurant where the stock is updated, provided in "address" header parameter
+	* @param address address of the restaurant where the stock is updated, provided in "address" header parameter
 	* @param requestBody to request stock
 	* @return updated stock
 	*/
 	@POST
 	@Path("/update-stock")
-	public Response updateStock(@HeaderParam("address") String restaurantAddress, String requestBody)
+	@Consumes("application/json")
+	@Produces("application/json")
+	public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
 	{
-		Response.ResponseBuilder res = null;
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
+
+		ServerLog.writeLog("Updating restaurant stock at " + address);
+		// fetch db connection
 		Connection connection = DbConnection.getConnection();
 
-		JsonObject requestJson = JsonTools.parseObject(requestBody);
+		// parse request body
+		JsonArray stockToUpdate = JsonTools.parseArray(requestBody);
 
-		if (!(requestJson.containsKey("stockItem") || requestJson.containsKey("quantity")))
-			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
+		for (JsonValue entry: stockToUpdate) {
+			// check if array entry is a JSON
+			if (!(entry instanceof JsonObject)) {
+				ServerLog.writeLog("Order entry misspecified. Skipping entry.");
+				continue;
+			}
 
-		String stockItem = requestJson.getString("stockItem");
-		int differenceInQuantity = requestJson.getInt("quantity");
+			JsonObject entryObj = (JsonObject) entry;
 
-		int currentQuantity = -1;
-		Statement statement = null;
-		String query = "SELECT stockItem, quantity " +
-				"FROM Within " +
-				"WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
-		try {
-			statement = connection.createStatement();
-			ResultSet rs = statement.executeQuery(query);
+			// check if JSON correctly specified
+			if (!(entryObj.containsKey("stockItem") && entryObj.containsKey("quantity"))) {
+				ServerLog.writeLog("Order entry misspecified. Skipping entry.");
+				continue;
+			}
 
-			// use current quantity
-			rs.next();
-			currentQuantity = rs.getInt("quantity");
-			ServerLog.writeLog("Previous stock of "+stockItem + ": " + currentQuantity);
+			String stockItem = entryObj.getString("stockItem");
+			int requestedQuantity = entryObj.getInt("quantity");
 
+			// retrieve current level of given stock
+			int currentQuantity = 0;
 
-		} catch (SQLException e ) {
-			res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_QUERYING_CURRENT_STOCK");
-			e.printStackTrace();
-		} finally {
-			if (statement != null) {
+			Statement statement = null;
+			String query = "SELECT stockItem, quantity " +
+					"FROM Within " +
+					"WHERE stockItem='" + stockItem + "' AND restaurantAddress ='" + address + "'";
+			try {
+				statement = connection.createStatement();
+				ResultSet rs = statement.executeQuery(query);
+
+				while (rs.next()) {
+					currentQuantity = rs.getInt("quantity");
+					System.out.println("Previous stock of " + stockItem + ": " + currentQuantity + " at " + address);
+				}
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
 				if (statement != null) {
 					try {
 						statement.close();
@@ -737,52 +918,58 @@ public class Restaurant {
 					}
 				}
 			}
-		}
 
-		// differenceInQuantity - how much the stock amount has been changed by 
-		int newQuantity = currentQuantity + differenceInQuantity;
+			// update stock to the new level
+			int newQuantity = currentQuantity + requestedQuantity;
 
-		statement = null;
-		query = "UPDATE Within " +
-				"SET quantity ='"+newQuantity+
-				"' WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
-		try {
-			statement = connection.createStatement();
-			statement.executeUpdate(query);
-			ServerLog.writeLog("Updated stock of "+stockItem + ": " + newQuantity);
-			res = Response.status(Response.Status.OK).entity("STOCK_UPDATED");
-		} catch (SQLException e ) {
-			res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR_UPDATING_STOCK");
-			e.printStackTrace();
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			statement = null;
+			query = "UPDATE Within " +
+					"SET quantity ='" + newQuantity +
+					"' WHERE stockItem='" + stockItem + "' AND restaurantAddress ='" + address + "'";
+			try {
+				statement = connection.createStatement();
+				statement.executeUpdate(query);
+				ServerLog.writeLog("Updated stock of " + stockItem + ": " + newQuantity + " at " + address);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
 				}
 			}
-		}
 
-		return res.build();
-	}
-	
+        }
+
+        JsonObject responseJson = Json.createObjectBuilder().add("message", "STOCK_UPDATED").build();
+
+        return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+    }
+
+
 	/**
 	* Method to get the price of a meal item within a restaurant
 	* If successful, system will show "Item: " + meal + " Cost: " + price"
 	* @param meal which has been created previously by the restaurant
-	* @return the meal price 
+	* @return the meal price
 	*/
 	@GET
 	@Path("/get-price")
-	public Response getPrice(@HeaderParam("meal") String meal) {
+	@Produces("application/json")
+	public Response getPrice(@HeaderParam("Authorization") String idToken, @HeaderParam("meal") String meal) {
 		Connection connection = DbConnection.getConnection();
 
-		// inititalize price 
+		if (!Authorisation.checkAccess(idToken, "restaurant")) {
+			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+		}
+
 		double price = -1;
 
 		Statement statement = null;
-		String query = "SELECT price FROM Meals WHERE mealId ='"+meal+"'";
+		String query = "SELECT price FROM Meals WHERE mealId ='" + meal + "'";
 
 		try {
 			statement = connection.createStatement();
@@ -793,7 +980,7 @@ public class Restaurant {
 				ServerLog.writeLog("Item: " + meal + " Cost: " + price + "\n");
 			}
 
-		} catch (SQLException e ) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
 			if (statement != null) {
@@ -805,6 +992,362 @@ public class Restaurant {
 			}
 		}
 
-		return Response.status(Response.Status.OK).entity(String.format("%2.f", price)).build();
+		JsonObjectBuilder mealPriceBuilder = Json.createObjectBuilder();
+		mealPriceBuilder.add("meal", meal);
+		mealPriceBuilder.add("price", price);
+
+		JsonObject mealPrice = mealPriceBuilder.build();
+
+		return Response.status(Response.Status.OK).entity(mealPrice.toString()).build();
 	}
-}    
+
+
+	/*
+	* method to get a list of the restaurants
+	* @param idToken to check access for manager
+	* @return the restaurant list
+	*/
+	@GET
+        @Path("/get-list")
+        @Produces("application/json")
+        public Response getRestaurantList(@HeaderParam("Authorization") String idToken) {
+
+            if (!Authorisation.checkAccess(idToken, "manager")) {
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+            }
+
+
+            JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+            // fetch current database connection
+            Connection connection = DbConnection.getConnection();
+
+            Statement statement = null;
+            String query = "SELECT restaurantAddress " +
+                    "FROM Restaurants ";
+            try {
+                statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(query);
+                while (rs.next()) {
+                    JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+
+                    String restaurantAddress = rs.getString("RestaurantAddress");
+
+                    arrayEntryBuilder.add("address", restaurantAddress);
+
+                    JsonObject arrayEntry = arrayEntryBuilder.build();
+                    responseBuilder.add(arrayEntry);
+                }
+            } catch (SQLException e) {
+                ServerLog.writeLog("SQL exception occurred when executing query");
+                e.printStackTrace();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+            } finally {
+                if (statement != null) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                    }
+                }
+            }
+            JsonArray response = responseBuilder.build();
+
+            return Response.status(Response.Status.OK).entity(response.toString()).build();
+	    }
+
+
+
+		/*
+	    * method to get todays deliveries.
+	    * @param idToken
+	    * @return the orders with delivery date today.
+	    */
+	    @GET
+	    @Path("/get-todays-orders")
+	    @Produces("application/json")
+	    public Response getTodaysOrders(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress) {
+
+		    if (!Authorisation.checkAccess(idToken, "restaurant")) {
+	            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+	        }
+
+	        Response.ResponseBuilder res = null;
+
+	        Connection connection = DbConnection.getConnection();
+
+	        JsonArrayBuilder pendingOrdersBuilder = Json.createArrayBuilder();
+
+
+	        java.util.Date todayDate= new java.util.Date();
+	        java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+	        String today = date.format(todayDate.getTime());
+
+
+	        //Gets orderId and date/time for orders with status pending.
+	        Statement statement = null;
+	        String query = "SELECT DISTINCT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
+	                "FROM StockOrders, Orders WHERE StockOrders.orderDeliveryDate = '"+today+"' AND Orders.restaurantAddress ='"+ restaurantAddress+"'";
+	        try {
+	            statement = connection.createStatement();
+	            ResultSet rs = statement.executeQuery(query);
+
+	            JsonObjectBuilder orderEntry = Json.createObjectBuilder();
+
+	            while(rs.next()) {
+	                int orderId = rs.getInt("StockOrders.orderId");
+	                Date dateTime = rs.getDate("StockOrders.orderDateTime");
+	                String address = rs.getString("Orders.restaurantAddress");
+
+	                orderEntry.add("orderId", orderId);
+	                orderEntry.add("dateTime", dateTime.toString());
+	                orderEntry.add("address", address);
+
+	                //Gets contents of the order.
+	                JsonArrayBuilder orderContents = Json.createArrayBuilder();
+	                Statement innerStatement = null;
+	                String innerQuery = "SELECT quantity, stockItem FROM Contains WHERE orderId="+orderId;
+
+	                try {
+	                    innerStatement = connection.createStatement();
+	                    ResultSet innerRs = innerStatement.executeQuery(innerQuery);
+
+	                    while(innerRs.next()) {
+	                        String stockItem = innerRs.getString("stockItem");
+	                        int quantity = innerRs.getInt("quantity");
+	                        JsonObjectBuilder stockEntry = Json.createObjectBuilder();
+
+	                        stockEntry.add("stockItem", stockItem);
+	                        stockEntry.add("quantity", quantity);
+
+	                        orderContents.add(stockEntry);
+	                    }
+	                }catch (SQLException e ) {
+	                    e.printStackTrace();
+	                }finally {
+	                    if (innerStatement != null) {
+	                        try {
+	                            innerStatement.close();
+	                        } catch (SQLException e) {
+	                            ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+	                        }
+	                    }
+	                }
+
+	                orderEntry.add("contents", orderContents);
+
+	                pendingOrdersBuilder.add(orderEntry);
+	            }
+
+	            res = Response.status(Response.Status.OK).entity(pendingOrdersBuilder.build().toString());
+
+	        } catch (SQLException e ) {
+	            e.printStackTrace();
+	        } finally {
+	            if (statement != null) {
+	                try {
+	                    statement.close();
+	                } catch (SQLException e) {
+	                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+	                }
+	            }
+	        }
+
+	        return res.build();
+			}
+
+
+
+
+
+
+
+	//Ensure restaurant hasn't had order in last week days.
+	public String enforceWeekLimit(String restaurantAddress)
+    {
+
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
+		Calendar d = Calendar.getInstance();
+		java.util.ArrayList<Integer> idList = new java.util.ArrayList<Integer>();
+		java.util.ArrayList<Integer> weekList = new java.util.ArrayList<Integer>();
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		int orderId=0;
+
+		Statement statement = null;
+		String query = "SELECT orderId FROM Orders WHERE restaurantAddress = '" + restaurantAddress+"'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				orderId = rs.getInt("orderId");
+				idList.add(orderId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			}
+		}
+
+		boolean freeweek=false;
+		while(freeweek==false){
+
+		    String currentTime = date.format(d.getTime());
+		    d.add(Calendar.DATE, -7);
+		    String timeBack = date.format(d.getTime());
+		    d.add(Calendar.DATE,7);
+
+
+			for (int i = 0; i<idList.size(); i++){
+				orderId = idList.get(i);
+
+				statement = null;
+				query = "SELECT orderId from StockOrders WHERE orderId ="+orderId+" AND (orderDeliveryDate BETWEEN '"+timeBack+"' AND '"+currentTime+"')";
+
+					try {
+						statement = connection.createStatement();
+						ResultSet rs = statement.executeQuery(query);
+						while (rs.next()) {
+							orderId = rs.getInt("orderId");
+							weekList.add(orderId);
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						try {
+							statement.close();
+						} catch (SQLException e) {
+							//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+						}
+					}
+		}
+
+		if(weekList.size()<2){
+			freeweek=true;
+
+		}else{
+			d.add(Calendar.DATE, 1);
+			weekList.clear();
+
+		}
+
+
+    }
+
+		String deliveryDate = date.format(d.getTime());
+		return deliveryDate;
+
+	}
+
+	//Ensure restaurant hasn't had order in last 3 days.
+	public String enforceDayLimit(String restaurantAddress)
+    {
+
+		// fetch db connection
+		Connection connection = DbConnection.getConnection();
+
+		Calendar d = Calendar.getInstance();
+		java.util.ArrayList<Integer> idList = new java.util.ArrayList<Integer>();
+		java.util.ArrayList<Integer> weekList = new java.util.ArrayList<Integer>();
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		int orderId=0;
+
+		Statement statement = null;
+		String query = "SELECT orderId FROM Orders WHERE restaurantAddress = '" + restaurantAddress+"'";
+
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+			while (rs.next()) {
+				orderId = rs.getInt("orderId");
+				idList.add(orderId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+			}
+		}
+
+		boolean freeweek=false;
+		while(freeweek==false){
+
+
+	    String currentTime = date.format(d.getTime());
+	    d.add(Calendar.DATE, -2);
+	    String timeBack = date.format(d.getTime());
+	    d.add(Calendar.DATE,2);
+
+		for (int i = 0; i<idList.size(); i++){
+			orderId = idList.get(i);
+
+			statement = null;
+			query = "SELECT orderId from StockOrders WHERE orderId ="+orderId+" AND (orderDeliveryDate BETWEEN '"+timeBack+"' AND '"+currentTime+"')";
+
+				try {
+					statement = connection.createStatement();
+					ResultSet rs = statement.executeQuery(query);
+					while (rs.next()) {
+						orderId = rs.getInt("orderId");
+						weekList.add(orderId);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						//ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+
+			}
+
+		if(weekList.size()<1){
+			freeweek=true;
+
+		}else{
+			d.add(Calendar.DATE, 1);
+			weekList.clear();
+		}
+		}
+
+		String deliveryDate = date.format(d.getTime());
+
+		return deliveryDate;
+    }
+
+
+
+	//Compares two dates and selects the latest.
+	public String compare(String firstdate, String seconddate){
+
+		java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		String deliveryDate="";
+
+		try {
+			java.util.Date date1 = date.parse(firstdate);
+			java.util.Date date2 = date.parse(seconddate);
+
+			if(date1.compareTo(date2)>0){
+				deliveryDate=firstdate;
+			}else{
+				deliveryDate=seconddate;
+			}
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(deliveryDate);
+		return deliveryDate;
+	}
+
+}
