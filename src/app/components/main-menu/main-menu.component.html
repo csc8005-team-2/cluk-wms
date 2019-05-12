@@ -3,7 +3,7 @@
     <a mat-raised-button routerLink="/warehouse/total-stock">Total Stock</a>
     <a mat-raised-button routerLink="/warehouse/add-stock">Add Stock</a>
     <a mat-raised-button routerLink="/warehouse/restaurant-orders">View Restaurant Orders</a>
-    <a mat-raised-button routerLink="/warehouse/warehouse-manager">Check Stock Threshold</a>
+    <a mat-raised-button *ngIf="checkPermissions().manager" routerLink="/warehouse/warehouse-manager">Check Stock Threshold</a>
     <a mat-raised-button routerLink="/warehouse/warehouse-stock-remove">Remove Stock</a>
   </span>
 
@@ -11,7 +11,7 @@
     <a mat-raised-button routerLink="/restaurant/total-stock">Total Stock</a>
     <a mat-raised-button routerLink="/restaurant/receive-stock">Receive Stock</a>
     <a mat-raised-button routerLink="/restaurant/order-stock">Order Stock</a>
-    <a mat-raised-button routerLink="/restaurant/restaurant-manager">Check Stock Thresholds</a>
+    <a mat-raised-button *ngIf="checkPermissions().manager" routerLink="/restaurant/restaurant-manager">Check Stock Thresholds</a>
     <a mat-raised-button routerLink="/restaurant/restaurant-stock-remove">Remove Stock</a>
     <a mat-raised-button routerLink="/restaurant/sales">Sales</a>
   </span>
