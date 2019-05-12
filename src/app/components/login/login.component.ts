@@ -17,22 +17,36 @@ export class LoginComponent implements OnInit {
 
   login(username: string, password: string) {
     this.wrongCredentials = false;
-    this.session.login(username, password).subscribe(res => {
-      let prefix = '';
-      if (this.session.permissions.manager) {
-        this.router.navigate(['accounts']);
-        return;
-      } else if (this.session.permissions.driver) {
-        this.router.navigate(['driver']);
-        return;
-      } else {
-        if (this.session.permissions.restaurant) {
-          prefix = 'restaurant';
-        } else if (this.session.permissions.warehouse) {
-          prefix = 'warehouse';
+    this.session.loginSub = this.session.login(username, password).subscribe(res => {
+      this.session.getPermissions().subscribe(_permissions => {
+        this.session.permissions = _permissions;
+        this.session.setCookie('restaurant', (this.session.permissions.restaurant) ? 'true' : 'false', 90, '/');
+        this.session.setCookie('warehouse', (this.session.permissions.warehouse) ? 'true' : 'false', 90, '/');
+        this.session.setCookie('driver', (this.session.permissions.driver) ? 'true' : 'false', 90, '/');
+        this.session.setCookie('manager', (this.session.permissions.manager) ? 'true' : 'false', 90, '/');
+
+        let prefix = '';
+        if (this.session.permissions.manager) {
+          this.router.navigate(['/accounts']).then(() => {
+            return;
+          });
+        } else if (this.session.permissions.driver) {
+          this.router.navigate(['/driver']).then(() => {
+            return;
+          });
+          return;
+        } else {
+          if (this.session.permissions.restaurant) {
+            prefix = '/restaurant';
+          } else if (this.session.permissions.warehouse) {
+            prefix = '/warehouse';
+          }
+          this.router.navigate([prefix + '/total-stock']).then(() => {
+            return;
+          });
         }
-        this.router.navigate([prefix + '/total-stock']);
-      }
+      });
+
     }, err => {
       if (err.error === 'WRONG_CREDENTIALS') {
         this.wrongCredentials = true;

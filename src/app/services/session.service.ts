@@ -21,6 +21,7 @@ export class SessionService {
   private idToken = '';
   private venueAddress: string;
   public permissions = {restaurant: false, warehouse: false, driver: false, manager: false};
+  public loginSub: any;
 
   constructor(private http: HttpClient) {
     // check for cookies to avoid mess on refreshing
@@ -36,7 +37,7 @@ export class SessionService {
   }
 
   // methods for storing cookies.. yummy!
-  private getCookie(name: string) {
+  public getCookie(name: string) {
     const ca: Array<string> = document.cookie.split(';');
     const caLen: number = ca.length;
     const cookieName = `${name}=`;
@@ -51,11 +52,11 @@ export class SessionService {
     return '';
   }
 
-  private deleteCookie(name, path) {
+  public deleteCookie(name, path) {
     this.setCookie(name, '', -1, path);
   }
 
-  private setCookie(name: string, value: string, expireDays: number, path: string = '') {
+  public setCookie(name: string, value: string, expireDays: number, path: string = '') {
     const d: Date = new Date();
     d.setTime(d.getTime() + expireDays * 24 * 60 * 60 * 1000);
     const expires = `expires=${d.toUTCString()}`;
@@ -79,15 +80,6 @@ export class SessionService {
         // set cookies for better refresh
         this.setCookie('token', this.idToken, 90, '/');
         this.setCookie('address', this.venueAddress, 90, '/');
-
-        // establish permissions
-        this.getPermissions().subscribe(_permissions => {
-          this.permissions = _permissions;
-          this.setCookie('restaurant', (this.permissions.restaurant) ? 'true' : 'false', 90, '/');
-          this.setCookie('warehouse', (this.permissions.warehouse) ? 'true' : 'false', 90, '/');
-          this.setCookie('driver', (this.permissions.driver) ? 'true' : 'false', 90, '/');
-          this.setCookie('manager', (this.permissions.manager) ? 'true' : 'false', 90, '/');
-          }, err => {console.log(err); });
       }) /* ,
       catchError(this.handleError<IdToken>('login')) */
     );

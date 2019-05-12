@@ -20,7 +20,7 @@ const routes: Routes = [
   { path: '', component: LoginComponent},
   { path: 'warehouse/warehouse-manager', component: WarehouseManagerComponent},
   { path: 'warehouse/warehouse-stock-remove', component: WarehouseStockRemoveComponent},
-  { path: 'restaurant/query-stock', component: QueryStockComponent},
+  { path: 'restaurant/total-stock', component: QueryStockComponent},
   { path: 'restaurant/receive-stock', component: ReceiveStockComponent},
   { path: 'restaurant/order-stock', component: OrderStockComponent},
   { path: 'restaurant/restaurant-manager', component: RestaurantManagerComponent},
