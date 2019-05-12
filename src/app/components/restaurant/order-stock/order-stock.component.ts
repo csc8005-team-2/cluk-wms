@@ -69,7 +69,9 @@ export class OrderStockComponent implements OnInit {
       });
     } else {
       this.session.requestStandardOrder(this.session.getVenueAddress()).subscribe(res => {
-        window.alert('Order has been sent to the warehouse! Order number: ' + res.orderId);
+        this.session.sendOrder(this.session.getVenueAddress(), res.orderId).subscribe(sendRes => {
+          window.alert('Order has been sent to the warehouse! Order number: ' + res.orderId);
+        });
       });
     }
   }

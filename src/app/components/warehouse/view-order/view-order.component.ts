@@ -31,8 +31,10 @@ export class ViewOrderComponent implements OnInit {
   acceptOrder() {
     this.session.approveOrder(this.orderAddress, this.orderId).subscribe(res => {
       if (res.message === 'APPROVED_ORDER') {
-        window.alert('Order ' + this.orderId + ' has been accepted for dispatch to ' + this.orderAddress + '!');
-        this.dialogRef.close(true);
+        this.session.sendOrder(this.session.getVenueAddress(), this.orderId).subscribe(res => {
+          window.alert('Order ' + this.orderId + ' has been accepted for dispatch to ' + this.orderAddress + '!');
+          this.dialogRef.close(true);
+        });
       }
     }, err => console.log(err));
   }
