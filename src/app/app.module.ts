@@ -27,7 +27,7 @@ import { CreateAccountComponent } from './components/create-account/create-accou
 import { ViewPermissionsComponent } from './components/view-permissions/view-permissions.component';
 import { DriverComponent } from './components/driver/driver.component';
 import {FormsModule} from '@angular/forms';
-import { POSComponent } from './components/pos/pos.component';
+import { POSComponent } from './components/restaurant/pos/pos.component';
 @NgModule({
   declarations: [
     AppComponent,

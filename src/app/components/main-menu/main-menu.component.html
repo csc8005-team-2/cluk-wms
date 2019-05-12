@@ -8,11 +8,12 @@
   </span>
 
   <span *ngIf="checkPermissions().restaurant">
-    <a mat-raised-button routerLink="/restaurant/query-stock">Total Stock</a>
+    <a mat-raised-button routerLink="/restaurant/total-stock">Total Stock</a>
     <a mat-raised-button routerLink="/restaurant/receive-stock">Receive Stock</a>
     <a mat-raised-button routerLink="/restaurant/order-stock">Order Stock</a>
     <a mat-raised-button routerLink="/restaurant/restaurant-manager">Check Stock Thresholds</a>
     <a mat-raised-button routerLink="/restaurant/restaurant-stock-remove">Remove Stock</a>
+    <a mat-raised-button routerLink="/restaurant/sales">Sales</a>
   </span>
 
   <!-- <a mat-raised-button routerLink="/driver" *ngIf="this.checkPermissions().driver">Delivery Map</a> -->

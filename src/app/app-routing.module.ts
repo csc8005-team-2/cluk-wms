@@ -13,6 +13,7 @@ import { RestaurantManagerComponent } from './components/restaurant/restaurant-m
 import { RestaurantStockRemoveComponent } from './components/restaurant/restaurant-stock-remove/restaurant-stock-remove.component';
 import {AccountManagerComponent} from './components/account-manager/account-manager.component';
 import {DriverComponent} from './components/driver/driver.component';
+import {POSComponent} from './components/restaurant/pos/pos.component';
 
 
 
@@ -29,7 +30,8 @@ const routes: Routes = [
   { path: 'warehouse/add-stock', component: AddStockComponent},
   { path: 'warehouse/restaurant-orders', component: RestaurantOrdersComponent},
   { path: 'accounts', component: AccountManagerComponent},
-  { path: 'driver', component: DriverComponent}
+  { path: 'driver', component: DriverComponent},
+  { path: 'restaurant/sales', component: POSComponent}
   ];
 
 @NgModule({

@@ -131,6 +131,13 @@ export class SessionService {
     return this.http.get<UserPermissions>(this.BACKEND_URL + '/account/check-access', {headers: reqHeader});
   }
 
+  // TO DO: finish when backend fixed
+  retrieveDirections() {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+
+
+  }
+
   /*
   * Getter method for idToken
   * @param none
@@ -295,6 +302,11 @@ export class SessionService {
     return this.http.post<Message>(this.BACKEND_URL + '/restaurant/update-min-stock', newStockLvl, {headers: reqHeader});
   }
 
+  getMealNames(): Observable<MealPrice[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
+
+    return this.http.get<MealPrice[]>(this.BACKEND_URL + '/restaurant/get-meals-names', {headers: reqHeader});
+  }
   /*
   * Method to create a meal at the restaurant
   * @param {string} address, {string} meal
