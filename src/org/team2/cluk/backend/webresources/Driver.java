@@ -24,381 +24,6 @@ public class Driver {
 	private static int workDuration; //mins.
 	private final int breakTime = 45; //mins
 	private final int maxWorkDuration = 600;  //10 hours = 600mins, use this to limit assigning order to driver etc
-
-
-	/*
-	 * method to add driver information to the driver table
-	 * @param idToken to check access for manager
-	 * @param firstName, lastName, driverId, phoneNumber, workDuration
-	 * @param requestBody
-	 * @return driver information
-	 */
-
-	@POST
-	@Path("/add-driver-info")
-	@Produces("application/json")
-	public Response addDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("firstName") String firstName, @HeaderParam("lastName") String lastName, @HeaderParam("driverId") String driverId, @HeaderParam("phoneNumber") String phoneNumber, @HeaderParam("workDuration") int workDuration, String requestBody) {
-
-		if (!Authorisation.checkAccess(idToken, "manager")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
-		}
-
-		ServerLog.writeLog("Adding driver info to driver table ");
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch db connection
-		Connection connection = DbConnection.getConnection();
-		// parse request body
-		JsonArray infoToAdd = JsonTools.parseArray(requestBody);
-
-		boolean infoAddition = false;
-
-		for (JsonValue entry : infoToAdd) {
-			// check if array entry is a JSON
-			if (!(entry instanceof JsonObject)) {
-				ServerLog.writeLog("Driver info entry misspecified. Skipping entry!");
-				continue;
-			}
-
-			JsonObject entryObj = (JsonObject) entry;
-
-			// check if JSON correctly specified
-			if (!(entryObj.containsKey("firstName") && entryObj.containsKey("lastName") && entryObj.containsKey("driverId") && entryObj.containsKey("phoneNumber") && entryObj.containsKey("workDuration") /*&& entryObj.containsKey("region")*/)) {
-				ServerLog.writeLog("Driver entry misspecified. Skipping entry!");
-				continue;
-			}
-
-			firstName = entryObj.getString("firstName");
-			lastName = entryObj.getString("lastName");
-			driverId = entryObj.getString("driverId");
-			phoneNumber = entryObj.getString("phoneNumber");
-			workDuration = entryObj.getInt("workDuration");
-			//region = entryObj.getString("region");
-
-
-			Statement statement = null;
-			String query = "INSERT INTO Driver (firstName, lastName, driverId, phoneNumber, availableCapacity, assignedOrderCapacity, workDuration, availability) " +
-					"SELECT '" + firstName + "', '" + lastName + "', '" + driverId + "', '" + phoneNumber + "', '" + workDuration + "', '";
-			try {
-				statement = DbConnection.getConnection().createStatement();
-				statement.executeQuery(query);
-				ServerLog.writeLog("Driver information " + driverId + "has been added to the database");
-				infoAddition = true;
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				if (statement != null) {
-					try {
-						statement.close();
-					} catch (SQLException e) {
-						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-					}
-				}
-			}
-		}
-
-		JsonArray response = responseBuilder.build();
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-	}
-
-
-	/*
-	 * method to remove a driver's information from the table
-	 * @param idToken to check access for a manager
-	 * @param driverId of the driver that will be removed
-	 * @param requestBody
-	 * @return driver information that has been removed
-	 */
-	@POST
-	@Path("/remove-driver-info")
-	public Response removeDriverInfo(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, String requestBody) {
-
-		if (!Authorisation.checkAccess(idToken, "manager")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		}
-
-		ServerLog.writeLog("Removing driver info from driver table ");
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch db connection
-		Connection connection = DbConnection.getConnection();
-		// parse request body
-		JsonArray infoToRemove = JsonTools.parseArray(requestBody);
-
-		boolean infoRemoval = false;
-		for (JsonValue removal : infoToRemove) {
-			// check if array removal is a JSON
-			if (!(removal instanceof JsonObject)) {
-				ServerLog.writeLog("Driver info removal misspecified. Skipping removal!");
-				continue;
-			}
-
-			Statement statement = null;
-			String query = "DELETE FROM Driver WHERE driverId = '" + driverId + "'";
-
-			try {
-				statement = DbConnection.getConnection().createStatement();
-				statement.executeUpdate(query);
-				ServerLog.writeLog("Driver information driverId " + driverId + "has been removed from the database");
-				infoRemoval = true;
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				if (statement != null) {
-					try {
-						statement.close();
-					} catch (SQLException e) {
-						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-					}
-				}
-			}
-		}
-
-		JsonArray response = responseBuilder.build();
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-	}
-
-
-	/*
-	 * method to get the driver's first name using the driver's id
-	 * @param idToken to check access of manager or restaurant
-	 * @param driverId
-	 * @return driver firstName
-	 */
-	@GET
-	@Path("/get-first-name")
-	@Produces("application/json")
-	public Response getFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId) {
-
-		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		}
-
-		ServerLog.writeLog("Requested the first name of driver" + driverId);
-
-		if (driverId == null) {
-			ServerLog.writeLog("Rejected request as driver id not specified");
-			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
-		}
-
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch current database connection
-		Connection connection = DbConnection.getConnection();
-
-		Statement statement = null;
-		String query = "SELECT firstName " +
-				"FROM Driver " +
-				"WHERE driverId ='" + driverId + "'";
-
-		try {
-			statement = DbConnection.getConnection().createStatement();
-			ResultSet rs = statement.executeQuery(query);
-			while (rs.next()) {
-				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
-
-				String firstName = rs.getString("firstName");
-
-				arrayEntryBuilder.add("firstName", firstName);
-
-				JsonObject arrayEntry = arrayEntryBuilder.build();
-				responseBuilder.add(arrayEntry);
-
-				//System.out.println("Driver " + driverId + "'s first name is " + firstName + ".\n");
-
-			}
-		} catch (SQLException e) {
-			ServerLog.writeLog("SQL exception occurred when executing query");
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
-			}
-
-		}
-		JsonArray response = responseBuilder.build();
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-	}
-
-	/*
-	 * method to update a driver's first name using the driverId and new first name
-	 * @param idToken to check permission is manager
-	 * @param driverId
-	 * @param firstName
-	 * @param requestBody
-	 * @return updated first name of the driver
-	 */
-	@Path("/update-first-name")
-	@POST
-	@Consumes("application/json")
-	public Response updateFirstName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("firstName") String firstName, String requestBody) {
-		if (!Authorisation.checkAccess(idToken, "manager")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		}
-
-		ServerLog.writeLog("Requested an update of the first name of driver" + driverId);
-		// fetch db connection
-		Connection connection = DbConnection.getConnection();
-		Statement statement = null;
-		JsonObject firstNameObject = JsonTools.parseObject(requestBody);
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-
-
-		if (!(firstNameObject.containsKey("firstName"))) {
-			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
-		}
-
-		String newFirstName = firstNameObject.getString("firstName");
-		String query = "UPDATE Driver " +
-				"SET firstName ='" + newFirstName +
-				"'WHERE driverId='" + driverId + "'";
-		try {
-			statement = DbConnection.getConnection().createStatement();
-			statement.executeUpdate(query);
-			ServerLog.writeLog("Driver " + driverId + "'s first name has been updated to: " + newFirstName);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
-			}
-		}
-
-		JsonArray response = responseBuilder.build();
-
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-	}
-
-
-	/*
-	 * method to print a driver's last name using the driver's id
-	 * @param idToken to check permission is manager or restaurant
-	 * @param driverId
-	 * @return the drivers last name
-	 */
-	@GET
-	@Path("/get-last-name")
-	@Produces("application/json")
-	public Response getLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId) {
-		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		}
-
-		ServerLog.writeLog("Requested the last name of driver" + driverId);
-
-		if (driverId == null) {
-			ServerLog.writeLog("Rejected request as driverId not specified");
-			return Response.status(Response.Status.BAD_REQUEST).entity("ID_BLANK_OR_NOT_PROVIDED").build();
-		}
-
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-		// fetch current database connection
-		Connection connection = DbConnection.getConnection();
-
-		Statement statement = null;
-		String query = "SELECT lastName " +
-				"FROM Driver " +
-				"WHERE driverId ='" + driverId + "'";
-
-		try {
-			statement = DbConnection.getConnection().createStatement();
-			ResultSet rs = statement.executeQuery(query);
-			while (rs.next()) {
-				JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
-
-				String lastName = rs.getString("lastName");
-
-				arrayEntryBuilder.add("lastName", lastName);
-
-				JsonObject arrayEntry = arrayEntryBuilder.build();
-				responseBuilder.add(arrayEntry);
-
-				//System.out.println("Driver " + driverId + "'s last name is " + lastName + ".\n");
-
-			}
-		} catch (SQLException e) {
-			//ServerLog.writeLog("SQL exception occurred when executing query");
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
-
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
-			}
-		}
-		JsonArray response = responseBuilder.build();
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-	}
-
-
-	/*
-	 * method to update a driver's last name using the driverId and new last name
-	 * @param idToken to check permission is manager
-	 * @param driverId
-	 * @param lastName
-	 * @param lastNameObject to get a new last name
-	 * @return updated last name of the driver
-	 */
-	@Path("/update-last-name")
-	@POST
-	@Consumes("application/json")
-	public Response updateLastName(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("lastName") String lastName, String requestBody) {
-
-		if (!Authorisation.checkAccess(idToken, "manager")) {
-			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		}
-
-		ServerLog.writeLog("Requested an update of the last name of driver" + driverId);
-		// fetch db connection
-		Connection connection = DbConnection.getConnection();
-		Statement statement = null;
-		JsonObject lastNameObject = JsonTools.parseObject(requestBody);
-		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
-
-
-		if (!(lastNameObject.containsKey("lastName"))) {
-			return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
-		}
-
-		String newlastName = lastNameObject.getString("lastName");
-		String query = "UPDATE Driver " +
-				"SET lastName ='" + newlastName +
-				"'WHERE driverId='" + driverId + "'";
-		try {
-			statement = DbConnection.getConnection().createStatement();
-			statement.executeUpdate(query);
-			ServerLog.writeLog("Driver " + driverId + "'s first name has been updated to: " + newlastName);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-				}
-			}
-		}
-
-		JsonArray response = responseBuilder.build();
-		return Response.status(Response.Status.OK).entity(response.toString()).build();
-	}
-
-
 	/*
 	 * method to print a driver's phone number using driverId
 	 * @param idToken to check is either manager or restaurant
@@ -524,10 +149,10 @@ public class Driver {
 	 * @param WorkingHours
 	 * @return work duration of a driver
 	 */
+	/*
 	@GET
 	@Path("/get-work-duration")
 	@Produces("application/json")
-
 	public Response getWorkDuration(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") Integer driverId, @HeaderParam("w") WorkingHours w) {
 
 		if (!Authorisation.checkAccess(idToken, "manager") || !Authorisation.checkAccess(idToken, "restaurant")
@@ -585,7 +210,7 @@ public class Driver {
 
 		return Response.status(Response.Status.OK).entity(response.toString()).build();
 	}
-
+*/
 	/*
 	 * method to make drivers go on break, adding the break time to their work duration
 	 *this method would only update the workDuration field while goOnBreak is false and workDuration hasn't exceeded
@@ -596,7 +221,7 @@ public class Driver {
 	 * @param WorkingHours
 	 * @return updated work duration for driver after they take a break
 	 */
-	@GET
+	/* @GET
 	@Path("go-on-break")
 
 	public Response goOnBreak(@HeaderParam("Authorisation") String idToken, @HeaderParam("driverId") String driverId, @HeaderParam("w") WorkingHours w) throws SQLException {
@@ -673,7 +298,7 @@ public class Driver {
 		}
 
 		return Response.status(Response.Status.ACCEPTED).build();
-	}
+	} */
 
 
 	/* checks access type is manager */
@@ -689,10 +314,11 @@ public class Driver {
 	@Path("/plot-route")
 	@GET
 	public static Response plotRoute(@HeaderParam("Authorisation") String idToken) {
-
-		if (!Authorisation.checkAccess(idToken, "manager")) {
+	    /*
+		if (!Authorisation.checkAccess(idToken, "driver")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		}
+		} */
+
 		//connects to database
 		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
 		Connection connection = DbConnection.getConnection();
@@ -705,9 +331,9 @@ public class Driver {
 		//get orderId from stockOrders table where the orderDeliveryDate is today's date and orderSatatus is approved for delivery.
 
 		Statement statement = null;
-		String query = "SELECT orderId" +
-				"FROM StockOrders" +
-				"WHERE orderDeliveryDate='" + currentDate + " AND orderStatus= approved'";
+		String query = "SELECT orderId " +
+				"FROM StockOrders " +
+				"WHERE orderDeliveryDate='" + currentDate + "' AND orderStatus LIKE 'approved'";
 		try {
 			statement = DbConnection.getConnection().createStatement();
 			ResultSet rs = statement.executeQuery(query);
