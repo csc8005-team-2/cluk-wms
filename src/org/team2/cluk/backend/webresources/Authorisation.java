@@ -258,7 +258,7 @@ public class Authorisation {
     * @param username of an account
     * @return account permission details
     */
-    public static synchronized void refreshPermissions(String username) {
+    public static void refreshPermissions(String username) {
         // fetch current database connection
         Connection connection = DbConnection.getConnection();
 
