@@ -3,14 +3,11 @@ package org.team2.cluk.backend.webresources;
 import org.team2.cluk.backend.tools.DbConnection;
 import org.team2.cluk.backend.tools.JsonTools;
 import org.team2.cluk.backend.tools.ServerLog;
-import org.team2.cluk.backend.tools.WorkingHours;
 
 import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 /*
 * Driver class including information about driver schedules and assigning orders
@@ -314,8 +311,9 @@ public class Driver {
 	@Path("/plot-route")
 	@GET
 	public static Response plotRoute(@HeaderParam("Authorisation") String idToken) {
-	    /*
-		if (!Authorisation.checkAccess(idToken, "driver")) {
+
+		// seems not to work correctly
+		/* if (!Authorisation.checkAccess(idToken, "driver")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		} */
 
