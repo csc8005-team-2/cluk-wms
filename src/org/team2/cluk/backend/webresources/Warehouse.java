@@ -940,8 +940,8 @@ public class Warehouse
                 }
                 
                 JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
-                arrayEntryBuilder.add("Quantity", total);
-                arrayEntryBuilder.add("Restaurant", restaurant);
+                arrayEntryBuilder.add("value", total);
+                arrayEntryBuilder.add("name", restaurant);
                 
                 JsonObject arrayEntry = arrayEntryBuilder.build();
                 responseBuilder.add(arrayEntry);
