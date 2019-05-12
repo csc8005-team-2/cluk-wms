@@ -759,7 +759,7 @@ public class Warehouse
 	* method that outputs data to plot graphs for stock sent by warehouse
 	* @param idToken to check access for the warehouse
 	* @param stockItem which is then plotted on graph
-	* @param type
+	* @param type   time interval to use for the plot
 	* @return data to plot graphs
 	*/
 	@GET
