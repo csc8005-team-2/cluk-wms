@@ -1,3 +1,4 @@
+<mat-dialog-content>
 <mat-form-field>
   <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
 </mat-form-field>
@@ -17,6 +18,8 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
-
+</mat-dialog-content>
+<mat-dialog-actions>
 <button mat-raised-button (click)="acceptOrder()">Accept Order</button>
 <button mat-raised-button (click)="declineOrder()">Decline Order</button>
+</mat-dialog-actions>
