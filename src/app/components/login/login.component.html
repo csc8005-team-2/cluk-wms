@@ -5,7 +5,7 @@
       <input matInput #username required placeholder="Username" validate>
     </mat-form-field>
     <mat-form-field>
-      <input matInput #password required type="password" placeholder="Password" validate>
+      <input matInput (keyup.enter)="login(username.value, password.value)" #password required type="password" placeholder="Password" validate>
     </mat-form-field>
     <button mat-raised-button (click)="login(username.value, password.value)">Login</button>
   </div>
