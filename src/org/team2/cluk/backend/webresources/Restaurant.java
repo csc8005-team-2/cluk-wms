@@ -1109,7 +1109,7 @@ public class Restaurant {
 
 	        //Gets orderId and date/time for orders with status pending.
 	        Statement statement = null;
-	        String query = "SELECT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
+	        String query = "SELECT DISTINCT StockOrders.orderId, StockOrders.orderDateTime, Orders.restaurantAddress " +
 	                "FROM StockOrders, Orders WHERE StockOrders.orderDeliveryDate = '"+today+"' AND Orders.restaurantAddress ='"+ restaurantAddress+"'";
 	        try {
 	            statement = connection.createStatement();
