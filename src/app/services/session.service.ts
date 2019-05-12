@@ -478,6 +478,12 @@ export class SessionService {
     return this.http.get<OrderEntry[]>(this.BACKEND_URL + '/warehouse/get-pending-orders', {headers: reqHeader});
   }
 
+  getTodaysOrders(): Observable<OrderEntry[]> {
+    const reqHeader = new HttpHeaders().append('Authorization', this.idToken).append('address', this.venueAddress);
+
+    return this.http.get<OrderEntry[]>(this.BACKEND_URL + '/restaurant/get-todays-orders', {headers: reqHeader});
+  }
+
   /* setOrderView(orderContents: OrderEntry[]) {
     this.viewedOrder = orderContents;
   }
