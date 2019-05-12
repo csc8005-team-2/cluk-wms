@@ -12,7 +12,7 @@ export class DriverComponent implements OnInit {
   @ViewChild('directionsPanel') dirPanelRef: ElementRef;
   private map: google.maps.Map;
 
-  private wareHouse = {lat: 54.8761706, lng: -1.588353};                                                                             // initial map
+  private wareHouse = {lat: 54.8761706, lng: -1.588353};
   private restaurant1 = {lat: 55.0673382, lng: -1.6344661};
   private restaurant2 = {lat: 55.4124929, lng: -1.7090826};
   private restaurant3 = {lat: 54.6118847, lng: -1.580482};
@@ -85,11 +85,25 @@ export class DriverComponent implements OnInit {
           totalDistance = totalDistance + route.legs[i].distance.value;
           totalDuration = totalDuration + route.legs[i].duration.value;
         }
+        // convert distance to kilometers
         totalDistance = totalDistance / 1000;
+
+        // TO DO: add 45 minutes if total duration more than 4 hours
+        let breakAdded = false;
+        if (totalDuration > 4 * 3600) {
+          totalDuration += 45 * 60;
+          breakAdded = true;
+        }
+
+        // convert duration into more bearable format
         const totalDurationHrs = totalDuration / 3600;
         const totalDurationMin = (totalDuration / 60) % 60;
+
         tripSummary += 'The total distance will be ' + totalDistance.toFixed(1) + ' kilometers ';
         tripSummary += 'The total duration will be ' + ((totalDurationHrs >= 1) ? (totalDurationHrs.toFixed(0) + ' hours ') : '')  + totalDurationMin.toFixed(0) + ' minutes ';
+        if (breakAdded) {
+          tripSummary += 'Total duration of the trip includes 45 minute break.';
+        }
         this.dirPanelRef.nativeElement.innerHTML = tripSummary;
 
       } else {
