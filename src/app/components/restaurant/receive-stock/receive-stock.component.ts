@@ -24,6 +24,10 @@ export class ReceiveStockComponent implements OnInit {
     });
   }
 
+  applyFilter(filterValue: string) {
+    this.pendingOrders.filter = filterValue.trim().toLowerCase();
+  }
+
   viewOrder(order: OrderEntry[]) {
     // this.session.setOrderView(orderContents);
     const dialogRef = this.dialog.open(ViewReceivedOrderComponent, {
