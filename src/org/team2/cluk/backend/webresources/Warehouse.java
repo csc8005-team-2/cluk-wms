@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-/*
+/**
  * Warehouse Class which handles stocks information, sending orders to restaurant and assigning a driver to deliver the order
  *
  * @version 11/05/2019
@@ -23,7 +23,7 @@ import java.util.Map;
 public class Warehouse
 {
 
-    /*
+    /**
      * Method which gets the total stock within a warehouse
      * If successful, system will show "StockItem: " + Quantity
      * @param address of the warehouse
@@ -61,7 +61,7 @@ public class Warehouse
         }                 
     }
 
-    /*
+    /**
      * Method to increase the warehouse stock by the quantity specified
      * Takes parameters of stock item and quantity
      * {stockItem: string, quantity: number}
@@ -156,7 +156,7 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("STOCK_UPDATED").build();
     }
 
-    /*
+    /**
      * Method which sends an order from a Warehouse to a Restaurant
      * It reduces warehouse stock levels determined by the stock requests in the order, taking the order ID as a parameter
      * The system checks whether the order has enough stock quantities to provide the order
@@ -320,7 +320,7 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("ORDER_SENT").build();
     }
 
-   /*
+   /**
     * Method which gets the minimum amount of each stock item within the warehouse 
     * If successful, system will show "Stock Item: "+stockItem+" Current minimum stock level: "+minQuantity
     * If unsuccessful, system will show "ERROR_QUERYING_MIN_STOCK_LEVEL"
@@ -377,7 +377,7 @@ public class Warehouse
         return res.build();
     }
 
-   /*
+   /**
     * Method which checks that the Warehouse stock is above the minimum quantity level
     * If method is successful and there are stock items below the minimum level, system will show "Current stock of "+ stockItem +" is below minimum stock levels by "+ deficit
     * If method is successful and no stock items are below the minimum level, system will show "ENOUGH_STOCK"
@@ -439,7 +439,7 @@ public class Warehouse
         return updateStock(address, lackingStockArrayBuilder.build().toString());
     }
 
-   /*
+   /**
     * Method which allows the Warehouse stock minimum levels to be set
     * If successful, the system will show "MIN_STOCK_VALUE_UPDATED"
     * If unsuccessful request, the system will show "REQUEST_MISSPECIFIED"
@@ -487,7 +487,7 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
     }
 
-   /*
+   /**
     * Method which assigns an order to a driver which needs to be delivered from a warehouse to a restaurant 
     * If successful, system will show "ORDER_ASSIGNED"
     * If unsuccessful, system will show "ORDER_ASSIGNMENT_ERROR"
@@ -529,7 +529,7 @@ public class Warehouse
     	return res.build();
     }
 	
-   /*
+   /**
     * method to get the currently pending orders to go from a warehouse to a restaurant
     * Includes the date and time for the orders
     * @return order entries which currently have the status "pending"

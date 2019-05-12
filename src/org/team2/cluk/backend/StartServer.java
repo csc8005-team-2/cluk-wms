@@ -10,7 +10,7 @@ import org.team2.cluk.backend.webresources.*;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
-/*
+/**
  * StartServer Class which is the main class used to start the server
  *
  * @version 31/03/2019

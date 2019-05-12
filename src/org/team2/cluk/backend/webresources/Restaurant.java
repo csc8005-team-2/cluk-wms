@@ -20,7 +20,7 @@ import java.util.Map;
 @Path("/restaurant")
 public class Restaurant {
 
-    /*
+    /**
      * Method which handles request for total stock units at a given restaurant given as "address" in the request header
      * The system will ask users to input a restaurant's address 
      * The system will show information about the total stock in the given restaurant
@@ -85,7 +85,7 @@ public class Restaurant {
         return Response.status(Response.Status.OK).entity(response.toString()).build();
     }
 
-   /*
+   /**
     * This method updates the stock for a restaurant when it has received an order
     * If it is unsuccessful, the system will show "ORDER_NOT_FOUND"
     * If successful, the system will show "ORDER_RECEIVED" and add the information to the restaurant stock
@@ -292,7 +292,7 @@ public class Restaurant {
     	return response.build();
     }
 
-    /*
+    /**
      * method executed when client requests custom order at the endpoint "/restaurant/request-order/custom"
      * orders include any quantity of stock. Stock contents are passed as parameters
      * body of the request should be JSON array with each entry of form: {stockItem: string, quantity: number}
@@ -415,7 +415,7 @@ public class Restaurant {
     }
 
 
-	/*
+	/**
 	 * Method requests standard order for a restaurant. It fetches what the standard order items and quantities are and
 	 * places the order
 	 * If successful, the system will select stock item and typical units ordered from stock
@@ -468,7 +468,7 @@ public class Restaurant {
 	    			    		   
 
 
-    /* 
+    /**
      * This method is used to check whether the stock at restaurant is above the minimum stock level
      * Users are required to input the restaurant's address 
      * If there is an item of stock below the minimum, the system will show "Current stock of "+ stockItem +" at "+ restaurantAddress + " is below minimum stock levels by "+deficit+"."
@@ -529,7 +529,7 @@ public class Restaurant {
     	return Response.status(Response.Status.OK).entity(stockArray.toString()).build();
 	}
 
-   /*
+   /**
     * This method is used to allow the minimum stock level to be changed
     * Users need to choose the item which is required to change and input the quantity they would like to update it to
     * If successful, the system will state "Minimum stock levels updated to: " + min
@@ -576,7 +576,7 @@ public class Restaurant {
             return Response.status(Response.Status.OK).entity("MIN_STOCK_VALUE_UPDATED").build();
         }
 
-      /*
+      /**
        * This method creates a meal within a restaurant 
        * Users are required to input the item and the quantity needed to create the meal
        * The system will check whether the quantity of the item is below the minimum stock.
@@ -686,7 +686,7 @@ public class Restaurant {
 
 	}
 
-       /*
+       /**
 	* Method to update the restaurant stock allowing for manual adjustment of stock levels
         * If successsful, system shows "STOCK_UPDATED"
 	* If unsuccessful, system shows "ERROR_UPDATING_STOCK"
@@ -767,7 +767,7 @@ public class Restaurant {
 		return res.build();
 	}
 	
-	/*
+	/**
 	* Method to get the price of a meal item within a restaurant
 	* If successful, system will show "Item: " + meal + " Cost: " + price"
 	* @param meal which has been created previously by the restaurant

@@ -3,7 +3,7 @@ package org.team2.cluk.backend.tools;
 import java.util.ArrayList;
 import java.util.Date;
 
-/*
+/**
  * ServerLog Class which provides a simple logging system for the backend
  * Static method used to ensure one log is running for one server instance
  *
@@ -12,7 +12,7 @@ import java.util.Date;
 public class ServerLog {
     private static ArrayList<String> log = new ArrayList<>();
     
-/*
+/**
  * Method to add a log for the system
  */
     public static void writeLog(String msg) {

@@ -6,14 +6,14 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import java.io.StringReader;
 
-/*
+/**
  * JsonTools Class to provide other classes, in particular web resources, with possibility to parse String into JSON
  *
  * @version 02/04/2019
  */
 public class JsonTools {
     
-    /*
+    /**
      * Converts String object (e.g. http request body) into JsonObject
      * @param inputJson stringified JSON
      * @return parsed JSON

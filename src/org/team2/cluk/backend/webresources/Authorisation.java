@@ -3,7 +3,6 @@ package org.team2.cluk.backend.webresources;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.team2.cluk.backend.tools.DbConnection;
 import org.team2.cluk.backend.tools.JsonTools;
-import org.team2.cluk.backend.tools.Roles;
 import org.team2.cluk.backend.tools.ServerLog;
 
 import javax.json.*;
@@ -21,7 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-/*
+/**
  * Authorisation class which handles accounts within the database
  * It enables account permissions for Restaurant, Warehouse and Driver
  */
@@ -52,7 +51,7 @@ public class Authorisation {
         return returnHexHash;
     }
 
-   /*
+   /**
     * Method to log in user to the system with specific username and password 
     * Uses Json to get the correct username and password 
     * If Json unsuccessful, the system will show "MISSING_USERNAME_OR_PASSWORD"
@@ -140,7 +139,7 @@ public class Authorisation {
         return res;
     }
 
-    /*
+    /**
     * Method to log out user from the system 
     * If successful, the system will show "LOGOUT_SUCCESSFUL"
     * If unsuccessful, the system will show "USER_NEVER_LOGGED_IN"
@@ -177,7 +176,7 @@ public class Authorisation {
         return false;
     }
    
-   /*
+   /**
     * Method to add an account to the system with a username and password
     * If successful, the system will show "ACCOUNT_CREATED"
     * If Json unsuccessful, the system will show "MISSING_NAME_USERNAME_OR_PASSWORD"
@@ -227,7 +226,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity("ACCOUNT_CREATED").build();
     }
 
-   /*
+   /**
     * Method to refresh the permissions for the accounts in the database
     * If unsuccessful, the system will show "Error verifying user " + username + "credentials"
     * @param username of an account
@@ -285,7 +284,7 @@ public class Authorisation {
         }
     }
 
-   /*
+   /**
     * Method to set the account permissions
     * If successful, the system will show "PERMISSIONS_UPDATED"
     * If Json is unsuccessful, the system will show "PERMISSION_REQUEST_MISSPECIFIED"
@@ -339,7 +338,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity("PERMISSIONS_UPDATED").build();
     }
 
-    /*
+    /**
     * Method which removes an account from the system
     * The system first logs out the user, and then deletes
     * If successful, the system will show "ACCOUNT_REMOVED"
@@ -394,7 +393,7 @@ public class Authorisation {
         return res.build();
     }
 
-   /*
+   /**
     * Method to retrieve the staff information 
     * @return a Json array of the staff information 
     * including id, name, username and if they are staff within restaurant, warehouse or a driver 
@@ -460,7 +459,7 @@ public class Authorisation {
         return Response.status(Response.Status.OK).entity(staffInfo.toString()).build();
     }
 
-   /*
+   /**
     * Method which checks if an account has access to the warehouse, restaurant or driver
     * If an account does not have access, it will be unable to use the restricted functionality
     * @param idToken of an account 

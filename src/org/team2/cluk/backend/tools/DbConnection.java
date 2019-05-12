@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/*
+/**
  * DbConnection Class for handling SQL connection for the backend
  *
  * @version 31/03/2019
@@ -13,7 +13,7 @@ import java.sql.SQLException;
 public class DbConnection {
     private static Connection connection = null;
     
-   /*
+   /**
     * Method to allow users to establish a connection to the database
     * Users input a username,password and url, all of type string
     * If successful, the system will show "Database connection established" and connect to the server
@@ -36,7 +36,7 @@ public class DbConnection {
         }
     }
 
-   /*
+   /**
     * Method to allow users to disconnect from the database
     * If it fails, the system will show "Exception occurred when disconnecting from the database"
     */
@@ -48,7 +48,7 @@ public class DbConnection {
         }
     }
 
-    /*
+    /**
     * Accessor method to get the connection
     * @return connection to the database
     */
