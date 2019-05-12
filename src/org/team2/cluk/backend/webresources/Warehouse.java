@@ -359,7 +359,7 @@ public class Warehouse
     @Produces("application/json")
     public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
     {
-	     if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "driver")) {
+	     if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "restaurant")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
         }
 	    
