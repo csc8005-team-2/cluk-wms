@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import {StockItem} from '../../../classes/stock-item';
 import {SessionService} from '../../../services/session.service';
 import {MatTableDataSource} from '@angular/material';
 import {ComparativeStockItem} from '../../../classes/comparative-stock-item';
