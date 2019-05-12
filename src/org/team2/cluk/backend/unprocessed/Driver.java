@@ -693,7 +693,7 @@ public class Driver {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
 		}
 		//connects to database
-
+		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
 		Connection connection = DbConnection.getConnection();
 
 		//get today's date
@@ -726,11 +726,12 @@ public class Driver {
 					ResultSet rs1 = statement1.executeQuery(query1);
 
 					while (rs1.next()) {
+						JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
 						String restaurantAddressOrdersTable = rs1.getString("restaurantAddress");
-
-								JsonObject responseJson = Json.createObjectBuilder().add("Address", restaurantAddressOrdersTable).build();
-								return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
-							}
+						arrayEntryBuilder.add("address", restaurantAddressOrdersTable);
+						JsonObject arrayEntry = arrayEntryBuilder.build();
+                   				responseBuilder.add(arrayEntry);
+						}
 
 						} catch (SQLException e) {
 							e.printStackTrace();
@@ -739,8 +740,9 @@ public class Driver {
 				}catch (SQLException e) {
 			e.printStackTrace();
 		}
-
-		return Response.status(Response.Status.CREATED).build();
+		
+		JsonArray response = responseBuilder.build();
+		return Response.status(Response.Status.OK).entity(response.toString()).build();
 
 	}
 
