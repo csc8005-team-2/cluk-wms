@@ -704,6 +704,9 @@ public class Restaurant {
     @Consumes("application/json")
     public Response updateMinStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String restaurantAddress, String strStockObject)
         {
+
+        	ServerLog.writeLog("Requested change in minimum threshold at " + restaurantAddress);
+
 		if (!Authorisation.checkAccess(idToken, "restaurant")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
 		}
@@ -716,13 +719,18 @@ public class Restaurant {
             if (!(stockObject.containsKey("stockItem") && stockObject.containsKey("quantity")))
 				return Response.status(Response.Status.BAD_REQUEST).entity("REQUEST_MISSPECIFIED").build();
 
+            ServerLog.writeLog("Request specified correctly");
+
             String stockItem = stockObject.getString("stockItem");
-            int min = stockObject.getInt("quantity");
+            String minQtyStr = stockObject.getString("quantity");
+
+            int min = Integer.parseInt(minQtyStr);
 
             String query = "UPDATE Within SET minQuantity ="+min+" WHERE stockItem='"+stockItem+"' AND restaurantAddress ='"+restaurantAddress+"'";
                            
             try {
             	statement = connection.createStatement();
+            	ServerLog.writeLog("Created SQL statement");
             	statement.executeUpdate(query);
             	ServerLog.writeLog("Minimum stock levels updated to: " + min);
             
