@@ -343,6 +343,29 @@ public class Restaurant {
 					}
 				}
 			}
+			
+			statement = null;
+			updateQuery = "UPDATE StockOrders SET orderStatus = 'Delivered' WHERE orderId ="+orderId;
+			try {
+				statement = connection.createStatement();
+				statement.executeUpdate(updateQuery);
+				ServerLog.writeLog("Order Status set to delivered for order ID "+orderId);
+			} catch (SQLException e) {
+				ServerLog.writeLog("Error when updating stock at restaurant: " + restaurantAddress);
+				e.printStackTrace();
+				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("UPDATE_STOCK_ERROR");
+				processedCorrectly = false;
+			} finally {
+				if (statement != null) {
+					try {
+						statement.close();
+					} catch (SQLException e) {
+						ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+					}
+				}
+			}
+			
+			
 		}
 
 		if (processedCorrectly) {
