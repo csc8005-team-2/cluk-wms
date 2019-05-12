@@ -28,6 +28,7 @@ import { ViewPermissionsComponent } from './components/view-permissions/view-per
 import { DriverComponent } from './components/driver/driver.component';
 import {FormsModule} from '@angular/forms';
 import { POSComponent } from './components/restaurant/pos/pos.component';
+import { ViewReceivedOrderComponent } from './components/restaurant/view-received-order/view-received-order.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -49,7 +50,8 @@ import { POSComponent } from './components/restaurant/pos/pos.component';
     CreateAccountComponent,
     ViewPermissionsComponent,
     DriverComponent,
-    POSComponent
+    POSComponent,
+    ViewReceivedOrderComponent
   ],
   imports: [
     BrowserModule,
@@ -65,7 +67,8 @@ import { POSComponent } from './components/restaurant/pos/pos.component';
     ViewOrderComponent,
     ChangeMinThresholdComponent,
     CreateAccountComponent,
-    ViewPermissionsComponent
+    ViewPermissionsComponent,
+    ViewReceivedOrderComponent
   ]
 })
 export class AppModule { }
