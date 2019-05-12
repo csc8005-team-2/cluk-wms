@@ -11,7 +11,7 @@ import {ViewReceivedOrderComponent} from '../view-received-order/view-received-o
 })
 export class ReceiveStockComponent implements OnInit {
   pendingOrdersSub: any;
-  private pendingOrders: MatTableDataSource<OrderEntry>;
+  pendingOrders: MatTableDataSource<OrderEntry>;
 
   // displayed columns format
   displayedColumns: string[] = ['orderId', 'dateTime', 'address', 'viewOrder'];
