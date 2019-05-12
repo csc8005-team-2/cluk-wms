@@ -14,12 +14,7 @@ export class GMapService {
   private scriptLoadingPromise: Promise<void>;
 
   constructor() {
-    //Loading script
     this.loadScriptLoadingPromise();
-    //Loading other components
-    this.onReady().then(() => {
-      this.geocoder = new google.maps.Geocoder();
-    });
   }
 
   onReady(): Promise<void> {
@@ -28,7 +23,16 @@ export class GMapService {
 
   initMap(mapHtmlElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
     return this.onReady().then(() => {
-      return this.map = new google.maps.Map(mapHtmlElement, options);
+      this.map = new google.maps.Map(mapHtmlElement, options);
+
+      // solution from: https://stackoverflow.com/questions/5033650/how-to-dynamically-remove-a-stylesheet-from-the-current-page
+      google.maps.event.addListenerOnce(this.map, 'idle', () => {
+        const font = document.querySelector('link[href$="//fonts.googleapis.com/css?family=Roboto:300,400,500,700|Google+Sans');
+        if (font) {
+          font.parentNode.removeChild(font);
+        }
+      });
+      return this.map;
     });
   }
 
@@ -38,7 +42,7 @@ export class GMapService {
 
   addPin(position) {
     return new google.maps.Marker
-    ({                                                                                          //MARKER
+    ({
       position,
       icon: {
         path: google.maps.SymbolPath.CIRCLE,

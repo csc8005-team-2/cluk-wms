@@ -12,6 +12,7 @@ import {MealPrice} from '../classes/meal-price';
 import {OrderEntry} from '../classes/order-entry';
 import {StockName} from '../classes/stock-name';
 import {ComparativeStockItem} from '../classes/comparative-stock-item';
+import {VenueLocation} from '../classes/venue-location';
 
 @Injectable({
   providedIn: 'root'
@@ -132,10 +133,10 @@ export class SessionService {
   }
 
   // TO DO: finish when backend fixed
-  retrieveDirections() {
+  retrieveDirections(): Observable<VenueLocation[]> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
 
-
+    return this.http.get<VenueLocation[]>(this.BACKEND_URL + '/driver/plot-route', {headers: reqHeader});
   }
 
   /*

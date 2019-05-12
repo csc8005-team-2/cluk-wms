@@ -1,5 +1,7 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {GMapService} from '../../services/gmap.service';
+import {SessionService} from '../../services/session.service';
+import {VenueLocation} from '../../classes/venue-location';
 
 @Component({
   selector: 'app-driver',
@@ -21,7 +23,10 @@ export class DriverComponent implements OnInit {
   private directionsService: google.maps.DirectionsService;
   private directionsDisplay: google.maps.DirectionsRenderer;
 
-  constructor(private gmapService: GMapService) { }
+  private destinations: VenueLocation[];
+
+  constructor(private gmapService: GMapService, private session: SessionService) {
+  }
 
   ngOnInit() {
 
@@ -39,25 +44,30 @@ export class DriverComponent implements OnInit {
       const markerR5 = this.gmapService.addPin(this.restaurant5);
 
       const infowindowWH = new google.maps.InfoWindow({// label
-        content: 'warehouse'
+        content: 'Warehouse'
       });
-      const infowindowR1 = new google.maps.InfoWindow({
+      /* const infowindowR1 = new google.maps.InfoWindow({
         content: 'restaurants'
-      });
+      }); */
       infowindowWH.open(this.map, markerWh);
-      infowindowR1.open(this.map, markerR1);
+      // infowindowR1.open(this.map, markerR1);
       this.directionsDisplay = new google.maps.DirectionsRenderer();
       this.directionsDisplay.setMap(this.map);
 
       this.directionsService = new google.maps.DirectionsService();
+
+      this.session.retrieveDirections().subscribe(res => {
+        this.destinations = res;
+        this.getDirections(this.wareHouse, this.wareHouse, this.destinations);
+      });
     });
   }
 
-  getDirections(origin: string, destination: string, waypoints: string[]) {
+  getDirections(origin: any, destination: any, waypoints: VenueLocation[]) {
     const directionWaypoints = [];
 
     for (let i = 0; i < waypoints.length; i++) {
-      directionWaypoints.push({location: waypoints[i], stopover: true});
+      directionWaypoints.push({location: waypoints[i].address, stopover: true});
     }
 
     this.directionsService.route({
@@ -75,7 +85,7 @@ export class DriverComponent implements OnInit {
         let totalDuration = 0;
         
         let tripSummary = '';
-        for (let i = 0; i < route.legs.length; i++) {
+        for (let i = 0; i < route.legs.length - 1; i++) {
           const routeSegment = i + 1;
           tripSummary += '<b>delivery destination: ' + routeSegment +
             '</b><br>';
@@ -84,6 +94,15 @@ export class DriverComponent implements OnInit {
           tripSummary += route.legs[i].duration.text + '<br><br>';
           totalDistance = totalDistance + route.legs[i].distance.value;
           totalDuration = totalDuration + route.legs[i].duration.value;
+        }
+
+        if (route.legs.length > 1) {
+          tripSummary += '<b>return to warehouse:</b><br>';
+          tripSummary += route.legs[route.legs.length - 1].end_address + '<br>';
+          tripSummary += route.legs[route.legs.length - 1].distance.text + '<br><br>';
+          tripSummary += route.legs[route.legs.length - 1].duration.text + '<br><br>';
+          totalDistance = totalDistance + route.legs[route.legs.length - 1].distance.value;
+          totalDuration = totalDuration + route.legs[route.legs.length - 1].duration.value;
         }
         // convert distance to kilometers
         totalDistance = totalDistance / 1000;
