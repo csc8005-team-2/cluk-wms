@@ -19,6 +19,60 @@ import java.util.Map;
 
 @Path("/restaurant")
 public class Restaurant {
+	
+	
+	
+	
+    /*
+    * method to get the meal names
+    * @param idToken to check access for restaurant
+    * @return all stock within the restaurant
+    */
+    @GET
+    @Path("/get-meals-names")
+    @Produces("application/json")
+    public Response getMealNames(@HeaderParam("Authorization") String idToken)
+    {
+
+        if (!Authorisation.checkAccess(idToken, "restaurant")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+		    
+        ServerLog.writeLog("Requested names of meal items.");
+
+        JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+        // fetch current database connection
+        Connection connection = DbConnection.getConnection();
+
+        Statement statement = null;
+        String query = "SELECT mealId FROM Meals";
+
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+                String meal = rs.getString("mealId");
+                arrayEntryBuilder.add("meal", meal);
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+            }
+        } catch (SQLException e) {
+            ServerLog.writeLog("SQL exception occurred when executing query");
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+        JsonArray response = responseBuilder.build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
+    }
 
 	/*
 	 * method handles request for total stock units at a given restaurant given as "address" in the request header
