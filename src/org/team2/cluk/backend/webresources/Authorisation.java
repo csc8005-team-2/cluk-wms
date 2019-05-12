@@ -3,7 +3,6 @@ package org.team2.cluk.backend.webresources;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.team2.cluk.backend.tools.DbConnection;
 import org.team2.cluk.backend.tools.JsonTools;
-import org.team2.cluk.backend.tools.Roles;
 import org.team2.cluk.backend.tools.ServerLog;
 
 import javax.json.*;

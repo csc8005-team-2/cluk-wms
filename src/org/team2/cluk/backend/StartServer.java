@@ -129,7 +129,7 @@ public class StartServer {
         }
 
         // initialise server resources
-        ResourceConfig resourceConfig = new ResourceConfig(CorsFilter.class, Warehouse.class, Restaurant.class, Authorisation.class);
+        ResourceConfig resourceConfig = new ResourceConfig(CorsFilter.class, Warehouse.class, Restaurant.class, Driver.class, Authorisation.class);
 
         // build base URI based on whether SSL connection desired
         if (!useSsl) {
