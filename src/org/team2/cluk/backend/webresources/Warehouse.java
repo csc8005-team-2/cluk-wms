@@ -255,13 +255,13 @@ public class Warehouse
      * If successful, the system shows "ORDER_SENT"
      * If unsuccessful due to not enough stock in warehouse, the system shows "STOCK_TOO_LOW"
      * @param address of the warehouse
-     * @param orderId including the stock items and quantity which are to be sent
+     * @param _orderId including the stock items and quantity which are to be sent
      * @return database update showing the order is out for delivery
      */
     @GET
     @Path("/send-order")
     //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
-    public Response sendOrder(@HeaderParam("address") String address, @HeaderParam("orderId") int orderId)
+    public Response sendOrder(@HeaderParam("idToken") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
     {
 	     if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "restaurant")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();

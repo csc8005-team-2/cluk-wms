@@ -654,6 +654,8 @@ public class Restaurant {
                 }
             }
         }
+
+        return res.build();
     }
 
    /**
