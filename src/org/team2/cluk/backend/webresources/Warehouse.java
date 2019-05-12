@@ -491,25 +491,7 @@ public class Warehouse
             }
         }
 
-        //update database to mark order as out for delivery
-        statement = null;
-        query = "UPDATE StockOrders "+
-                "SET orderStatus = 'Out for delivery' "+
-                "WHERE orderId='"+orderId+"'";
-        try{
-            statement = connection.createStatement();
-            statement.executeUpdate(query);
-        } catch (SQLException e ) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-                }
-            }
-        }
+        
         JsonObject responseJson = Json.createObjectBuilder().add("message", "ORDER_SENT").build();
         return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 		
