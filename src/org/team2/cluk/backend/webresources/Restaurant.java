@@ -424,7 +424,7 @@ public class Restaurant {
 			pstmt.setString(1, currentTime);
 			if (customOrder)
 				pstmt.setString(2, "Pending");
-			else pstmt.setString(2, "Out for delivery");
+			else pstmt.setString(2, "Approved");
 			pstmt.setString(3, deliveryDate);
 			pstmt.executeUpdate();
 
