@@ -628,7 +628,7 @@ public class Authorisation {
     /**
     * method to set the work location for employees
     * @param idToken   ID token of the user whose permissions are checked
-    * @param requestBody
+    * @param requestBody JSON in form: {address: string}
     * @return work location
     */
     @POST

@@ -8,5 +8,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/mysql:mysql-connector-java:8.0.15"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/org.apache.commons:commons-lang3:3.8.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/org.glassfish.jaxb:jaxb-runtime:2.3.2"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/org.osgi:org.osgi.framework:1.9.0"/>
 	<classpathentry kind="output" path="out/production/backend"/>
 </classpath>

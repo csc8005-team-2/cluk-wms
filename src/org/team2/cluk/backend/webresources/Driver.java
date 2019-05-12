@@ -24,7 +24,6 @@ public class Driver {
 	gets today's date and the orderId of approved orders to be delivered in that same day
 	gets the restaurant address of that same orderId from the Order table
 	gets the restaurant address of the  region that matches the restaurant address above
-	@returns JsonObject of the method status
 	 @param idToken ID token assigned to the user
 	@return array of addresses driver needs to visit
 	*/

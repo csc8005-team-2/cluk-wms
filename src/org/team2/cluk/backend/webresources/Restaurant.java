@@ -103,7 +103,7 @@ public class Restaurant {
     */
     @GET
     @Path("/receive-order")
-    public Response receiveOrder(@HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
+    public Response receiveOrder(@HeaderParam("idToken") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
     	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
 
 		boolean processedCorrectly = true;
@@ -331,6 +331,7 @@ public class Restaurant {
      * If successful, the system will show "ORDER_ACCEPTED"
 	 * @param idToken to check access for restaurant
      * @param restaurantAddress	value of address header specifying restaurant where order shall be delivered
+	 * @param customOrderStr "true" if order is a custom order
      * @param strOrderContents	stringified JSON array containing order details
      * @return	202 ORDER_ACCEPTED - even if order contains entries not following the specification, they are removed from the order
      */
@@ -615,6 +616,7 @@ public class Restaurant {
 	* method that gets the minimum stock
 	 * @param idToken to check access for restaurant
 	 * @param address restaurant address
+	 * @return JSON array of stock quantity thresholds
 	*/
 	@Path("/get-min-stock")
 	@GET
@@ -1072,7 +1074,7 @@ public class Restaurant {
 
 		/**
 	    * method to get today's deliveries.
-	    * @param idToken
+	    * @param idToken ID token assigned on user log in
 		 * @param restaurantAddress address of the restaurant
 	    * @return the orders with delivery date today.
 	    */
@@ -1346,8 +1348,8 @@ public class Restaurant {
 
 	/**
 	 * Compares two dates and selects the latest.
-	 * @param firstdate
-	 * @param seconddate
+	 * @param firstdate first date to compare
+	 * @param seconddate second date to compare
 	 * @return latest of the dates
 	 */
 	public String compare(String firstdate, String seconddate){
