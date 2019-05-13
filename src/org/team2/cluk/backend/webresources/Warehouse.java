@@ -359,7 +359,7 @@ public class Warehouse
     @GET
     @Path("/send-order")
     //Reduces warehouse stock levels determined by the stock requests in an order. Takes the orderId as a parameter.
-    public Response sendOrder(@HeaderParam("idToken") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
+    public Response sendOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, @HeaderParam("orderId") String _orderId)
     {
 	     if (!Authorisation.checkAccess(idToken, "warehouse") && !Authorisation.checkAccess(idToken, "restaurant")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();

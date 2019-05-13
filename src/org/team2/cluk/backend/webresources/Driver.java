@@ -30,12 +30,11 @@ public class Driver {
 
 	@Path("/plot-route")
 	@GET
-	public static Response plotRoute(@HeaderParam("Authorisation") String idToken) {
+	public static Response plotRoute(@HeaderParam("Authorization") String idToken) {
 
-		// seems not to work correctly
-		/* if (!Authorisation.checkAccess(idToken, "driver")) {
+		if (!Authorisation.checkAccess(idToken, "driver")) {
 			return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get permission").build();
-		} */
+		}
 
 		//connects to database
 		JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
