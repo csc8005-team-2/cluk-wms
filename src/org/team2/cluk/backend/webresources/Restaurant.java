@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Restaurant Class which handles stocks information, ordering stock and recieving orders, creating meals and checking prices
+ * Restaurant Class which handles stocks information, ordering stock and receiving orders, creating meals and checking prices
  *
  * @version 11/05/2019
  */
@@ -154,7 +154,8 @@ public class Restaurant {
     */
     @GET
     @Path("/receive-order")
-    public Response receiveOrder(@HeaderParam("idToken") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") int orderId) {
+    public Response receiveOrder(@HeaderParam("idToken") String idToken, @HeaderParam("address") String restaurantAddress, @HeaderParam("order-id") String orderIdStr) {
+    	int orderId = Integer.parseInt(orderIdStr);
     	ServerLog.writeLog("Requested receiving order " + orderId + " at " + restaurantAddress);
 
 		boolean processedCorrectly = true;
