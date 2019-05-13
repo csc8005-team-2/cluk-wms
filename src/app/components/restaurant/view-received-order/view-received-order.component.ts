@@ -33,7 +33,14 @@ export class ViewReceivedOrderComponent implements OnInit {
         window.alert('Order ' + this.orderId + ' successfully received. Stock amounts updated in the database.');
         this.dialogRef.close(true);
       }
-    }, err => console.log(err));
+    }, err => {
+      if (err.error === 'ORDER_NOT_FOUND') {
+        window.alert('Error encountered! Order cannot be found in the system.');
+      } else if (err.error === 'WRONG_RESTAURANT') {
+        window.alert('This order is not supposed to be delivered to this restaurant! You do not have permission to accept it!');
+      }
+      console.log(err);
+    });
   }
 
   ngOnInit() {
