@@ -23,6 +23,11 @@ with the rest of the Web API.
 ## Used libraries
 Apart from Jersey, project makes use of MySQL/J Connector,
 javax.json package and Apache Common Lang 3.
+
+## Requirements
+Backend runs on Oracle JDK or OpenJDK 12. Root permissions 
+might bre required to run the main method.
+
 ## Contributions
 ### Backend
 Business logic of the backend was designed by #teambackend:

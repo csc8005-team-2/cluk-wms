@@ -28,7 +28,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /**
- * StartServer Class which is the main class used to start the server
+ * StartServer Class which is the main class used to start the server.
+ * Root permissions might be required to run the main method.
  *
  * @version 31/03/2019
  */
