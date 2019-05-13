@@ -379,7 +379,7 @@ public class Warehouse
 			
     		rs.next();
     		String orderStatus = rs.getString("orderStatus");
-    		if(!orderStatus.equalsIgnoreCase("Approved")){
+    		if(!orderStatus.equalsIgnoreCase("Delivered")){
     			ServerLog.writeLog("Order has not been approved or has already been fulfilled.");
     			orderFulfilled = true;
     		}
