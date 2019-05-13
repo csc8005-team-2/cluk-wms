@@ -844,8 +844,10 @@ public class Restaurant {
 			try {
 				statement = connection.createStatement();
 				ResultSet rs2 = statement.executeQuery(query);
-				rs2.next();
-				int stockQuantity = rs2.getInt("quantity");
+				int stockQuantity = 0;
+				while (rs2.next()) {
+					stockQuantity = rs2.getInt("quantity");
+				}
 
 				if (stockQuantity < quantity) {
 					ServerLog.writeLog(meal + " cannot be made. Restaurant stock too low. \n");
