@@ -387,8 +387,8 @@
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-line">Defined in <a href="" data-line="39"
-                            class="link-to-prism">src/app/components/restaurant/view-received-order/view-received-order.component.ts:39</a></div>
+                    <div class="io-line">Defined in <a href="" data-line="46"
+                            class="link-to-prism">src/app/components/restaurant/view-received-order/view-received-order.component.ts:46</a></div>
                 </td>
             </tr>
 
@@ -564,7 +564,14 @@ export class ViewReceivedOrderComponent implements OnInit {
         window.alert(&#x27;Order &#x27; + this.orderId + &#x27; successfully received. Stock amounts updated in the database.&#x27;);
         this.dialogRef.close(true);
       }
-    }, err &#x3D;&gt; console.log(err));
+    }, err &#x3D;&gt; {
+      if (err.error &#x3D;&#x3D;&#x3D; &#x27;ORDER_NOT_FOUND&#x27;) {
+        window.alert(&#x27;Error encountered! Order cannot be found in the system.&#x27;);
+      } else if (err.error &#x3D;&#x3D;&#x3D; &#x27;WRONG_RESTAURANT&#x27;) {
+        window.alert(&#x27;This order is not supposed to be delivered to this restaurant! You do not have permission to accept it!&#x27;);
+      }
+      console.log(err);
+    });
   }
 
   ngOnInit() {

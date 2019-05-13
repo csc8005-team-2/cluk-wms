@@ -180,7 +180,7 @@
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="11" class="link-to-prism">src/app/components/login/login.component.ts:11</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="12" class="link-to-prism">src/app/components/login/login.component.ts:12</a></div>
                             </td>
                         </tr>
 
@@ -261,8 +261,8 @@
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-line">Defined in <a href="" data-line="61"
-                            class="link-to-prism">src/app/components/login/login.component.ts:61</a></div>
+                    <div class="io-line">Defined in <a href="" data-line="56"
+                            class="link-to-prism">src/app/components/login/login.component.ts:56</a></div>
                 </td>
             </tr>
 
@@ -300,8 +300,8 @@
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-line">Defined in <a href="" data-line="57"
-                            class="link-to-prism">src/app/components/login/login.component.ts:57</a></div>
+                    <div class="io-line">Defined in <a href="" data-line="52"
+                            class="link-to-prism">src/app/components/login/login.component.ts:52</a></div>
                 </td>
             </tr>
 
@@ -339,8 +339,8 @@
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-line">Defined in <a href="" data-line="18"
-                            class="link-to-prism">src/app/components/login/login.component.ts:18</a></div>
+                    <div class="io-line">Defined in <a href="" data-line="19"
+                            class="link-to-prism">src/app/components/login/login.component.ts:19</a></div>
                 </td>
             </tr>
 
@@ -421,8 +421,8 @@
 
             <tr>
                 <td class="col-md-4">
-                    <div class="io-line">Defined in <a href="" data-line="15"
-                            class="link-to-prism">src/app/components/login/login.component.ts:15</a></div>
+                    <div class="io-line">Defined in <a href="" data-line="16"
+                            class="link-to-prism">src/app/components/login/login.component.ts:16</a></div>
                 </td>
             </tr>
 
@@ -464,7 +464,7 @@
                     </tr>
                         <tr>
                             <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="11" class="link-to-prism">src/app/components/login/login.component.ts:11</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="12" class="link-to-prism">src/app/components/login/login.component.ts:12</a></div>
                             </td>
                         </tr>
 
@@ -480,6 +480,7 @@
         <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {Component, OnInit} from &#x27;@angular/core&#x27;;
 import {SessionService} from &#x27;../../services/session.service&#x27;;
 import {Router} from &#x27;@angular/router&#x27;;
+import {tap} from &#x27;rxjs/operators&#x27;;
 
 @Component({
   selector: &#x27;app-login&#x27;,
@@ -497,13 +498,7 @@ export class LoginComponent implements OnInit {
   login(username: string, password: string) {
     this.wrongCredentials &#x3D; false;
     this.session.loginSub &#x3D; this.session.login(username, password).subscribe(res &#x3D;&gt; {
-      this.session.getPermissions().subscribe(_permissions &#x3D;&gt; {
-        this.session.permissions &#x3D; _permissions;
-        this.session.setCookie(&#x27;restaurant&#x27;, (this.session.permissions.restaurant) ? &#x27;true&#x27; : &#x27;false&#x27;, 90, &#x27;/&#x27;);
-        this.session.setCookie(&#x27;warehouse&#x27;, (this.session.permissions.warehouse) ? &#x27;true&#x27; : &#x27;false&#x27;, 90, &#x27;/&#x27;);
-        this.session.setCookie(&#x27;driver&#x27;, (this.session.permissions.driver) ? &#x27;true&#x27; : &#x27;false&#x27;, 90, &#x27;/&#x27;);
-        this.session.setCookie(&#x27;manager&#x27;, (this.session.permissions.manager) ? &#x27;true&#x27; : &#x27;false&#x27;, 90, &#x27;/&#x27;);
-
+      this.session.getPermissions().pipe( tap (_permissions &#x3D;&gt; {
         let prefix &#x3D; &#x27;&#x27;;
         if (this.session.permissions.manager) {
           this.router.navigate([&#x27;/accounts&#x27;]).then(() &#x3D;&gt; {
@@ -524,7 +519,7 @@ export class LoginComponent implements OnInit {
             return;
           });
         }
-      });
+      })).subscribe();
 
     }, err &#x3D;&gt; {
       if (err.error &#x3D;&#x3D;&#x3D; &#x27;WRONG_CREDENTIALS&#x27;) {

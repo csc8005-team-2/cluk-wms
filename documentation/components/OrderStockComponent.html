@@ -747,6 +747,13 @@ export class OrderStockComponent implements OnInit {
       this.session.requestStandardOrder(this.session.getVenueAddress()).subscribe(res &#x3D;&gt; {
         this.session.sendOrder(this.session.getVenueAddress(), res.orderId).subscribe(sendRes &#x3D;&gt; {
           window.alert(&#x27;Order has been sent to the warehouse! Order number: &#x27; + res.orderId);
+        }, err &#x3D;&gt; {
+          if (err.error &#x3D;&#x3D;&#x3D; &#x27;STOCK_TOO_LOW&#x27;) {
+            window.alert(&#x27;Not enough stock in the warehouse to place order&#x27;);
+          }
+          if (err.error &#x3D;&#x3D;&#x3D; &#x27;ORDER_ALREADY_FULFILLED&#x27;) {
+            window.alert(&#x27;Order &#x27; + res.orderId + &#x27; already fulfilled!&#x27;);
+          }
         });
       });
     }
