@@ -248,6 +248,109 @@ public class Warehouse
         return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
 
 
+	    
+	    
+	/*
+    * method to approve order from the warehouse to the restaurant
+    * @param idToken to check access to warehouse and restaurant
+    * @param orderId of the stock order
+    * @return approved order
+    */
+    @GET
+    @Path("/approve-order")
+    @Produces("application/json")
+    public Response approveOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
+    {
+	    
+	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+	    
+    	int orderId = Integer.parseInt(_orderId);
+   	Response.ResponseBuilder res = null;
+   	Connection connection = DbConnection.getConnection();
+   		
+   	Statement statement = null;
+   	String query = "UPDATE StockOrders Set orderStatus = 'Approved' WHERE orderId = " + orderId;
+   		
+   	try {
+   		statement = connection.createStatement();
+   		statement.executeUpdate(query);
+   		ServerLog.writeLog("Order: "+orderId +" Approved");
+
+        JsonObject resJson= Json.createObjectBuilder().add("message", "APPROVED_ORDER").build();
+
+   		res = Response.status(Response.Status.OK).entity(resJson.toString());
+   		
+   	 } catch (SQLException e) {
+   		ServerLog.writeLog("SQL exception occurred when executing query");
+   		e.printStackTrace();
+   		res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query");
+   	 } finally {
+   		if (statement != null) {
+   			try {
+   				statement.close();
+   			} catch (SQLException e) {
+   				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+   			}
+   		}
+   	}
+  	return res.build();  		 
+    }
+
+    /*
+    * method to decline order. 
+    * @param idToken
+    * @param orderId
+    * @return declined order
+    */
+    @GET
+    @Path("/decline-order")
+    @Produces("application/json")
+    public Response declineOrder(@HeaderParam("Authorization") String idToken, @HeaderParam("orderId") String _orderId)
+    {
+	    
+	    if (!Authorisation.checkAccess(idToken, "warehouse")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+	    
+    	int orderId = Integer.parseInt(_orderId);
+   	Response.ResponseBuilder res = null;
+   	Connection connection = DbConnection.getConnection();
+   		
+   	Statement statement = null;
+   	String query = "UPDATE StockOrders Set orderStatus = 'Declined' WHERE orderId = " + orderId;
+   		
+   	try {
+   		statement = connection.createStatement();
+   		statement.executeUpdate(query);
+   		ServerLog.writeLog("Order: "+orderId +" Declined");
+
+   		JsonObject resJson= Json.createObjectBuilder().add("message", "DECLINED_ORDER").build();
+   		res = Response.status(Response.Status.OK).entity(resJson.toString());
+   		
+   	 } catch (SQLException e) {
+   		ServerLog.writeLog("SQL exception occurred when executing query");
+   		e.printStackTrace();
+   		res = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query");
+   	 } finally {
+   		if (statement != null) {
+   			try {
+   				statement.close();
+   			} catch (SQLException e) {
+   				ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+   			}
+   		}
+   	}
+  	return res.build();  		 
+    }
+	    
+	    
+	    
+	    
+	    
+	    
+	    
     }
 
     /**
