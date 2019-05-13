@@ -1114,7 +1114,7 @@ public class Restaurant {
 		                Date dateTime = rs.getDate("orderDateTime");
 		                
 		                Statement adstatement = null;
-				    String adquery = "SELECT restaurantAddress from Orders WHERE orderId = "+orderId;
+				    String adquery = "SELECT restaurantAddress from Orders WHERE orderId = "+orderId+" AND restaurantAddress = '"+restaurantAddress+"'";
 				    
 				    	 try {
 		           		 adstatement = connection.createStatement();
