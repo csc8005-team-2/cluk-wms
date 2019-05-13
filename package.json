@@ -48,8 +48,5 @@
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
     "typescript": "~3.2.2"
-  },
-  "scripts": {
-    "compodoc": "npx compodoc -p src/tsconfig.app.json"
   }
 }
