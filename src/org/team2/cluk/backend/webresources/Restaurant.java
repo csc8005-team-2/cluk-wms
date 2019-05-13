@@ -44,7 +44,7 @@ public class Restaurant {
         Connection connection = DbConnection.getConnection();
 
         Statement statement = null;
-        String query = "SELECT mealId FROM Meals";
+        String query = "SELECT mealId, price FROM Meals";
 
         try {
             statement = connection.createStatement();
@@ -52,7 +52,10 @@ public class Restaurant {
             while (rs.next()) {
                 JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
                 String meal = rs.getString("mealId");
+                float price = rs.getFloat("price");
+
                 arrayEntryBuilder.add("meal", meal);
+                arrayEntryBuilder.add("price", price);
                 JsonObject arrayEntry = arrayEntryBuilder.build();
                 responseBuilder.add(arrayEntry);
             }
