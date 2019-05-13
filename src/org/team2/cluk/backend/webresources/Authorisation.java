@@ -527,8 +527,10 @@ public class Authorisation {
     @GET
     @Produces("application/json")
     public Response checkAccess(@HeaderParam("Authorization") String idToken) {
+        ServerLog.writeLog("Refreshing user permissions");
         refreshPermissions(userTokens.get(idToken));
 
+        ServerLog.writeLog("Building permissions array");
         JsonObjectBuilder permissionsTableBuilder = Json.createObjectBuilder();
 
         if (warehousePermissions.contains(idToken))
@@ -548,6 +550,8 @@ public class Authorisation {
         else permissionsTableBuilder.add("manager", false);
 
         JsonObject permissionsTable = permissionsTableBuilder.build();
+
+        ServerLog.writeLog("Array built: " + permissionsTable.toString());
 
         return Response.status(Response.Status.OK).entity(permissionsTable.toString()).build();
     }
