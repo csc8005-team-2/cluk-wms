@@ -23,6 +23,57 @@ import java.util.Map;
 public class Restaurant {
 
     /**
+     * method to get the meal names
+     * @param idToken to check access for restaurant
+     * @return all stock within the restaurant
+     */
+    @GET
+    @Path("/get-meals-names")
+    @Produces("application/json")
+    public Response getMealNames(@HeaderParam("Authorization") String idToken)
+    {
+
+        if (!Authorisation.checkAccess(idToken, "restaurant")) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
+        }
+
+        ServerLog.writeLog("Requested names of meal items.");
+
+        JsonArrayBuilder responseBuilder = Json.createArrayBuilder();
+        // fetch current database connection
+        Connection connection = DbConnection.getConnection();
+
+        Statement statement = null;
+        String query = "SELECT mealId FROM Meals";
+
+        try {
+            statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                JsonObjectBuilder arrayEntryBuilder = Json.createObjectBuilder();
+                String meal = rs.getString("mealId");
+                arrayEntryBuilder.add("meal", meal);
+                JsonObject arrayEntry = arrayEntryBuilder.build();
+                responseBuilder.add(arrayEntry);
+            }
+        } catch (SQLException e) {
+            ServerLog.writeLog("SQL exception occurred when executing query");
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("SQL Exception occurred when executing query").build();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                }
+            }
+        }
+        JsonArray response = responseBuilder.build();
+        return Response.status(Response.Status.OK).entity(response.toString()).build();
+    }
+
+    /**
      * Method which handles request for total stock units at a given restaurant given as "address" in the request header
      * The system will ask users to input a restaurant's address
      * The system will show information about the total stock in the given restaurant
@@ -1110,76 +1161,76 @@ public class Restaurant {
 		            JsonObjectBuilder orderEntry = Json.createObjectBuilder();
 
 		            while(rs.next()) {
-		                int orderId = rs.getInt("orderId");
-		                Date dateTime = rs.getDate("orderDateTime");
-		                
-		                Statement adstatement = null;
-				    String adquery = "SELECT restaurantAddress from Orders WHERE orderId = "+orderId+" AND restaurantAddress = '"+restaurantAddress+"'";
-				    
-				    	 try {
-		           		 adstatement = connection.createStatement();
-		           		 ResultSet adrs = adstatement.executeQuery(adquery);
+                        int orderId = rs.getInt("orderId");
+                        Date dateTime = rs.getDate("orderDateTime");
 
-		            		 while(adrs.next()) {
-						 String address = adrs.getString("restaurantAddress")
-				    
-					 orderEntry.add("orderId", orderId);
-		             		 orderEntry.add("dateTime", dateTime.toString());
-		             		 orderEntry.add("address", address);
+                        Statement adstatement = null;
+                        String adquery = "SELECT restaurantAddress from Orders WHERE orderId = " + orderId + " AND restaurantAddress = '" + restaurantAddress + "'";
 
-		                //Gets contents of the order.
-		                JsonArrayBuilder orderContents = Json.createArrayBuilder();
-		                Statement innerStatement = null;
-		                String innerQuery = "SELECT quantity, stockItem FROM Contains WHERE orderId="+orderId;
+                        try {
+                            adstatement = connection.createStatement();
+                            ResultSet adrs = adstatement.executeQuery(adquery);
 
-		                try {
-		                    innerStatement = connection.createStatement();
-		                    ResultSet innerRs = innerStatement.executeQuery(innerQuery);
+                            while (adrs.next()) {
+                                String address = adrs.getString("restaurantAddress");
 
-		                    while(innerRs.next()) {
-		                        String stockItem = innerRs.getString("stockItem");
-		                        int quantity = innerRs.getInt("quantity");
-		                        JsonObjectBuilder stockEntry = Json.createObjectBuilder();
+                                orderEntry.add("orderId", orderId);
+                                orderEntry.add("dateTime", dateTime.toString());
+                                orderEntry.add("address", address);
 
-		                        stockEntry.add("stockItem", stockItem);
-		                        stockEntry.add("quantity", quantity);
+                                //Gets contents of the order.
+                                JsonArrayBuilder orderContents = Json.createArrayBuilder();
+                                Statement innerStatement = null;
+                                String innerQuery = "SELECT quantity, stockItem FROM Contains WHERE orderId=" + orderId;
 
-		                        orderContents.add(stockEntry);
-		                    }
-		                }catch (SQLException e ) {
-		                    e.printStackTrace();
-		                }finally {
-		                    if (innerStatement != null) {
-		                        try {
-		                            innerStatement.close();
-		                        } catch (SQLException e) {
-		                            ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-		                        }
-		                    }
-		                }
+                                try {
+                                    innerStatement = connection.createStatement();
+                                    ResultSet innerRs = innerStatement.executeQuery(innerQuery);
 
-		                orderEntry.add("contents", orderContents);
+                                    while (innerRs.next()) {
+                                        String stockItem = innerRs.getString("stockItem");
+                                        int quantity = innerRs.getInt("quantity");
+                                        JsonObjectBuilder stockEntry = Json.createObjectBuilder();
 
-		                pendingOrdersBuilder.add(orderEntry);
-		            }
+                                        stockEntry.add("stockItem", stockItem);
+                                        stockEntry.add("quantity", quantity);
 
-		            res = Response.status(Response.Status.OK).entity(pendingOrdersBuilder.build().toString());
-		            
+                                        orderContents.add(stockEntry);
+                                    }
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    if (innerStatement != null) {
+                                        try {
+                                            innerStatement.close();
+                                        } catch (SQLException e) {
+                                            ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                                        }
+                                    }
+                                }
 
-					        } catch (SQLException e ) {
-					            e.printStackTrace();
-					        } finally {
-					            if (adstatement != null) {
-					                try {
-					                    adstatement.close();
-					                } catch (SQLException e) {
-					                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
-					                }
-					            }
-					        }
-		            
-		            
-		            
+                                orderEntry.add("contents", orderContents);
+
+                                pendingOrdersBuilder.add(orderEntry);
+                            }
+
+                            res = Response.status(Response.Status.OK).entity(pendingOrdersBuilder.build().toString());
+
+
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (adstatement != null) {
+                                try {
+                                    adstatement.close();
+                                } catch (SQLException e) {
+                                    ServerLog.writeLog("SQL exception occurred when closing SQL statement");
+                                }
+                            }
+                        }
+
+
+                    }
 
 		        } catch (SQLException e ) {
 		            e.printStackTrace();
