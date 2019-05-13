@@ -368,7 +368,8 @@ export class SessionService {
   */ 
   createMeal(_address: string, _meal: string): Observable<Message> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken)
-      .append('address', _address);
+      .append('address', _address)
+      .append('meal', _meal);
 
     return this.http.get<Message>(this.BACKEND_URL + '/restaurant/create-meal', {headers: reqHeader});
   }

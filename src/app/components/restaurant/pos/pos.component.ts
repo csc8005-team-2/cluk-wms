@@ -53,15 +53,13 @@ export class POSComponent implements OnInit {
 
   submitOrder() {
     let mealSub: any;
+    console.log(this.order);
     for (let i = 0; i < this.order.length; i++) {
       const orderItem = this.order[i];
       for (let j = 0; j < orderItem.quantity; j++) {
-        if (mealSub) { mealSub.unsubscribe(); }
+        // if (mealSub) { mealSub.unsubscribe(); }
         mealSub = this.session.createMeal(this.session.getVenueAddress(), orderItem.mealItem.meal).subscribe(res => {
-          this.order = [];
-          this.orderDataSource = new MatTableDataSource(this.order);
-          this.totalPrice = 0;
-          window.alert('Order sent to the kitchen!');
+
         }, err => {
           if (err.message === 'STOCK_TOO_LOW') {
             window.alert(orderItem.mealItem.meal + ' is out of stock and was removed from the order');
@@ -69,6 +67,10 @@ export class POSComponent implements OnInit {
         });
       }
     }
+    window.alert('Order sent to the kitchen!');
+    this.order = [];
+    this.orderDataSource = new MatTableDataSource(this.order);
+    this.totalPrice = 0;
   }
 
   ngOnInit() {
