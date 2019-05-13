@@ -8,6 +8,12 @@ const getScriptSrc = (callbackName) => {
   providedIn: 'root'
 })
 
+/**
+ * Injectable service supporting handling of Google Maps.
+ * Based on https://stackoverflow.com/questions/42816363/getting-started-how-to-use-google-maps-api-with-angular-cli
+ *
+ * Replace getScriptScr with your API key!
+ */
 export class GMapService {
   private map: google.maps.Map;
   private geocoder: google.maps.Geocoder;

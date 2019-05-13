@@ -1,0 +1,942 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">frontend documentation</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+<ol class="breadcrumb">
+  <li>Components</li>
+  <li>OrderStockComponent</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li >
+            <a href="#templateData" role="tab" id="templateData-tab" data-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li >
+            <a href="#styleData" role="tab" id="styleData-tab" data-toggle="tab" data-link="style">Styles</a>
+        </li>
+        <li >
+            <a href="#tree" role="tab" id="tree-tab" data-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info"><p class="comment">
+    <h3>File</h3>
+</p>
+<p class="comment">
+    <code>src/app/components/restaurant/order-stock/order-stock.component.ts</code>
+</p>
+
+
+
+    <p class="comment">
+        <h3>Implements</h3>
+    </p>
+    <p class="comment">
+                    <code><a href="https://angular.io/api/core/OnInit" target="_blank" >OnInit</a></code>
+    </p>
+
+
+<section>
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover">
+        <tbody>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-order-stock</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">styleUrls</td>
+                <td class="col-md-9"><code>./order-stock.component.css</code></td>
+            </tr>
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./order-stock.component.html</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+    <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#availableStock">availableStock</a>
+                            </li>
+                            <li>
+                                <a href="#customOrderStr">customOrderStr</a>
+                            </li>
+                            <li>
+                                <a href="#displayedColumns">displayedColumns</a>
+                            </li>
+                            <li>
+                                <a href="#incorrectSelection">incorrectSelection</a>
+                            </li>
+                            <li>
+                                <a href="#order">order</a>
+                            </li>
+                            <li>
+                                <a href="#orderDataSource">orderDataSource</a>
+                            </li>
+                            <li>
+                                <a href="#tooLittleStock">tooLittleStock</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#addItem">addItem</a>
+                            </li>
+                            <li>
+                                <a href="#customOrder">customOrder</a>
+                            </li>
+                            <li>
+                                <a href="#ngOnInit">ngOnInit</a>
+                            </li>
+                            <li>
+                                <a href="#orderStock">orderStock</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+    <section>
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(cdRef: <a href="https://angular.io/api/core/ChangeDetectorRef" target="_blank">ChangeDetectorRef</a>, session: <a href="../injectables/SessionService.html">SessionService</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:46</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>cdRef</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://angular.io/api/core/ChangeDetectorRef" target="_blank" >ChangeDetectorRef</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>session</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/SessionService.html" target="_self" >SessionService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+
+
+    <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addItem"></a>
+                    <span class="name">
+                        <b>
+                            addItem
+                        </b>
+                        <a href="#addItem"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>addItem(stockItem: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, qtyStr: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="29"
+                            class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:29</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>stockItem</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>qtyStr</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="customOrder"></a>
+                    <span class="name">
+                        <b>
+                            customOrder
+                        </b>
+                        <a href="#customOrder"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>customOrder()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="57"
+                            class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:57</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ngOnInit"></a>
+                    <span class="name">
+                        <b>
+                            ngOnInit
+                        </b>
+                        <a href="#ngOnInit"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>ngOnInit()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="54"
+                            class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:54</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="orderStock"></a>
+                    <span class="name">
+                        <b>
+                            orderStock
+                        </b>
+                        <a href="#orderStock"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>orderStock()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="61"
+                            class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:61</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <section>
+    
+        <h3 id="inputs">
+            Properties
+        </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="availableStock"></a>
+                        <span class="name">
+                            <b>
+                            availableStock</b>
+                            <a href="#availableStock"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/StockName.html" target="_self" >StockName[]</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="14" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:14</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="customOrderStr"></a>
+                        <span class="name">
+                            <b>
+                            customOrderStr</b>
+                            <a href="#customOrderStr"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>&#x27;false&#x27;</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="16" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:16</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="displayedColumns"></a>
+                        <span class="name">
+                            <b>
+                            displayedColumns</b>
+                            <a href="#displayedColumns"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>string[]</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>[&#x27;stockItem&#x27;, &#x27;quantity&#x27;]</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:20</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="incorrectSelection"></a>
+                        <span class="name">
+                            <b>
+                            incorrectSelection</b>
+                            <a href="#incorrectSelection"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>false</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="27" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:27</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="order"></a>
+                        <span class="name">
+                            <b>
+                            order</b>
+                            <a href="#order"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/StockItem.html" target="_self" >StockItem[]</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>[]</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="25" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:25</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="orderDataSource"></a>
+                        <span class="name">
+                            <b>
+                            orderDataSource</b>
+                            <a href="#orderDataSource"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/StockItem.html" target="_self" >MatTableDataSource&lt;StockItem&gt;</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>new MatTableDataSource(this.order)</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:26</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="tooLittleStock"></a>
+                        <span class="name">
+                            <b>
+                            tooLittleStock</b>
+                            <a href="#tooLittleStock"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>false</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="15" class="link-to-prism">src/app/components/restaurant/order-stock/order-stock.component.ts:15</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Component, OnInit, ChangeDetectorRef } from &#x27;@angular/core&#x27;;
+import {StockName} from &#x27;../../../classes/stock-name&#x27;;
+import {StockItem} from &#x27;../../../classes/stock-item&#x27;;
+import {SessionService} from &#x27;../../../services/session.service&#x27;;
+import {MatTableDataSource} from &#x27;@angular/material&#x27;;
+
+@Component({
+  selector: &#x27;app-order-stock&#x27;,
+  templateUrl: &#x27;./order-stock.component.html&#x27;,
+  styleUrls: [&#x27;./order-stock.component.css&#x27;]
+})
+export class OrderStockComponent implements OnInit {
+  // Stock Object table
+  availableStock: StockName[];
+  tooLittleStock &#x3D; false;
+  customOrderStr &#x3D; &#x27;false&#x27;;
+
+
+  // displayed columns format
+  displayedColumns: string[] &#x3D; [&#x27;stockItem&#x27;, &#x27;quantity&#x27;];
+
+  // defining data source for the table
+  // could be done simply using an array &#x27;order&#x27; but then it would not be dynamic
+  // and won&#x27;t refresh on table change
+  order: StockItem[] &#x3D; [];
+  orderDataSource: MatTableDataSource&lt;StockItem&gt; &#x3D; new MatTableDataSource(this.order);
+  incorrectSelection &#x3D; false;
+
+  addItem(stockItem: string, qtyStr: string) {
+    if (stockItem &amp;&amp; qtyStr) {
+      this.tooLittleStock &#x3D; false;
+      const qty: number &#x3D; +qtyStr;
+
+      if (qty &lt; 2) {
+        this.tooLittleStock &#x3D; true;
+        return;
+      }
+
+      this.incorrectSelection &#x3D; false;
+      this.order.push({stockItem, quantity: qty});
+      this.orderDataSource &#x3D; new MatTableDataSource(this.order);
+      this.cdRef.detectChanges();
+    } else {
+      this.incorrectSelection &#x3D; true;
+    }
+  }
+
+  constructor(private cdRef: ChangeDetectorRef, private session: SessionService) {
+    this.session.getStockNames().subscribe(res &#x3D;&gt; {
+      this.availableStock &#x3D; res;
+    });
+  }
+
+  ngOnInit() {
+  }
+
+  customOrder(): boolean {
+    return (this.customOrderStr &#x3D;&#x3D;&#x3D; &#x27;true&#x27;) ? true : false;
+  }
+
+  orderStock() {
+    if (this.customOrder()) {
+      this.session.requestCustomOrder(this.session.getVenueAddress(), this.order).subscribe(res &#x3D;&gt; {
+        this.order &#x3D; [];
+        this.orderDataSource &#x3D; new MatTableDataSource(this.order);
+        window.alert(&#x27;Order has been sent to the warehouse! Order number: &#x27; + res.orderId);
+      }, err &#x3D;&gt; {
+        console.log(err);
+      });
+    } else {
+      this.session.requestStandardOrder(this.session.getVenueAddress()).subscribe(res &#x3D;&gt; {
+        this.session.sendOrder(this.session.getVenueAddress(), res.orderId).subscribe(sendRes &#x3D;&gt; {
+          window.alert(&#x27;Order has been sent to the warehouse! Order number: &#x27; + res.orderId);
+        });
+      });
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="c-templateData">
+        <pre class="line-numbers"><code class="language-html">&lt;div mat-line&gt;
+&lt;mat-radio-group [(ngModel)]&#x3D;&quot;customOrderStr&quot;&gt;
+  &lt;mat-radio-button value&#x3D;&quot;false&quot;&gt;Standard order&lt;/mat-radio-button&gt;
+  &lt;mat-radio-button value&#x3D;&quot;true&quot;&gt;Custom order&lt;/mat-radio-button&gt;
+&lt;/mat-radio-group&gt;
+&lt;/div&gt;
+
+&lt;mat-card id&#x3D;&quot;customOrder&quot; *ngIf&#x3D;&quot;customOrder()&quot;&gt;
+&lt;div class&#x3D;&quot;totalStock&quot;&gt;
+  &lt;div id&#x3D;&quot;incorrectSelectionMsg&quot; *ngIf&#x3D;&quot;incorrectSelection&quot;&gt;Information missing! Cannot add to stock order!&lt;/div&gt;
+  &lt;div id&#x3D;&quot;incorrectSelectionMsg&quot; *ngIf&#x3D;&quot;tooLittleStock&quot;&gt;You should order at least 2 units!&lt;/div&gt;
+
+  &lt;mat-form-field&gt;
+    &lt;mat-select #itemInput placeholder&#x3D;&quot;Stock Item&quot;&gt;
+      &lt;mat-option *ngFor&#x3D;&quot;let item of availableStock&quot; [value]&#x3D;&quot;item.stockItem&quot; required&gt;
+        {{item.stockItem}}
+      &lt;/mat-option&gt;
+    &lt;/mat-select&gt;
+  &lt;/mat-form-field&gt;
+
+  &lt;mat-form-field&gt;
+    &lt;input #numberInput matInput type&#x3D;&quot;number&quot; placeholder&#x3D;&quot;Quantity&quot; required&gt;
+  &lt;/mat-form-field&gt;
+
+  &lt;button mat-raised-button (click)&#x3D;&quot;addItem(itemInput.value, numberInput.value)&quot;&gt;&lt;mat-icon&gt;add&lt;/mat-icon&gt;&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;table id&#x3D;&quot;totalStock&quot; mat-table [dataSource]&#x3D;&quot;orderDataSource&quot;&gt;
+
+  &lt;ng-container matColumnDef&#x3D;&quot;stockItem&quot;&gt;
+    &lt;th mat-header-cell *matHeaderCellDef&gt;Stock Item&lt;/th&gt;
+    &lt;td mat-cell *matCellDef&#x3D;&quot;let element&quot;&gt;{{element.stockItem}}&lt;/td&gt;
+  &lt;/ng-container&gt;
+
+  &lt;ng-container matColumnDef&#x3D;&quot;quantity&quot;&gt;
+    &lt;th mat-header-cell *matHeaderCellDef&gt;Quantity (units)&lt;/th&gt;
+    &lt;td mat-cell *matCellDef&#x3D;&quot;let element&quot;&gt;{{element.quantity}}&lt;/td&gt;
+  &lt;/ng-container&gt;
+
+  &lt;tr mat-header-row *matHeaderRowDef&#x3D;&quot;displayedColumns&quot;&gt;&lt;/tr&gt;
+  &lt;tr mat-row *matRowDef&#x3D;&quot;let row; columns: displayedColumns;&quot;&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/mat-card&gt;
+
+&lt;button mat-raised-button id&#x3D;&quot;submitOrder&quot; (click)&#x3D;&quot;orderStock()&quot;&gt;Submit&lt;/button&gt;
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="c-styleData">
+                <p class="comment">
+                    <code>./order-stock.component.css</code>
+                </p>
+                <pre class="line-numbers"><code class="language-scss">#selectionForm{
+    margin: auto;
+    text-align: center;
+    width: 70%;
+}
+
+#selectionForm &gt; * {
+    margin: 1em;
+}
+
+#orderSummary {
+    width: 70%;
+    margin: auto;
+}
+
+#incorrectSelectionMsg {
+    color: red;
+}
+
+.mat-radio-button {
+  margin: 1em 2em 1em 0;
+}
+
+#submitOrder {
+  margin: 2em 0;
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="c-tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div><div mat-line><mat-radio-group [(ngModel)]="customOrderStr">  <mat-radio-button value="false">Standard order</mat-radio-button>  <mat-radio-button value="true">Custom order</mat-radio-button></mat-radio-group></div><mat-card id="customOrder" *ngIf="customOrder()"><div class="totalStock">  <div id="incorrectSelectionMsg" *ngIf="incorrectSelection">Information missing! Cannot add to stock order!</div>  <div id="incorrectSelectionMsg" *ngIf="tooLittleStock">You should order at least 2 units!</div>  <mat-form-field>    <mat-select #itemInput placeholder="Stock Item">      <mat-option *ngFor="let item of availableStock" [value]="item.stockItem" required>        {{item.stockItem}}      </mat-option>    </mat-select>  </mat-form-field>  <mat-form-field>    <input #numberInput matInput type="number" placeholder="Quantity" required>  </mat-form-field>  <button mat-raised-button (click)="addItem(itemInput.value, numberInput.value)"><mat-icon>add</mat-icon></button></div><table id="totalStock" mat-table [dataSource]="orderDataSource">  <ng-container matColumnDef="stockItem">    <th mat-header-cell *matHeaderCellDef>Stock Item</th>    <td mat-cell *matCellDef="let element">{{element.stockItem}}</td>  </ng-container>  <ng-container matColumnDef="quantity">    <th mat-header-cell *matHeaderCellDef>Quantity (units)</th>    <td mat-cell *matCellDef="let element">{{element.quantity}}</td>  </ng-container>  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr></table></mat-card><button mat-raised-button id="submitOrder" (click)="orderStock()">Submit</button></div>'
+    var COMPONENTS = [{'name': 'AccountManagerComponent', 'selector': 'app-account-manager'},{'name': 'AddStockComponent', 'selector': 'app-new-order'},{'name': 'AppComponent', 'selector': 'app-root'},{'name': 'ChangeMinThresholdComponent', 'selector': 'app-change-min-threshold'},{'name': 'CreateAccountComponent', 'selector': 'app-create-account'},{'name': 'DispatchChartComponent', 'selector': 'app-dispatch-chart'},{'name': 'DriverComponent', 'selector': 'app-driver'},{'name': 'LoginComponent', 'selector': 'app-login'},{'name': 'MainMenuComponent', 'selector': 'app-main-menu'},{'name': 'OrderStockComponent', 'selector': 'app-order-stock'},{'name': 'POSComponent', 'selector': 'app-pos'},{'name': 'QueryStockComponent', 'selector': 'app-total-stock'},{'name': 'ReceiveStockComponent', 'selector': 'app-receive-stock'},{'name': 'RestaurantManagerComponent', 'selector': 'app-restaurant-manager'},{'name': 'RestaurantOrdersComponent', 'selector': 'app-restaurant-orders'},{'name': 'RestaurantStockRemoveComponent', 'selector': 'app-restaurant-stock-remove'},{'name': 'TotalStockComponent', 'selector': 'app-total-stock'},{'name': 'ViewOrderComponent', 'selector': 'app-view-order'},{'name': 'ViewPermissionsComponent', 'selector': 'app-view-permissions'},{'name': 'ViewReceivedOrderComponent', 'selector': 'app-view-received-order'},{'name': 'WarehouseManagerComponent', 'selector': 'app-warehouse-manager'},{'name': 'WarehouseStockRemoveComponent', 'selector': 'app-warehouse-stock-remove'}];
+    var DIRECTIVES = [];
+    var ACTUAL_COMPONENT = {'name': 'OrderStockComponent'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'OrderStockComponent.html';
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>
