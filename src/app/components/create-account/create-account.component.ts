@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {MatDialogRef} from '@angular/material';
 import {SessionService} from '../../services/session.service';
-import {StaffMember} from '../../classes/staff-member';
 
 @Component({
   selector: 'app-create-account',
