@@ -112,7 +112,13 @@ export class SessionService {
   getPermissions(): Observable<UserPermissions> {
     const reqHeader = new HttpHeaders().append('Authorization', this.idToken);
 
-    return this.http.get<UserPermissions>(this.BACKEND_URL + '/accounts/check-access', {headers: reqHeader} );
+    return this.http.get<UserPermissions>(this.BACKEND_URL + '/accounts/check-access', {headers: reqHeader} ).pipe(tap (_permissions => {
+      this.permissions = _permissions;
+      this.setCookie('restaurant', (this.permissions.restaurant) ? 'true' : 'false', 90, '/');
+      this.setCookie('warehouse', (this.permissions.warehouse) ? 'true' : 'false', 90, '/');
+      this.setCookie('driver', (this.permissions.driver) ? 'true' : 'false', 90, '/');
+      this.setCookie('manager', (this.permissions.manager) ? 'true' : 'false', 90, '/');
+    }));
   }
 
   /**
