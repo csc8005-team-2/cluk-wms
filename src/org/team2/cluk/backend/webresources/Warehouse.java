@@ -160,9 +160,8 @@ public class Warehouse
     @Path("/update-stock")
     @Consumes("application/json")
     @Produces("application/json")
-    public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody)
-    {
-	  if (!Authorisation.checkAccess(idToken, "warehouse")) {
+    public Response updateStock(@HeaderParam("Authorization") String idToken, @HeaderParam("address") String address, String requestBody) {
+        if (!Authorisation.checkAccess(idToken, "warehouse")) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot get access").build();
         }
 
@@ -173,7 +172,7 @@ public class Warehouse
         // parse request body
         JsonArray stockToUpdate = JsonTools.parseArray(requestBody);
 
-        for (JsonValue entry: stockToUpdate) {
+        for (JsonValue entry : stockToUpdate) {
             // check if array entry is a JSON
             if (!(entry instanceof JsonObject)) {
                 ServerLog.writeLog("Order entry misspecified. Skipping entry.");
@@ -246,14 +245,15 @@ public class Warehouse
         JsonObject responseJson = Json.createObjectBuilder().add("message", "STOCK_UPDATED").build();
 
         return Response.status(Response.Status.OK).entity(responseJson.toString()).build();
+    }
 
 
 	    
 	    
-	/*
+	/**
     * method to approve order from the warehouse to the restaurant
     * @param idToken to check access to warehouse and restaurant
-    * @param orderId of the stock order
+    * @param _orderId of the stock order
     * @return approved order
     */
     @GET
@@ -298,10 +298,10 @@ public class Warehouse
   	return res.build();  		 
     }
 
-    /*
-    * method to decline order. 
-    * @param idToken
-    * @param orderId
+    /**
+    * method to decline order.
+     * @param idToken to check access to warehouse and restaurant
+     * @param _orderId of the stock order
     * @return declined order
     */
     @GET
@@ -343,14 +343,6 @@ public class Warehouse
    		}
    	}
   	return res.build();  		 
-    }
-	    
-	    
-	    
-	    
-	    
-	    
-	    
     }
 
     /**
