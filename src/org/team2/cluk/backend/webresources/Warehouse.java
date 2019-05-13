@@ -376,9 +376,12 @@ public class Warehouse
     	try{
     		statement = connection.createStatement();
     		ResultSet rs = statement.executeQuery(query);
-			
-    		rs.next();
-    		String orderStatus = rs.getString("orderStatus");
+
+    		String orderStatus = "";
+
+    		while (rs.next()) {
+                orderStatus = rs.getString("orderStatus");
+            }
     		if(!orderStatus.equalsIgnoreCase("Delivered")){
     			ServerLog.writeLog("Order has not been approved or has already been fulfilled.");
     			orderFulfilled = true;
@@ -443,9 +446,11 @@ public class Warehouse
             try{
                 statement = connection.createStatement();
                 ResultSet innerRs = statement.executeQuery(query);
+                int iQuantity = -1;
 
-                innerRs.next();
-                int iQuantity = innerRs.getInt("quantity");
+                while (innerRs.next()) {
+                    iQuantity = innerRs.getInt("quantity");
+                }
 
                 if(cQuantity > iQuantity){
                     ServerLog.writeLog("Order cannot be fulfilled. Warehouse stock too low.");
