@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {SessionService} from '../../services/session.service';
 import {Router} from '@angular/router';
+import {tap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -18,13 +19,7 @@ export class LoginComponent implements OnInit {
   login(username: string, password: string) {
     this.wrongCredentials = false;
     this.session.loginSub = this.session.login(username, password).subscribe(res => {
-      this.session.getPermissions().subscribe(_permissions => {
-        this.session.permissions = _permissions;
-        this.session.setCookie('restaurant', (this.session.permissions.restaurant) ? 'true' : 'false', 90, '/');
-        this.session.setCookie('warehouse', (this.session.permissions.warehouse) ? 'true' : 'false', 90, '/');
-        this.session.setCookie('driver', (this.session.permissions.driver) ? 'true' : 'false', 90, '/');
-        this.session.setCookie('manager', (this.session.permissions.manager) ? 'true' : 'false', 90, '/');
-
+      this.session.getPermissions().pipe( tap (_permissions => {
         let prefix = '';
         if (this.session.permissions.manager) {
           this.router.navigate(['/accounts']).then(() => {
@@ -45,7 +40,7 @@ export class LoginComponent implements OnInit {
             return;
           });
         }
-      });
+      })).subscribe();
 
     }, err => {
       if (err.error === 'WRONG_CREDENTIALS') {
