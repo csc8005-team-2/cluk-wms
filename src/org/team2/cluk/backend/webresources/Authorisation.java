@@ -523,7 +523,7 @@ public class Authorisation {
     * @param idToken of an account
     * @return whether the account will have access or not
     */
-    @Path("/account/check-access")
+    @Path("/accounts/check-access")
     @GET
     @Produces("application/json")
     public Response checkAccess(@HeaderParam("Authorization") String idToken) {
