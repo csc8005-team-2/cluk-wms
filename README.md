@@ -22,7 +22,9 @@ Package `org.team2.cluk.backend.unprocessed` contains classes
 with the rest of the Web API.
 ## Used libraries
 Apart from Jersey, project makes use of MySQL/J Connector,
-javax.json package and Apache Common Lang 3.
+javax.json package and Apache Common Lang 3. Required dependencies 
+are in `lib` directory. Depending on the IDE, you might need to 
+add it to the build/execution path manually.
 
 ## Requirements
 Backend runs on Oracle JDK or OpenJDK 12. Root permissions 

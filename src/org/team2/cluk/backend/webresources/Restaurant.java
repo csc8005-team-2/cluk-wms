@@ -152,7 +152,7 @@ public class Restaurant {
     * Users must choose the item and quantity that the restaurant has ordered and the address of the restaurant
 	* @param idToken to check access for restaurant
     * @param restaurantAddress address of the restaurant provided in the request header as "address"
-    * @param orderId of the stock recieved by the restaurant
+    * @param orderIdStr of the stock received by the restaurant
     * @return order added to restaurant stock
     */
     @GET
