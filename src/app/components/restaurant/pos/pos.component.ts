@@ -1,6 +1,4 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {StockName} from '../../../classes/stock-name';
-import {StockItem} from '../../../classes/stock-item';
 import {MatTableDataSource} from '@angular/material';
 import {MealPrice} from '../../../classes/meal-price';
 import {SessionService} from '../../../services/session.service';
