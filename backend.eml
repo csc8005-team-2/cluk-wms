@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component inherit-compiler-output="true" inheritJdk="true">
+	<output-test url="file://$MODULE_DIR$/out/test/backend"/>
+	<exclude-output/>
+	<contentEntry url="file://$MODULE_DIR$">
+		<excludeFolder url="file://$MODULE_DIR$/googleMap1"/>
+	</contentEntry>
+	<lib name="org.osgi:org.osgi.framework:1.9.0" scope="PROVIDED"/>
+	<levels>
+		<level name="javax.json:javax.json-api:1.1.4" value="project"/>
+		<level name="org.glassfish.jersey.bundles:jaxrs-ri:2.28" value="project"/>
+		<level name="org.glassfish.jersey.containers:jersey-container-jdk-http:2.28" value="project"/>
+		<level name="mysql:mysql-connector-java:8.0.15" value="project"/>
+		<level name="org.apache.commons:commons-lang3:3.8.1" value="project"/>
+		<level name="org.glassfish.jaxb:jaxb-runtime:2.3.2" value="project"/>
+		<level name="org.osgi:org.osgi.framework:1.9.0" value="project"/>
+	</levels>
+</component>
