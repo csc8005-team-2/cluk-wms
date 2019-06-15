@@ -1,0 +1,27 @@
+<p mat-line>User: {{data.name}}</p>
+<p mat-line><mat-checkbox #warehousePerm [checked]="data.warehouse">Warehouse</mat-checkbox></p>
+<p mat-line [hidden]="!warehousePerm.checked">
+  <mat-select #warLocation placeholder="Select location" [value]="(data.warehouse) ? data.location: ''">
+    <mat-option *ngFor="let item of warehouseLocations" [value]="item.address">
+      {{item.address}}
+    </mat-option>
+  </mat-select>
+</p>
+<p mat-line><mat-checkbox #restaurantPerm [checked]="data.restaurant">Restaurant</mat-checkbox></p>
+<p mat-line [hidden]="!restaurantPerm.checked">
+  <mat-select #resLocation placeholder="{{(data.restaurant) ? data.location : 'Select location'}}">
+    <mat-option *ngFor="let item of restaurantLocations" [value]="item.address">
+      {{item.address}}
+    </mat-option>
+  </mat-select>
+</p>
+<p mat-line><mat-checkbox #driverPerm [checked]="data.driver">Driver</mat-checkbox></p>
+<p mat-line [hidden]="!driverPerm.checked">
+  <mat-select #drivWarLocation placeholder="Select location" [value]="(data.driver) ? data.location: ''">
+    <mat-option *ngFor="let item of warehouseLocations" [value]="item.address">
+      {{item.address}}
+    </mat-option>
+  </mat-select>
+</p>
+<p mat-line><mat-checkbox #managerPerm [checked]="data.manager">Manager</mat-checkbox></p>
+<button mat-raised-button (click)="updatePermissions(warehousePerm.checked, restaurantPerm.checked, driverPerm.checked, managerPerm.checked, (warLocation.value) ? warLocation.value : ((resLocation.value) ? resLocation.value : drivWarLocation.value))">Update permissions</button>

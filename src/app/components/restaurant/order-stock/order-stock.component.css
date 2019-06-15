@@ -1,0 +1,26 @@
+#selectionForm{
+    margin: auto;
+    text-align: center;
+    width: 70%;
+}
+
+#selectionForm > * {
+    margin: 1em;
+}
+
+#orderSummary {
+    width: 70%;
+    margin: auto;
+}
+
+#incorrectSelectionMsg {
+    color: red;
+}
+
+.mat-radio-button {
+  margin: 1em 2em 1em 0;
+}
+
+#submitOrder {
+  margin: 2em 0;
+}

@@ -1,0 +1,13 @@
+#map {
+  min-height: 30em;
+  float: left;
+  width: 100%;
+}
+
+#directions-panel {
+  margin-top: 20px;
+  background-color: rgba(59, 59, 59, 0.199);
+  padding : 20px;
+  overflow: scroll;
+  height: 250px;
+}

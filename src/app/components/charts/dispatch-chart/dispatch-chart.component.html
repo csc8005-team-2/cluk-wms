@@ -1,0 +1,37 @@
+<mat-form-field>
+  <mat-select #itemInput placeholder="Stock Item" [(ngModel)]="selectedStockItemModel" (selectionChange)="updateGraph()">
+    <mat-option *ngFor="let item of availableStock" [value]="item.stockItem">
+      {{item.stockItem}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+<mat-form-field>
+  <mat-select #yearInput placeholder="Time Interval" [(ngModel)]="timeIntervalModel" (selectionChange)="updateGraph()">
+    <mat-option value="year">
+      Year
+    </mat-option>
+    <mat-option value="month">
+      Month
+    </mat-option>
+    <mat-option value="week">
+      Week
+    </mat-option>
+    <mat-option value="day">
+      Day
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+<div class="dispatchChart" [hidden]="!showChart">
+  <ngx-charts-bar-vertical #plotArea
+    [scheme]="colorScheme"
+    [results]="graphData"
+    [gradient]="gradient"
+    [xAxis]="showXAxis"
+    [yAxis]="showYAxis"
+    [legend]="showLegend"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [xAxisLabel]="xAxisLabel"
+    [yAxisLabel]="yAxisLabel">
+  </ngx-charts-bar-vertical>
+</div>
