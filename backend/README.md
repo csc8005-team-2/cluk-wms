@@ -30,6 +30,7 @@ add it to the build/execution path manually.
 Backend runs on Oracle JDK or OpenJDK 12. Root permissions 
 might bre required to run the main method.
 
+URIs and API keys might be used in the source code. They are not valid and please replace them with your own.
 ## Contributions
 ### Backend
 Business logic of the backend was designed by #teambackend:

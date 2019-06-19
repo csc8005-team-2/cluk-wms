@@ -2,6 +2,8 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.3.2.
 
+Code contains some URLs and API keys. They are not valid and please replace them with your own.
+
 ## Installing Angular
 
 Run `npm -g install @angular/cli` to install Angular CLI. Root permissions might be required. After this, run `npm install` in the project directory.
